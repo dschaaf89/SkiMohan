@@ -18,13 +18,13 @@ export async function POST(
     if (!name){
       return new NextResponse("name is required",{status:400});
     }
-    const school = await prismadb.season.create({
+    const season = await prismadb.season.create({
       data: {
         name,
         userId
       }
     });
-    return NextResponse.json(school);
+    return NextResponse.json(season);
   } catch (error) {
     console.log('[SEASON_POST]', error);
     return new NextResponse("Internal error", {status:500});

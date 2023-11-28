@@ -46,8 +46,9 @@ export const SchoolModal = () => {
     const response = await axios.post('/api/season', values);
     
     window.location.assign(`/${response.data.id}`)
+    toast.success("Season Created");
    } catch (error) {
-    toast.error("Something went wrong.");
+    toast.error("something went wrong");
     
    }finally{
     setLoading(false);

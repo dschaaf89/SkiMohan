@@ -14,11 +14,7 @@ export default async function SetupLayout({
     redirect('/sign-in');
   }
 
-  const season = await prismadb.season.findFirst({
-    where: {
-      userId,
-    }
-  });
+  const season = await prismadb.season.findFirst();
 
   if (season) {
     redirect(`/${season.id}`);

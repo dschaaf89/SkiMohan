@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs';
 
 import prismadb from '@/lib/prismadb';
+import Navbar from '@/components/navbar';
 
 export default async function DashboardLayout({
   children,
@@ -19,7 +20,7 @@ export default async function DashboardLayout({
   const season = await prismadb.season.findFirst({
     where: {
       id: params.seasonId,
-      userId
+     
     }
   });
   if(!season){
@@ -27,7 +28,7 @@ export default async function DashboardLayout({
   }
     return (
       <>
-        <div> this is going to be a navbar</div>
+        <Navbar/>
         {children}
       </>
     );
