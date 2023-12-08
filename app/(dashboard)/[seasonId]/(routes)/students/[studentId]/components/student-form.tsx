@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
@@ -53,7 +53,6 @@ import { cn } from "@/lib/utils";
 import { differenceInYears } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-
 const calculateAge = (birthdate: Date | null): number => {
   if (birthdate === null) {
     // Return a default value for age that indicates an invalid or unknown value.
@@ -61,6 +60,17 @@ const calculateAge = (birthdate: Date | null): number => {
     return -1;
   }
   return differenceInYears(new Date(), birthdate);
+};
+const getAllPrograms = () => {
+  return [
+    ...mondayPrograms,
+    ...tuesdayPrograms,
+    ...wednesdayPrograms,
+    ...thursdayPrograms,
+    ...fridayNightPrograms,
+    ...saturdayPrograms,
+    ...sundayPrograms
+  ];
 };
 
 const formSchema = z.object({
@@ -102,6 +112,7 @@ const formSchema = z.object({
   DAY: z.string().optional(),
   StartTime: z.string().optional(),
   EndTime: z.string().optional(),
+  //updateAt:z.date().optional(),
 });
 
 type StudentFormValues = z.infer<typeof formSchema>;
@@ -111,7 +122,7 @@ interface StudentFormProps {
 }
 const createDefaultValues = (
   initialData: Student | null,
-  allPrograms: ProgramDetails[] 
+  allPrograms: ProgramDetails[]
 ): StudentFormValues => {
   const defaultValues: StudentFormValues = {
     UniqueID: "",
@@ -152,16 +163,23 @@ const createDefaultValues = (
     DAY: "",
     StartTime: "",
     EndTime: "",
+    //updateAt:new Date(),
   };
 
   if (initialData) {
     const initialProgram = allPrograms.find(p => p.code === initialData.ProgCode);
-
-    // Set StartTime and EndTime based on the found program
+    
     if (initialProgram) {
       defaultValues.StartTime = initialProgram.startTime;
       defaultValues.EndTime = initialProgram.endTime;
+      defaultValues.ProgCode = initialProgram.program;
     }
+    //   //const initialProgram= initialData.ProgCode;
+    // // Set StartTime and EndTime based on the found program
+    // if (initialProgram) {
+    //   defaultValues.StartTime = initialData.StartTime ||'';
+    //   defaultValues.EndTime = initialData.EndTime || '';
+    // }
     (Object.keys(defaultValues) as Array<keyof StudentFormValues>).forEach(
       (key) => {
         // Check if the key exists in initialData and if it's not null or undefined
@@ -192,7 +210,6 @@ const createDefaultValues = (
             case "E_NAME":
             case "E_TEL":
             case "CCPayment":
-            case "ProgCode":
             case "BUDDY":
             case "WComment":
             case "DateFeePaid":
@@ -207,15 +224,34 @@ const createDefaultValues = (
             case "GENDER":
             case "FeeComment":
             case "DAY":
+            case "ProgCode":
             case "StartTime":
             case "EndTime":
+            
               defaultValues[key] =
                 initialData[key] !== null ? (initialData[key] as string) : "";
-
               break;
+            // case "ProgCode":
+            //   // Use the ProgCode from initialProgram if available, otherwise fall back to initialData
+            //   defaultValues[key] = initialProgram
+            //     ? initialProgram.code
+            //     : (initialData[key] as string) || "";
+            //   break;
+            // case "StartTime":
+            //   // Use the StartTime from initialProgram if available, otherwise fall back to initialData
+            //   defaultValues[key] = initialProgram
+            //     ? initialProgram.startTime
+            //     : (initialData[key] as string) || "";
+            //   break;
+            // case "EndTime":
+            //   // Use the EndTime from initialProgram if available, otherwise fall back to initialData
+            //   defaultValues[key] = initialProgram
+            //     ? initialProgram.endTime
+            //     : (initialData[key] as string) || "";
+            //   break;
             case "BRTHD":
+            // case"updateAt":
               defaultValues[key] = (initialData[key] as Date) || new Date();
-
               break;
             case "AGE":
               defaultValues.AGE = calculateAge(initialData.BRTHD);
@@ -224,23 +260,24 @@ const createDefaultValues = (
               defaultValues.AppType =
                 initialData[key] !== null ? (initialData[key] as number) : 0;
             default:
-              // Handle any other cases here, or leave them as-is
+              if (initialData[key] !== null && initialData[key] !== undefined) {
+                defaultValues[key] = initialData[key];
+              }
               break;
           }
         }
-
-
       }
     );
   }
-
+  console.log("Default values set from initialData", defaultValues);
   return defaultValues;
 };
 
 export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   const params = useParams();
   const router = useRouter();
-  const [allPrograms, setAllPrograms] = useState<ProgramDetails[]>([]);
+  const [allPrograms, setAllPrograms] = useState<ProgramDetails[]>(getAllPrograms());
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [age, setAge] = useState<number | null>(null);
@@ -260,16 +297,32 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
 
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: createDefaultValues(initialData,allPrograms),
+    defaultValues: createDefaultValues(initialData,allPrograms)
   });
+
+  useEffect(() => {
+    if (initialData && initialData.ProgCode) {
+      // Assume getAllPrograms is a function that returns all programs regardless of the day
+      const allPrograms = getAllPrograms(); 
+      const programToSelect = allPrograms.find(p => p.code === initialData.ProgCode);
+      if (programToSelect) {
+        setSelectedProgram(programToSelect);
+        // If the day is also being set from initial data, make sure to update it
+        setSelectedDay(programToSelect.day);
+        // Filter programs based on the selected day
+        setPrograms(allPrograms.filter(p => p.day === programToSelect.day));
+      }
+    }
+  }, [initialData]);
+
   const onSubmit = async (data: StudentFormValues) => {
     const submissionData = {
       ...data,
-      ProgCode: selectedProgram?.code || '',
-      StartTime: selectedProgram?.startTime || '',
-      EndTime: selectedProgram?.endTime || ''
+      ProgCode: selectedProgram?.code || "",
+      StartTime: selectedProgram?.startTime || "",
+      EndTime: selectedProgram?.endTime || "",
     };
-    console.log("Submitted data",data);
+    console.log("Submitted data", data);
     try {
       setLoading(true);
       if (initialData) {
@@ -294,30 +347,10 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
     setSelectedDay(selectedDay);
 
     // Filter the programs based on the selected day directly
-    let filteredPrograms: ProgramDetails[] = [];
-    switch (selectedDay) {
-      case "Monday":
-        filteredPrograms = mondayPrograms;
-      case "Tuesday":
-        filteredPrograms = tuesdayPrograms;
-        break;
-      case "Wednesday":
-        filteredPrograms = wednesdayPrograms;
-      case "Thursday":
-        filteredPrograms = thursdayPrograms;
-        break;
-      case "Friday":
-        filteredPrograms = fridayNightPrograms;
-        break;
-      case "Saturday":
-        filteredPrograms = saturdayPrograms;
-      case "Sunday":
-        filteredPrograms = sundayPrograms;
-      default:
-        filteredPrograms = []; // Or set to all programs if that's the desired default behavior
-        break;
-    }
+    const filteredPrograms = allPrograms.filter(p => p.day === selectedDay);
+    
     setPrograms(filteredPrograms);
+    setSelectedProgram(null);
   };
 
   const onDelete = async () => {
@@ -785,8 +818,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 </FormItem>
               )}
             />
-        
-        <FormField
+
+            <FormField
               control={form.control}
               name="DAY"
               render={({ field }) => (
@@ -796,9 +829,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleDayChange(value);
-                      
                     }}
-                    
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -831,9 +862,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                       field.onChange(value); // You may need this for React Hook Form to detect the change
                       const selected = programs.find((p) => p.code === value);
                       setSelectedProgram(selected || null);
-                      console.log('Selected Program:', selected);
+                      console.log("Selected Program:", selected);
                     }}
-                    defaultValue={field.value}
+                    defaultValue={initialData?.ProgCode || field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -953,17 +984,45 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
             />
             <FormField
               control={form.control}
+              name="CCPayment"
+              render={({ field }) => (
+                <FormItem className="m-10">
+                  <FormLabel>fee</FormLabel>
+                  <FormControl>
+                    <Input disabled={loading}
+                     placeholder="" {...field}
+                     readOnly />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="DateFeePaid"
               render={({ field }) => (
                 <FormItem className="m-10">
                   <FormLabel>Date Registered</FormLabel>
+                  <FormControl>
+                    <Input disabled={loading} placeholder="" {...field} readOnly />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+              {/* <FormField
+              control={form.control}
+              name="updateAt"
+              render={({ field }) => (
+                <FormItem className="m-10">
+                  <FormLabel>Date Modified</FormLabel>
                   <FormControl>
                     <Input disabled={loading} placeholder="" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
           </div>
           <Button disabled={loading} className="ml-auto" type="submit">
             {action}

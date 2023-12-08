@@ -246,36 +246,91 @@ export const fridayNightPrograms: ProgramDetails[] = [
 ];
 export const saturdayPrograms: ProgramDetails[] = [
   {
-    code: 'THB5',
-    program: 'Thursday Night Board 5 Session',
-    day: 'Thursday',
-    startTime: '7:00 PM',
-    endTime: '9:00 PM'
+    code: 'G710-B-LO',
+    program: 'Saturday Snowboard 10:30 AM - 12:30 PM, 10 to Adult',
+    day: 'Saturday',
+    startTime: '10:30 AM',
+    endTime: '12:30 PM'
   },
   {
-    code: 'THB7',
-    program: 'Thursday Night Board 7 Session',
-    day: 'Thursday',
-    startTime: '7:00 PM',
-    endTime: '9:00 PM'
+    code: 'G710-S-LO',
+    program: 'Saturday Ski 10:30 AM - 12:30 PM, 6 to Adult',
+    day: 'Saturday',
+    startTime: '10:30 AM',
+    endTime: '12:30 PM'
   },
-
+  {
+    code: 'G715-S-LO',
+    program: 'Saturday Ski 10:30 AM - 12:30 PM Magic Kingdom - Age 5',
+    day: 'Saturday',
+    startTime: '10:30 AM',
+    endTime: '12:30 PM'
+  },
+  {
+    code: 'G720-B-LO',
+    program: 'Saturday Snowboard 2:00-4:00 PM, 10 to Adult',
+    day: 'Saturday',
+    startTime: '2:00 PM',
+    endTime: '4:00 PM'
+  },
+  {
+    code: 'G720-S-LO',
+    program: 'Saturday Ski 2:00-4:00 PM, 6 to Adult',
+    day: 'Saturday',
+    startTime: '2:00 PM',
+    endTime: '4:00 PM'
+  },
+  {
+    code: 'G725-S-LO',
+    program: 'Saturday Ski 2:00-4:00 PM Magic Kingdom - Age 5',
+    day: 'Saturday',
+    startTime: '2:00 PM',
+    endTime: '4:00 PM'
+  },
 ];
 
 export const sundayPrograms: ProgramDetails[] = [
   {
-    code: 'THB5',
-    program: 'Thursday Night Board 5 Session',
-    day: 'Thursday',
-    startTime: '7:00 PM',
-    endTime: '9:00 PM'
+    code: 'G110-B-LO',
+    program: 'Sunday Snowboard 10:30 AM - 12:30 PM, 10 to Adult',
+    day: 'Sunday',
+    startTime: '10:30 AM',
+    endTime: '12:30 PM'
   },
   {
-    code: 'THB7',
-    program: 'Thursday Night Board 7 Session',
-    day: 'Thursday',
-    startTime: '7:00 PM',
-    endTime: '9:00 PM'
+    code: 'G110-S-LO',
+    program: 'Sunday Ski 10:30 AM - 12:30 PM, 6 to Adult',
+    day: 'Sunday',
+    startTime: '10:30 AM',
+    endTime: '12:30 PM'
+  },
+  {
+    code: 'G115-S-LO',
+    program: 'Sunday Ski 10:30 AM - 12:30 PM Magic Kingdom - Age 5',
+    day: 'Sunday',
+    startTime: '10:30 AM',
+    endTime: '12:30 PM'
+  },
+  {
+    code: 'G120-B-LO',
+    program: 'Sunday Snowboard 2:00-4:00 PM, 10 to Adult',
+    day: 'Sunday',
+    startTime: '2:00 PM',
+    endTime: '4:00 PM'
+  },
+  {
+    code: 'G120-S-LO',
+    program: 'Sunday Ski 2:00-4:00 PM, 6 to Adult',
+    day: 'Sunday',
+    startTime: '2:00 PM',
+    endTime: '4:00 PM'
+  },
+  {
+    code: 'G125-S-LO',
+    program: 'Sunday Ski 2:00-4:00 PM Magic Kingdom - Age 5',
+    day: 'Sunday',
+    startTime: '2:00 PM',
+    endTime: '4:00 PM'
   },
 
 ];

@@ -5,29 +5,29 @@ import prismadb from "@/lib/prismadb";
 
 export async function GET(
   req: Request,
-  { params }: { params: { studentId: string } }
+  { params }: { params: { instructorId: string } }
 ) {
   try {
-    if (!params.studentId) {
-      return new NextResponse("Billboard id is required", { status: 400 });
+    if (!params.instructorId) {
+      return new NextResponse("instructor id is required", { status: 400 });
     }
 
-    const student = await prismadb.student.findUnique({
+    const instructor = await prismadb.instructor.findUnique({
       where: {
-        id: params.studentId
+        id: params.instructorId
       }
     });
   
-    return NextResponse.json(student);
+    return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[Student_GET]', error);
+    console.log('[intstructor_GET]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
 };
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { studentId: string, seasonId: string } }
+  { params }: { params: { instructorId: string, seasonId: string } }
 ) {
   try {
     const { userId } = auth();
@@ -36,7 +36,7 @@ export async function DELETE(
       return new NextResponse("Unauthenticated", { status: 403 });
     }
 
-    if (!params.studentId) {
+    if (!params.instructorId) {
       return new NextResponse("Billboard id is required", { status: 400 });
     }
 
@@ -51,15 +51,15 @@ export async function DELETE(
     //   return new NextResponse("Unauthorized", { status: 405 });
     // }
 
-    const student = await prismadb.student.delete({
+    const instructor = await prismadb.instructor.delete({
       where: {
-        id: params.studentId,
+        id: params.instructorId,
       }
     });
   
-    return NextResponse.json(student);
+    return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[BILLBOARD_DELETE]', error);
+    console.log('[instructor_DELETE]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
 };
@@ -67,21 +67,26 @@ export async function DELETE(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { StudentId: string, seasonId: string } }
+  { params }: { params: { instructorId: string, seasonId: string } }
 ) {
   try {   
     const { userId } = auth();
 
     const body = await req.json();
     
-    const { id, NAME_FIRST, NAME_LAST,ADDRESS,CITY,STATE,HOME_TEL,ZIP,Email_student,GradeLevel,BRTHD,APPLYING_FOR,AGE,LEVEL,         
-      Approach,       
-      ProgCode,       
-      BUDDY,          
-      WComment,       
-      DateFeePaid,    
-      AGRESSIVENESS,  
-      GENDER,       } = body;
+    const { UniqueID,
+      NAME_FIRST,
+      NAME_LAST,
+      HOME_TEL,
+      C_TEL,
+      BRTHD,
+      E_mail_main,
+      ADDRESS,
+      CITY,
+      STATE,
+      ZIP,
+      GENDER,
+      AGE,      } = body;
     
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -95,7 +100,7 @@ export async function PATCH(
       return new NextResponse("Image URL is required", { status: 400 });
     }
 
-    if (!params.StudentId) {
+    if (!params.instructorId) {
       return new NextResponse("Billboard id is required", { status: 400 });
     }
 
@@ -110,39 +115,31 @@ export async function PATCH(
     //   return new NextResponse("Unauthorized", { status: 405 });
     // }
 
-    const student = await prismadb.student.update({
+    const instructor = await prismadb.instructor.update({
       where: {
-        id: params.StudentId,
+        id: params.instructorId,
       },
       data: {
-        id,
+        UniqueID,
         NAME_FIRST,
         NAME_LAST,
-        ADDRESS,
-        STATE,
-        CITY,
-        ZIP,
         HOME_TEL,
-        Email_student,
-        GradeLevel,
+        C_TEL,
         BRTHD,
+        E_mail_main,
+        ADDRESS,
+        CITY,
+        STATE,
+        ZIP,
+        GENDER,
         AGE,
-        APPLYING_FOR,
-        LEVEL,         
-        Approach,       
-        ProgCode,       
-        BUDDY,          
-        WComment,       
-        DateFeePaid,    
-        AGRESSIVENESS,  
-        GENDER,      
         seasonId: params.seasonId,
       }
     });
   
-    return NextResponse.json(student);
+    return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[Student_PATCH]', error);
+    console.log('[instructor_PATCH]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
 };

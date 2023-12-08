@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { differenceInYears } from "date-fns";
+import { mondayPrograms,tuesdayPrograms,wednesdayPrograms,thursdayPrograms,fridayNightPrograms,saturdayPrograms,sundayPrograms } from "@/app/(dashboard)/[seasonId]/(routes)/students/[studentId]/components/programDropdown";
 import prismadb from "@/lib/prismadb";
 
 type StudentData = {
@@ -50,6 +51,40 @@ function calculateAge(birthdate: Date): number {
   const today = new Date();
   return differenceInYears(today, birthdate);
 }
+
+function getAppTypeSuffix(appType: number) {
+  switch (appType) {
+      case 1:
+          return "LO";
+      case 2:
+          return "TR";
+      case 3:
+          return "LT";
+      default:
+          return "";
+  }
+}
+
+
+function getMiddleCode(applyingFor: string) {
+  switch (applyingFor.toLowerCase()) {
+      case "ski":
+          return "S";
+      case "board":
+          return "B";
+      case "transportation":
+          return "T";
+      default:
+          return "";
+  }
+}
+
+function findProgramDetails(fullProgCode: string) {
+  // Assuming allPrograms is an array that combines all your program arrays
+  const allPrograms = [...mondayPrograms, ...tuesdayPrograms, ...wednesdayPrograms, ...thursdayPrograms, ...fridayNightPrograms, ...saturdayPrograms, ...sundayPrograms];
+  return allPrograms.find(program => program.code === fullProgCode);
+}
+
 function mapAppTypeValue (value:number):number{
   switch (value){
     case 1:
@@ -118,6 +153,9 @@ function mapLevelValue(value: string): string {
       return ""; // Return an empty string for unsupported values
   }
 }
+
+
+
 export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
   try {
     console.log(params.seasonId)
@@ -139,6 +177,26 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
     const headers: string[] = body[0];
     const studentsData: StudentData[] = body.slice(1).map((studentArray: any[]) => {
       const studentObject: Partial<StudentData> = {};
+       // Get the indexes of necessary headers
+       const progCodeIndex = headers.indexOf('ProgCode');
+       const applyingForIndex = headers.indexOf('APPLYING_FOR');
+       const appTypeIndex = headers.indexOf('AppType');
+
+       // Get the values
+       const progCodePrefix = studentArray[progCodeIndex];
+       const applyingFor = studentArray[applyingForIndex];
+       const appType = studentArray[appTypeIndex];
+
+       // Construct the full ProgCode
+       const fullProgCode = `${progCodePrefix}-${getMiddleCode(applyingFor)}-${getAppTypeSuffix(appType)}`;
+       studentObject.ProgCode = fullProgCode;
+       console.log(studentObject.ProgCode);
+      //  const programDetails = findProgramDetails(fullProgCode);
+      //   if (programDetails) {
+      //       studentObject.DAY = programDetails.day;
+      //       studentObject.StartTime = programDetails.startTime;
+      //       studentObject.EndTime = programDetails.endTime;
+      //   }
       headers.forEach((header, index) => {
         const value = studentArray[index];
         if (header === 'Email_student') {
@@ -168,12 +226,26 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
           studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
         }else if (header === 'AcceptedTerms') { // Add this condition for 'AGE_GROUP'Q
           studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
-        } else if (header === 'WComment') { // Add this condition for 'AGE_GROUP'
+        }else if (header === 'WComment') { // Add this condition for 'AGE_GROUP'
           studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
-        }else {
+        } 
+        else if(header === 'Approach'){
+          studentObject['Approach'] = value === null ? '' : value.toString();
+        }
+        else {
           studentObject[header] = typeof value === 'string' || value === null ? value : value.toString();
         }
       });
+
+      
+      studentObject.ProgCode = fullProgCode;
+      console.log(studentObject.ProgCode);
+      const programDetails = findProgramDetails(fullProgCode);
+       if (programDetails) {
+           studentObject.DAY = programDetails.day;
+           studentObject.StartTime = programDetails.startTime;
+           studentObject.EndTime = programDetails.endTime;
+       }
       
 
       // Convert BRTHD to ISO string if it exists

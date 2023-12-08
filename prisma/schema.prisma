@@ -9,14 +9,14 @@ generator client {
 }
 
 model Season {
-  id         String      @id @default(uuid())
-  name       String
-  userId     String
-  billboards Billboard[] @relation("SeasonToBillboard")
-  students   Student[]   @relation("SeasonToStudent")
-  instructors Instructor[]@relation("SeasonToInstructor")
-  createAt   DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id          String       @id @default(uuid())
+  name        String
+  userId      String
+  billboards  Billboard[]  @relation("SeasonToBillboard")
+  students    Student[]    @relation("SeasonToStudent")
+  instructors Instructor[] @relation("SeasonToInstructor")
+  createAt    DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Billboard {
@@ -76,59 +76,123 @@ model Student {
   createAt      DateTime @default(now())
   updateAt      DateTime @updatedAt
 
-
   @@index([seasonId])
 }
 
+// model Instructor {
+//   id                String   @id @default(uuid())
+//   season            Season   @relation("SeasonToInstructor", fields: [seasonId], references: [id])
+//   seasonId          String
+//   UniqueID          String   @map("UniqueID")
+//   NAME_FIRST        String   @map("NAME_FIRST")
+//   NAME_LAST         String   @map("NAME_LAST")
+//   HOME_TEL          String   @map("HOME_TEL")
+//   E_MAIL            String   @map("E_MAIL")
+//   C_TEL             String   @map("C_TEL")
+//   BRTHD             DateTime @map("BRTHD")
+//   E_mail_main       String   @map("E_mail_main")
+//   ADDRESS           String   @map("ADDRESS")
+//   CITY              String   @map("CITY")
+//   STATE             String   @map("STATE")
+//   ZIP               String   @map("ZIP")
+//   Employer          String   @map("Employer")
+//   Occupation        String   @map("Occupation")
+//   W_Tel             String   @map("W_Tel")
+//   CCPayment         String   @map("CCPayment")
+//   DateFeePaid       DateTime @map("DateFeePaid")
+//   PSIAcertification Int      @map("PSIAcertification")
+//   AASIcertification Int      @map("AASIcertification")
+//   NumDays           Int      @map("NumDays")
+//   ApplyingFor       Int      @map("ApplyingFor")
+//   PaymentStatus     String   @map("PaymentStatus")
+//   PROG_CODE         String   @map("PROG_CODE")
+//   Clinic1           String   @map("Clinic1")
+//   Clinic2           String   @map("Clinic2")
+//   Clinic3           String   @map("Clinic3")
+//   Clinic4           String   @map("Clinic4")
+//   Clinic5           String   @map("Clinic5")
+//   Clinic6           String   @map("Clinic6")
+//   AcceptedTerms     Boolean  @map("AcceptedTerms")
+//   Schedule1         Boolean  @map("Schedule1")
+//   Schedule2         Boolean  @map("Schedule2")
+//   Schedule3         Boolean  @map("Schedule3")
+//   Schedule4         Boolean  @map("Schedule4")
+//   Schedule5         Boolean  @map("Schedule5")
+//   Schedule6         Boolean  @map("Schedule6")
+//   Schedule7         Boolean  @map("Schedule7")
+//   Schedule8         Boolean  @map("Schedule8")
+//   Schedule9         Boolean  @map("Schedule9")
+//   WComment          String   @map("WComment")
+//   returning         Boolean  @map("returning")
+//   createAt          DateTime @default(now())
+//   updateAt          DateTime @updatedAt
+
+//   @@index([seasonId])
+// }
 
 model Instructor {
-  id            String   @id @default(uuid())
-  season        Season   @relation("SeasonToInstructor", fields: [seasonId], references: [id])
-  seasonId      String
-  UniqueID      String      @map("UniqueID")
-  NAME_FIRST    String   @map("NAME_FIRST")
-  NAME_LAST     String   @map("NAME_LAST")
-  HOME_TEL      String   @map("HOME_TEL")
-  E_MAIL        String   @map("E_MAIL")
-  C_TEL         String   @map("C_TEL")
-  BRTHD         DateTime @map("BRTHD")
-  E_mail_main   String   @map("E_mail_main")
-  ADDRESS       String   @map("ADDRESS")
-  CITY          String   @map("CITY")
-  STATE         String   @map("STATE")
-  ZIP           String   @map("ZIP")
-  Employer      String   @map("Employer")
-  Occupation    String   @map("Occupation")
-  W_Tel         String   @map("W_Tel")
-  CCPayment     String   @map("CCPayment")
-  DateFeePaid   DateTime @map("DateFeePaid")
-  PSIAcertification Int  @map("PSIAcertification")
-  AASIcertification Int  @map("AASIcertification")
-  NumDays       Int      @map("NumDays")
-  ApplyingFor   Int      @map("ApplyingFor")
-  PaymentStatus String   @map("PaymentStatus")
-  PROG_CODE     String   @map("PROG_CODE")
-  Clinic1       String      @map("Clinic1")
-  Clinic2       String      @map("Clinic2")
-  Clinic3       String      @map("Clinic3")
-  Clinic4       String      @map("Clinic4")
-  Clinic5       String      @map("Clinic5")
-  Clinic6       String      @map("Clinic6")
-  AcceptedTerms Boolean  @map("AcceptedTerms")
-  Schedule1     Boolean  @map("Schedule1")
-  Schedule2     Boolean  @map("Schedule2")
-  Schedule3     Boolean  @map("Schedule3")
-  Schedule4     Boolean  @map("Schedule4")
-  Schedule5     Boolean  @map("Schedule5")
-  Schedule6     Boolean  @map("Schedule6")
-  Schedule7     Boolean  @map("Schedule7")
-  Schedule8     Boolean  @map("Schedule8")
-  Schedule9     Boolean  @map("Schedule9")
-  WComment      String   @map("WComment")
-  returning     Boolean  @map("returning")
-  createAt      DateTime @default(now())
-  updateAt      DateTime @updatedAt
+  id          String                  @id @default(uuid())
+  season      Season                  @relation("SeasonToInstructor", fields: [seasonId], references: [id])
+  seasonId    String
+  UniqueID    String                  @map("UniqueID")
+  NAME_FIRST  String                  @map("NAME_FIRST")
+  NAME_LAST   String                  @map("NAME_LAST")
+  HOME_TEL    String                  @map("HOME_TEL")
+  C_TEL       String                  @map("C_TEL")
+  BRTHD       DateTime                @map("BRTHD")
+  AGE         Int                     @map("AGE")
+  E_mail_main String                  @map("E_mail_main")
+  ADDRESS     String                  @map("ADDRESS")
+  CITY        String                  @map("CITY")
+  STATE       String                  @map("STATE")
+  ZIP         String                  @map("ZIP")
+  GENDER      String
+  
+  schedules   InstructorSchedule[]
+  //preferences InstructorPreferences[]
+  classes     Class[]
+  createAt    DateTime                @default(now())
+  updateAt    DateTime                @updatedAt
 
   @@index([seasonId])
 }
 
+model Clinic {
+  id          String   @id @default(uuid())
+  label       String
+  date        DateTime
+  time        String   // or DateTime if you need specific time
+  location    String
+  //instructors ClinicSelection[]
+}
+
+model Schedule {
+  id            String               @id @default(uuid())
+  dayOfWeek     String
+  startTime     DateTime
+  endTime       DateTime
+  label         String
+  instructors   InstructorSchedule[]
+  classes       Class[]
+}
+model InstructorSchedule {
+  instructorId  String
+  scheduleId    String
+  instructor    Instructor           @relation(fields: [instructorId], references: [id])
+  schedule      Schedule             @relation(fields: [scheduleId], references: [id])
+  priority      Int
+  preferBackToBack Boolean
+
+  @@id([instructorId, scheduleId])
+}
+
+model Class {
+  id            String               @id @default(uuid())
+  instructorId  String
+  scheduleId    String
+  dateAssigned  DateTime
+  dateModified  DateTime?
+  confirmed     Boolean
+  instructor    Instructor           @relation(fields: [instructorId], references: [id])
+  schedule      Schedule             @relation(fields: [scheduleId], references: [id])
+}

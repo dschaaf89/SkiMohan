@@ -5,6 +5,8 @@ import prismadb from "@/lib/prismadb";
 import { StudentColumn } from "./components/columns"
 import { StudentClient } from "./components/client";
 
+
+
 const StudentPage = async ({
   params
 }: {
@@ -29,7 +31,7 @@ const StudentPage = async ({
   student_tel: item.student_tel|| "", // Assuming this field is present in your document
   Email_student: item.Email_student|| "",
   BRTHD: item.BRTHD ? format(new Date(item.BRTHD), "MM/dd/yyyy") : "",
-  AGE: item.AGE || 0,// Assuming this field is present in your document and corresponds to DOB
+  AGE: item.AGE,// Assuming this field is present in your document and corresponds to DOB
   GradeLevel: item.GradeLevel|| "",
   APPLYING_FOR: item.APPLYING_FOR|| "",
   LEVEL: item.LEVEL|| "",
@@ -56,6 +58,7 @@ const StudentPage = async ({
   DAY: item.DAY || "",
   StartTime:item.StartTime || "",
   EndTime: item.EndTime || "",
+  //updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
 }
   
 
