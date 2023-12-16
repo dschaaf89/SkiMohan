@@ -36,4 +36,4 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
   );
 };
 
-export default ClassesPage;
+export default ClassesPage
