@@ -2,13 +2,13 @@
 
 import * as z from "zod";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { CalendarIcon, Trash } from "lucide-react";
 import { Instructor } from "@prisma/client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter as useNavigationRouter } from "next/navigation";
 import React, { MouseEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,6 +56,10 @@ import { differenceInYears } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
+type InstructorWithClassTimeIds = Instructor & {
+  classTimeIds?: number[];
+};
+
 const ageRequest = [
   {
     id: "4-5",
@@ -81,114 +85,115 @@ const ageRequest = [
 
 const classes = [
   {
-    id: "Thursday",
-    label: "1. Thursday 7:00pm-9:00pm",
+    id: 1,
+    label: "Thursday 7:00pm-9:00pm",
+    day: "Thursday",
+    startTime: "19:00",
+    endTime: "21:00",
   },
   {
-    id: "Friday",
-    label: "2. Friday 7:00pm-9:00pm",
+    id: 2,
+    label: "Friday 7:00pm-9:00pm",
+    day: "Friday",
+    startTime: "19:00",
+    endTime: "21:00",
   },
   {
-    id: "Saturday-1",
-    label: "3. Saturday session 1 10:30am-12:30pm",
+    id: 3,
+    label: "Saturday 1 10:30am-12:30pm",
+    day: "Saturday",
+    startTime: "10:30",
+    endTime: "12:30",
   },
   {
-    id: "Saturday-2",
-    label: "4. Saturday session 2 2:00pm-4:00pm",
+    id: 4,
+    label: "Saturday 2 2:00pm-4:00pm",
+    day: "Saturday",
+    startTime: "14:00",
+    endTime: "16:00",
   },
   {
-    id: "Sunday-1",
-    label: "5. Sunday session 1 10:30am-12:30pm",
+    id: 5,
+    label: "Sunday 1 10:30am-12:30pm",
+    day: "Sunday",
+    startTime: "10:30",
+    endTime: "12:30",
   },
   {
-    id: "Sunday-2",
-    label: "6. Sunday session 2 2:00pm-4:00pm",
+    id: 6,
+    label: "Sunday 2 2:00pm-4:00pm",
+    day: "Sunday",
+    startTime: "14:00",
+    endTime: "16:00",
   },
 ] as const;
 
 const clinics = [
   {
-    id:"1",
-    label:"Dry Land#1 Tuesday December 5th 2023 7pm Zoom"
-
+    id: "1",
+    label: "Dry Land#1 Tuesday December 5th 2023 7pm Zoom",
   },
   {
-    id:"2",
-    label:"Dry Land#1 Thursday December 7th 2023 7pm Zoom"
-
+    id: "2",
+    label: "Dry Land#1 Thursday December 7th 2023 7pm Zoom",
   },
   {
-    id:"3",
-    label:"On Snow Clinic#1 Saturday December 9th 2023 930am Summit Central"
-
+    id: "3",
+    label: "On Snow Clinic#1 Saturday December 9th 2023 930am Summit Central",
   },
   {
-    id:"4",
-    label:"On Snow Clinic#1 Sunday December 10th 2023 930am Summit Central"
-
+    id: "4",
+    label: "On Snow Clinic#1 Sunday December 10th 2023 930am Summit Central",
   },
 
   {
-    id:"5",
-    label:"Dry Land#2 Tuesday December 12th 2023 7pm Zoom"
-
+    id: "5",
+    label: "Dry Land#2 Tuesday December 12th 2023 7pm Zoom",
   },
   {
-    id:"6",
-    label:"Dry Land#2 Thursday December 14th 2023 7pm Zoom"
-
+    id: "6",
+    label: "Dry Land#2 Thursday December 14th 2023 7pm Zoom",
   },
   {
-    id:"7",
-    label:"On Snow Clinic#2 Saturday December 16th 2023 930am Summit Central"
-
+    id: "7",
+    label: "On Snow Clinic#2 Saturday December 16th 2023 930am Summit Central",
   },
   {
-    id:"8",
-    label:"On Snow Clinic#2 Sunday December 17th 2023 930am Summit Central"
-
+    id: "8",
+    label: "On Snow Clinic#2 Sunday December 17th 2023 930am Summit Central",
   },
   {
-    id:"9",
-    label:"Dry Land#3 Tuesday December 19th 2023 7pm Zoom"
-
+    id: "9",
+    label: "Dry Land#3 Tuesday December 19th 2023 7pm Zoom",
   },
   {
-    id:"10",
-    label:"Dry Land#3 Thursday December 21st 2023 7pm Zoom"
-
+    id: "10",
+    label: "Dry Land#3 Thursday December 21st 2023 7pm Zoom",
   },
   {
-    id:"11",
-    label:"On Snow Clinic#3 Saturday December 30th 2023 930am Summit Central"
-
+    id: "11",
+    label: "On Snow Clinic#3 Saturday December 30th 2023 930am Summit Central",
   },
   {
-    id:"12",
-    label:"On Snow Clinic#3 Sunday December 31st 2023 930am Summit Central"
-
+    id: "12",
+    label: "On Snow Clinic#3 Sunday December 31st 2023 930am Summit Central",
   },
   {
-    id:"7",
-    label:"Dry Land#4 Tuesday January 2nd 2024 7pm Zoom"
-
+    id: "13",
+    label: "Dry Land#4 Tuesday January 2nd 2024 7pm Zoom",
   },
   {
-    id:"7",
-    label:"Dry Land#4 Thursday January 4th 2024 7pm Zoom"
-
-  },
-   {
-    id:"11",
-    label:"On Snow Clinic#4 Saturday January 6th 2024 930am Summit Central"
-
+    id: "14",
+    label: "Dry Land#4 Thursday January 4th 2024 7pm Zoom",
   },
   {
-    id:"12",
-    label:"On Snow Clinic#4 Sunday January 7th 2024 930am Summit Central"
-
+    id: "15",
+    label: "On Snow Clinic#4 Saturday January 6th 2024 930am Summit Central",
   },
-
+  {
+    id: "16",
+    label: "On Snow Clinic#4 Sunday January 7th 2024 930am Summit Central",
+  },
 ] as const;
 
 const calculateAge = (birthdate: Date | null): number => {
@@ -199,76 +204,93 @@ const calculateAge = (birthdate: Date | null): number => {
   }
   return differenceInYears(new Date(), birthdate);
 };
-const formSchema = z.object ({
-  UniqueID: z.string(),    
-  NAME_FIRST: z.string(), 
-  NAME_LAST: z.string(),   
-  HOME_TEL: z.string(),         
-  C_TEL: z.string(),       
-  BRTHD:z.date(),       
-  AGE:z.number(),         
-  E_mail_main:z.string(), 
-  ADDRESS: z.string(), 
-  CITY: z.string(),         
-  STATE: z.string(),       
-  ZIP: z.string(),          
-  //Employer: z.string(),     
-  //Occupation: z.string(),   
-  //W_Tel: z.string(),        
-  GENDER: z.string(),
+const formSchema = z.object({
+  UniqueID: z.string(),
+  NAME_FIRST: z.string(),
+  NAME_LAST: z.string(),
+  HOME_TEL: z.string(),
+  C_TEL: z.string(),
+  BRTHD: z.date(),
+  AGE: z.number().optional(),
+  E_mail_main: z.string(),
+  ADDRESS: z.string(),
+  CITY: z.string(),
+  STATE: z.string(),
+  ZIP: z.string(),
+  STATUS: z.string().optional(),
+  COMMENTS: z.string().optional(),
+  PSIA: z.string().optional(),
+  prevYear: z.string().optional(),
+  dateReg: z.string().optional(),
+  dateConfirmed: z.string().optional(),
+  emailCommunication: z.boolean().optional(),
+  InstructorType: z.string().optional(),
+  AASI: z.string().optional(),
+  testScore: z.string().optional(),
+  ParentAuth: z.boolean().optional(),
+  OverNightLodge: z.boolean().optional(),
+  ageRequestByStaff: z.array(z.string()).optional(),
+  clinics:z.array(z.string()).optional(),
+  clinicInstructor: z.boolean().optional(),
+  Supervisor: z.boolean().optional(),
+  skiLevel: z.string().optional(),
+  boardLevel: z.string().optional(),
+  skiMinAge: z.string().optional(),
+  skiMaxAge: z.string().optional(),
+  boardMinAge: z.string().optional(),
+  boardMaxAge: z.string().optional(),
+  married: z.boolean().optional(),
+  resume: z.string().optional(),
+  spouseName: z.string().optional(),
+  noteToInstructor: z.string().optional(),
+  instructorCom: z.string().optional(),
+  priority: z.string().optional(),
+  dateAssigned: z.string().optional(),
+  assignmentConfirmed: z.string().optional(),
+  classSignedUp: z.string().optional(),
+  classAssigned: z.string().optional(),
+  permSub: z.boolean().optional(),
+  back2Back: z.boolean().optional(),
+  classPerWeek: z.string().optional(),
+  updateAt: z.date(),
+  dateTimes: z.string().optional(),
+  classTimeIds: z.array(z.number()).optional(),
+  employeeNumber: z.string().optional(),    
+  payRate: z.string().optional(),            
+  deductions: z.string().optional(),         
+  payCheckNo: z.string().optional(),         
+  payCheckDate: z.string().optional(),       
+  payAdvance: z.string().optional(),         
+  payComment: z.string().optional(),        
+  ssn : z.string().optional(),               
+  payType: z.string().optional(),           
+  dateFeePaid: z.string().optional(),         
+  disclosureForm : z.boolean().optional(),    
+  i9Form   : z.boolean().optional(),          
+  w4Recieved   : z.boolean().optional(),      
+  WSPRecieved : z.boolean().optional(),      
+  testRecieved  : z.boolean().optional(),     
+  idRecieved : z.boolean().optional(),       
+  schoolPermission : z.boolean().optional(), 
+  WSPDate:  z.string().optional(),            
 });
-// const formSchema = z.object({
-//   UniqueID: z.string(),
-//   NAME_FIRST: z.string().min(1),
-//   NAME_LAST: z.string().min(1),
-//   HOME_TEL: z.string().min(1),
-//   E_MAIL: z.string().email(),
-//   C_TEL: z.string().min(1),
-//   BRTHD: z.date(),
-//   E_mail_main: z.string().email().optional(),
-//   ADDRESS: z.string().min(1),
-//   CITY: z.string().min(1),
-//   STATE: z.string().min(1),
-//   ZIP: z.string().min(1),
-//   Employer: z.string().min(1),
-//   Occupation: z.string().min(1),
-//   W_Tel: z.string().min(1),
-//   CCPayment: z.string().min(1),
-//   DateFeePaid: z.date(),
-//   PSIAcertification: z.number(),
-//   AASIcertification: z.number(),
-//   NumDays: z.number(),
-//   ApplyingFor: z.number(),
-//   PaymentStatus: z.string().min(1),
-//   PROG_CODE: z.string().min(1),
-//   Clinic1: z.number(),
-//   Clinic2: z.number(),
-//   Clinic3: z.number(),
-//   Clinic4: z.number(),
-//   Clinic5: z.number(),
-//   Clinic6: z.number(),
-//   AcceptedTerms: z.boolean(),
-//   Schedule1: z.boolean(),
-//   Schedule2: z.boolean(),
-//   Schedule3: z.boolean(),
-//   Schedule4: z.boolean(),
-//   Schedule5: z.boolean(),
-//   Schedule6: z.boolean(),
-//   Schedule7: z.boolean(),
-//   Schedule8: z.boolean(),
-//   Schedule9: z.boolean(),
-//   WComment: z.string().optional(),
-//   returning: z.boolean(),
-// });
-
+interface InstructorClassTime {
+  instructorId: string;
+  classTimeId: number;
+}
 type InstructorFormValues = z.infer<typeof formSchema>;
-
+interface ClassTime {
+  id: string; // Replace with the actual type of id
+  label: string; // Replace with the actual type of label
+  // Add other properties as needed
+}
 interface InstructorFormProps {
-  initialData: Instructor | null;
+  initialData: InstructorWithClassTimeIds | null;
 }
 const createDefaultValues = (
-  initialData: Instructor | null
+  initialData: InstructorWithClassTimeIds | null
 ): InstructorFormValues => {
+  //console.log("Initial Data received in createDefaultValues:", initialData);
   const defaultValues: InstructorFormValues = {
     UniqueID: "",
     NAME_FIRST: "",
@@ -281,40 +303,66 @@ const createDefaultValues = (
     CITY: "",
     STATE: "",
     ZIP: "",
-    //Employer: "",
-    //Occupation: "",
-    //W_Tel: "",
-    GENDER:"",
-    AGE:0,
-    // CCPayment: "",
-    // DateFeePaid: new Date(),
-    // PSIAcertification: 0,
-    // AASIcertification: 0,
-    // NumDays: 0,
-    // ApplyingFor: 0,
-    // PaymentStatus: "",
-    // PROG_CODE: "",
-    // Clinic1: 0,
-    // Clinic2: 0,
-    // Clinic3: 0,
-    // Clinic4: 0,
-    // Clinic5: 0,
-    // Clinic6: 0,
-    // AcceptedTerms: false,
-    // Schedule1: false,
-    // Schedule2: false,
-    // Schedule3: false,
-    // Schedule4: false,
-    // Schedule5: false,
-    // Schedule6: false,
-    // Schedule7: false,
-    // Schedule8: false,
-    // Schedule9: false,
-    // WComment: "",
-    // returning: false,
+    STATUS: "",
+    COMMENTS: "",
+    prevYear: "",
+    dateReg: "",
+    dateConfirmed: "",
+    emailCommunication: false,
+    InstructorType: "",
+    PSIA: "",
+    AGE: 0,
+    AASI: "",
+    testScore: "",
+    ParentAuth: false,
+    OverNightLodge: false,
+    ageRequestByStaff: [],
+    clinics:[],
+    clinicInstructor: false,
+    Supervisor: false,
+    skiLevel: "",
+    boardLevel: "",
+    skiMinAge: "",
+    skiMaxAge: "",
+    boardMaxAge: "",
+    boardMinAge: "",
+    married: false,
+    spouseName: "",
+    resume: "",
+    instructorCom: "",
+    noteToInstructor: "",
+    priority: "",
+    permSub: false,
+    back2Back: false,
+    dateAssigned: "",
+    assignmentConfirmed: "",
+    classSignedUp: "0",
+    classAssigned: "0",
+    classPerWeek: "0",
+    updateAt: new Date(),
+    classTimeIds: [],
+    employeeNumber: "0",  
+    payRate:  "0",           
+    deductions: "0",       
+    payCheckNo:  "0",        
+    payCheckDate: "0",      
+    payAdvance:  "0",       
+    payComment:  "0",      
+    ssn :  "",             
+    payType: "",           
+    dateFeePaid: "",           
+    disclosureForm : false,    
+    i9Form   : false,          
+    w4Recieved   :false,      
+    WSPRecieved :false,      
+    testRecieved  :false,     
+    idRecieved : false,       
+    schoolPermission :false, 
+    WSPDate: "",
   };
 
   if (initialData) {
+    //console.log("Initial Data:", initialData);
     (Object.keys(defaultValues) as Array<keyof InstructorFormValues>).forEach(
       (key) => {
         if (
@@ -325,11 +373,6 @@ const createDefaultValues = (
             (initialData[key] as string).trim() !== "")
         ) {
           switch (key) {
-            // case "UniqueID":
-            // case "PSIAcertification":
-            // case "AASIcertification":
-            // case "NumDays":
-            // case "ApplyingFor":
             case "AGE":
               defaultValues[key] = initialData[key] as number;
               break;
@@ -343,41 +386,92 @@ const createDefaultValues = (
             case "STATE":
             case "ZIP":
             case "UniqueID":
-            //case "Employer":
-            //case "Occupation":
-            //case "W_Tel":
-            // case "CCPayment":
-            // case "PaymentStatus":
-            // case "PROG_CODE":
-            // case "WComment":
+            case "PSIA":
+            case "STATUS":
+            case "InstructorType":
+            case "dateConfirmed":
+            case "COMMENTS":
+            case "dateReg":
+            case "prevYear":
+            case "AASI":
+            case "testScore":
+            case "skiLevel":
+            case "boardLevel":
+            case "boardMaxAge":
+            case "boardMinAge":
+            case "skiMaxAge":
+            case "skiMinAge":
+            case "instructorCom":
+            case "spouseName":
+            case "noteToInstructor":
+            case "resume":
+            case "priority":
+            case "dateAssigned":
+            case "assignmentConfirmed":
+            case "classAssigned":
+            case "classSignedUp":
+            case "classPerWeek":
+            case "ssn":
+            case "dateFeePaid":
+            case "employeeNumber":
+            case "deductions":
+            case "WSPDate":
+            case "payComment":
+            case "payCheckDate":
+            case "payAdvance":
+            case "payCheckNo":
+            case "payRate":
+            case "payType":
+            case "dateTimes": 
               defaultValues[key] = initialData[key] as string;
               break;
             case "BRTHD":
-            //case "DateFeePaid":
-              defaultValues[key] = new Date(initialData[key] as unknown as string);
+            case "updateAt":
+              defaultValues[key] = new Date(
+                initialData[key] as unknown as string
+              );
               break;
-            // case "AcceptedTerms":
-            // case "returning":
-            // case "Schedule1":
-            // case "Schedule2":
-            // case "Schedule3":
-            // case "Schedule4":
-            // case "Schedule5":
-            // case "Schedule6":
-            // case "Schedule7":
-            // case "Schedule8":
-            // case "Schedule9":
-            //   defaultValues[key] = initialData[key] as boolean;
-            //   break;
-            // default:
-            //   // Leave other cases as-is or handle them specifically
-            //   break;
+            case "Supervisor":
+            case "OverNightLodge":
+            case "emailCommunication":
+            case "ParentAuth":
+            case "clinicInstructor":
+            case "married":
+            case "back2Back":
+            case "permSub":
+            case "WSPRecieved":
+            case "disclosureForm":
+            case "i9Form":
+            case "idRecieved":
+            case "schoolPermission":
+            case "testRecieved":
+            case "w4Recieved":
+              defaultValues[key] = initialData[key] as boolean;
+              break;
+            case "ageRequestByStaff":
+            case "clinics":
+              defaultValues[key] = initialData[key] as string[];
+              break;
+            case "classTimeIds":
+              console.log(
+                "classTimeIds in initialData:",
+                initialData.classTimeIds
+              );
+              if (
+                "classTimeIds" in initialData &&
+                initialData.classTimeIds !== null
+              ) {
+                defaultValues[key] = initialData[key] as number[];
+              }
+              break;
+            default:
+              break;
           }
         }
       }
     );
   }
-
+  // console.log("Default Values:", defaultValues); // Check the final defaultValues
   return defaultValues;
 };
 
@@ -385,7 +479,11 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
   initialData,
 }) => {
   const params = useParams();
-  const router = useRouter();
+  // Use type assertions to cast instructorId and seasonId
+  const instructorId = params.instructorId as string;
+  const seasonId = params.seasonId as string;
+
+  const navigationRouter = useNavigationRouter();
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -393,7 +491,11 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     initialData?.BRTHD || null
   );
-  const [activeTab, setActiveTab] = useState("personal");
+  const [classTimes, setClassTimes] = useState<ClassTime[]>([]);
+  const [instructorClassTimes, setInstructorClassTimes] = useState<
+    InstructorClassTime[]
+  >([]);
+
   const title = initialData ? "Edit Instructor" : "Create  Instructor";
   const description = initialData
     ? "Edit a  Instructor."
@@ -408,21 +510,62 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
     defaultValues: createDefaultValues(initialData),
   });
 
+  useEffect(() => {
+    fetch(
+      `/api/${params.seasonId}/instructors/${params.instructorId}/InstructorClassTimes`
+    )
+      .then((response) => response.json())
+      .then((data) => setInstructorClassTimes(data))
+      .catch((error) => console.error("Error fetching class times:", error));
+  }, [params.seasonId, params.instructorId]);
+
+  useEffect(() => {
+    fetch("/api/classTimes")
+      .then((response) => response.json())
+      .then((data) => setClassTimes(data))
+      .catch((error) => console.error("Error fetching class times:", error));
+  }, []);
+  const handleCheckboxChange = (classTimeId: number, checked: boolean) => {
+    if (checked) {
+      setInstructorClassTimes((prev) => [
+        ...prev,
+        { instructorId: "some-id", classTimeId },
+      ]);
+    } else {
+      setInstructorClassTimes((prev) =>
+        prev.filter((ct) => ct.classTimeId !== classTimeId)
+      );
+    }
+  };
+
   const onSubmit = async (data: InstructorFormValues) => {
+    console.log("Data before submission:", data);
     try {
       setLoading(true);
+
+      // Modify or prepare the data to be sent
+      const updatedData = {
+        ...data,
+        classTimeIds: instructorClassTimes.map((ct) => ct.classTimeId),
+      };
+      console.log("Submit handler called with payload:", updatedData);
+
       if (initialData) {
+        // Update existing instructor
         await axios.patch(
           `/api/${params.seasonId}/instructors/${params.instructorId}`,
-          data
+          updatedData
         );
       } else {
-        await axios.post(`/api/${params.seasonId}/instructors`, data);
+        // Create new instructor
+        await axios.post(`/api/${params.seasonId}/instructors`, updatedData);
       }
-      router.refresh();
-      router.push(`/${params.seasonId}/instructors`);
+
+      navigationRouter.refresh();
+      navigationRouter.push(`/${params.seasonId}/instructors`);
       toast.success(toastMessage);
     } catch (error: any) {
+      console.error("Error in form submission:", error);
       toast.error("Something went wrong.");
     } finally {
       setLoading(false);
@@ -435,8 +578,8 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
       await axios.delete(
         `/api/${params.seasonId}/instructors/${params.instructorId}`
       );
-      router.refresh();
-      router.push(`/${params.seasonId}/instructors`);
+      navigationRouter.refresh();
+      navigationRouter.push(`/${params.seasonId}/instructors`);
       toast.success("instructor deleted.");
     } catch (error: any) {
       toast.error(
@@ -694,38 +837,8 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                 />
               </FormControl>
             </FormItem>
-            <FormField
-              control={form.control}
-              name="GENDER"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Gender</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="male" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Male</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="female" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Female</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
-          {/* <Tabs defaultValue="instructorInfo" className="w-[100%]">
+          <Tabs>
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="instructorInfo">Instructor Info</TabsTrigger>
               <TabsTrigger value="personalInfo">Personal Info</TabsTrigger>
@@ -740,7 +853,6 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="md:grid md:grid-cols-3 gap-8">
-                  
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
@@ -810,7 +922,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="comments"
+                        name="COMMENTS"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Comments</FormLabel>
@@ -917,20 +1029,22 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="1">
+                                <SelectItem value="Ski Instructor">
                                   Ski Instructor
                                 </SelectItem>
-                                <SelectItem value="2">
+                                <SelectItem value="Board Instructor">
                                   Board Instructor
                                 </SelectItem>
-                                <SelectItem value="3">
+                                <SelectItem value="Ski and Board Instructor">
                                   Ski and Board Instructor
                                 </SelectItem>
-                                <SelectItem value="4">Ski assistant</SelectItem>
-                                <SelectItem value="5">
+                                <SelectItem value="Ski assistant">
+                                  Ski assistant
+                                </SelectItem>
+                                <SelectItem value="Board assistant">
                                   Board assistant
                                 </SelectItem>
-                                <SelectItem value="6">
+                                <SelectItem value="Ski and Board Assistant">
                                   Ski and Board Assistant
                                 </SelectItem>
                               </SelectContent>
@@ -994,7 +1108,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="ParentSchoolAuth"
+                        name="ParentAuth"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
                             <FormControl>
@@ -1012,7 +1126,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="overNightLodge"
+                        name="OverNightLodge"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center space-y-0 space-x-3 mt-4">
                             <FormControl>
@@ -1030,11 +1144,10 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                     </div>
 
-                    
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
-                        name="items"
+                        name="ageRequestByStaff"
                         render={() => (
                           <FormItem>
                             <div className="mb-4">
@@ -1046,7 +1159,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                               <FormField
                                 key={item.id}
                                 control={form.control}
-                                name="ageRequest"
+                                name="ageRequestByStaff"
                                 render={({ field }) => {
                                   return (
                                     <FormItem
@@ -1059,16 +1172,23 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                                             item.id
                                           )}
                                           onCheckedChange={(checked) => {
-                                            return checked
-                                              ? field.onChange([
-                                                  ...field.value,
-                                                  item.id,
-                                                ])
-                                              : field.onChange(
-                                                  field.value?.filter(
-                                                    (value) => value !== item.id
-                                                  )
-                                                );
+                                            const currentValue =
+                                              field.value || [];
+                                            if (checked) {
+                                              // Add item.id to the array
+                                              field.onChange([
+                                                ...currentValue,
+                                                item.id,
+                                              ]);
+                                            } else {
+                                              // Remove item.id from the array
+                                              field.onChange(
+                                                currentValue.filter(
+                                                  (value: string) =>
+                                                    value !== item.id
+                                                )
+                                              );
+                                            }
                                           }}
                                         />
                                       </FormControl>
@@ -1120,6 +1240,119 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                           </FormItem>
                         )}
                       />
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Column 1 */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="skiLevel"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ski Level</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    disabled={loading}
+                                    placeholder="0"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="skiMinAge"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ski Min Age</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    disabled={loading}
+                                    placeholder="0"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="skiMaxAge"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ski Max Age</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    disabled={loading}
+                                    placeholder="0"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Column 2 */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="boardLevel"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Board Level</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    disabled={loading}
+                                    placeholder="0"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="boardMinAge"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Board Min Age</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    disabled={loading}
+                                    placeholder="0"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="boardMaxAge"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Board Max Age</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    disabled={loading}
+                                    placeholder="0"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1133,7 +1366,6 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="md:grid md:grid-cols-2 gap-8">
-                  
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
@@ -1155,7 +1387,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="NAME_SPOUSE"
+                        name="spouseName"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Spouse Name</FormLabel>
@@ -1191,7 +1423,6 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                     </div>
 
-                  
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
@@ -1213,7 +1444,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
 
                       <FormField
                         control={form.control}
-                        name="noteToInstr"
+                        name="noteToInstructor"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Note to Instructor</FormLabel>
@@ -1240,63 +1471,42 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="md:grid md:grid-cols-3 gap-8">
-                  
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
-                        name="classReg"
-                        render={() => (
-                          <FormItem>
-                            <div className="mb-4">
-                              <FormLabel className="text-base">
-                                class scheduling
-                              </FormLabel>
-                            </div>
-                            {classes.map((item) => (
-                              <FormField
-                                key={item.id}
-                                control={form.control}
-                                name="ageRequest"
-                                render={({ field }) => {
-                                  return (
-                                    <FormItem
-                                      key={item.id}
-                                      className="flex flex-row items-start space-x-3 space-y-0"
-                                    >
-                                      <FormControl>
-                                        <Checkbox
-                                          checked={field.value?.includes(
-                                            item.id
-                                          )}
-                                          onCheckedChange={(checked) => {
-                                            return checked
-                                              ? field.onChange([
-                                                  ...field.value,
-                                                  item.id,
-                                                ])
-                                              : field.onChange(
-                                                  field.value?.filter(
-                                                    (value) => value !== item.id
-                                                  )
-                                                );
-                                          }}
-                                        />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">
-                                        {item.label}
-                                      </FormLabel>
-                                    </FormItem>
-                                  );
-                                }}
-                              />
+                        name="classTimeIds"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col space-y-4">
+                            {classTimes.map((classTime) => (
+                              <div
+                                key={classTime.id}
+                                className="flex flex-row items-start space-x-3"
+                              >
+                                <Checkbox
+                                  id={`class-time-${classTime.id}`}
+                                  checked={instructorClassTimes.some(
+                                    (ic) =>
+                                      ic.classTimeId === Number(classTime.id)
+                                  )}
+                                  onCheckedChange={(checked) => {
+                                    // Ensure 'checked' is a boolean before passing it to the handler
+                                    if (typeof checked === "boolean") {
+                                      handleCheckboxChange(
+                                        Number(classTime.id),
+                                        checked
+                                      );
+                                    }
+                                  }}
+                                />
+                                <FormLabel className="font-normal">
+                                  {classTime.label}
+                                </FormLabel>
+                              </div>
                             ))}
-                            <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-
-                    
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
@@ -1317,7 +1527,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="classesPerWeek"
+                        name="classPerWeek"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>No. of Classes Per Week</FormLabel>
@@ -1354,7 +1564,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="back2back"
+                        name="back2Back"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                             <FormControl>
@@ -1372,11 +1582,10 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                     </div>
 
-                   
                     <div className="space-y-2">
                       <FormField
                         control={form.control}
-                        name="dateModified"
+                        name="updateAt"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Date Modified</FormLabel>
@@ -1385,6 +1594,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                                 disabled={loading}
                                 placeholder=""
                                 {...field}
+                                value={field.value ? field.value.toISOString().substring(0, 10) : ''}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1410,7 +1620,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="assignmentConf"
+                        name="assignmentConfirmed"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Assignment Confirmed</FormLabel>
@@ -1427,7 +1637,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="numberAssigned"
+                        name="classAssigned"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>No. of classess assigned</FormLabel>
@@ -1444,7 +1654,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                       />
                       <FormField
                         control={form.control}
-                        name="classesSign"
+                        name="classSignedUp"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>No. of classess signed up</FormLabel>
@@ -1462,7 +1672,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                     </div>
                     <FormField
                       control={form.control}
-                      name="back2back"
+                      name="back2Back"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
@@ -1480,7 +1690,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                     />
                     <FormField
                       control={form.control}
-                      name="datesTimes"
+                      name="dateTimes"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Dates and Times</FormLabel>
@@ -1499,617 +1709,368 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                 </CardContent>
               </Card>
             </TabsContent>
+
             <TabsContent value="accounting">
               <Card>
                 <CardHeader>
                   <CardTitle>Accounting</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="md:grid md:grid-cols-3 gap-8">
-                    
-                    <div className="space-y-2">
-                      <FormField
-                        control={form.control}
-                        name="employeeNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Employee Number</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="0"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="payRate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Pay Rate</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="$0.00"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="deductions"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Deductions</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="0"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="payCheckNo"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Pay Check No.</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="0"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="payCheckDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Pay Check Date</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="0"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="payAdvance"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Pay Advance</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="$0.00"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="payComment"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Comments</FormLabel>
-                            <FormControl>
-                              <div className="">
-                                <Textarea
-                                  placeholder=""
-                                  className="resize-none"
-                                  {...field}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                   // return (
-    <>
-      <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onConfirm={onDelete}
-        loading={loading}
-      />
-      <div className="flex items-center justify-between">
-        <Heading title={title} description={description} />
-        {initialData && (
-          <Button
-            disabled={loading}
-            variant="destructive"
-            size="sm"
-            onClick={() => setOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-      <Separator />
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8 w-full"
-        >
-          <div className="md:grid md:grid-cols-3 gap-8">
-            <FormField
-              control={form.control}
-              name="UniqueID"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>RegNum</FormLabel>
-                  <FormControl>
-                    <Input disabled={loading} placeholder="RegNum" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="NAME_FIRST"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="First Name"
-                      {...field}
+                <div className="md:grid md:grid-cols-3 gap-8">
+                  {/* Column 1 */}
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="employeeNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Employee Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="0"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="NAME_LAST"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Last Name"
-                      {...field}
+                    <FormField
+                      control={form.control}
+                      name="payRate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pay Rate</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="$0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="ADDRESS"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Address"
-                      {...field}
+                    <FormField
+                      control={form.control}
+                      name="deductions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Deductions</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="0"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="CITY"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CITY</FormLabel>
-                  <FormControl>
-                    <Input disabled={loading} placeholder="CITY" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="STATE"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>STATE</FormLabel>
-                  <FormControl>
-                    <Input disabled={loading} placeholder="STATE" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="ZIP"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ZIP</FormLabel>
-                  <FormControl>
-                    <Input disabled={loading} placeholder="ZIP" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="HOME_TEL"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="HOME_TEL"
-                      {...field}
+                    <FormField
+                      control={form.control}
+                      name="payCheckNo"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pay Check No.</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="0"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Email_student"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input disabled={loading} placeholder="Email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="BRTHD"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date of birth</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        onChange={handleBirthdateChange}
-                        value={selectedDate}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    Your date of birth is used to calculate your age.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormItem>
-              <FormLabel>Age</FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  value={age !== null ? age.toString() : ""}
-                  readOnly
-                />
-              </FormControl>
-            </FormItem>
-            <FormField
-              control={form.control}
-              name="GENDER"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Gender</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="male" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Male</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="female" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Female</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-                    <div className="space-y-2">
-                      <FormField
-                        control={form.control}
-                        name="ssn"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>SSN</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder="xxx-xx-xxxx"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="payType"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel>Pay Type</FormLabel>
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex flex-col space-y-1"
-                              >
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="Regular" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    Regular
-                                  </FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="Volunteer" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    Volunteer
-                                  </FormLabel>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="DateFeePaid"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date Fee Paid</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
+                    <FormField
+                      control={form.control}
+                      name="payCheckDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pay Check Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="0"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="payAdvance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pay Advance</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="$0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="payComment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Comments</FormLabel>
+                          <FormControl>
+                            <div className="">
+                              <Textarea
                                 placeholder=""
+                                className="resize-none"
                                 {...field}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    
-                    <div className="space-y-2">
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>Disclosure Form Recieved</FormLabel>
-                              <FormDescription></FormDescription>
                             </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>I9 Recieved</FormLabel>
-                              <FormDescription></FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>W4 Recived</FormLabel>
-                              <FormDescription></FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>WSPRecieved</FormLabel>
-                              <FormDescription></FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>Test Recieved</FormLabel>
-                              <FormDescription></FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>ID Recieved</FormLabel>
-                              <FormDescription></FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="disclosureForm"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>School Permission</FormLabel>
-                              <FormDescription></FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="WSPDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>WSP ACCEPTED</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder=""
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                </CardContent>
+
+                  {/* Column 2 */}
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="ssn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SSN</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder="xxx-xx-xxxx"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="payType"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Pay Type</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Regular" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Regular
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Volunteer" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Volunteer
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="dateFeePaid"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date Fee Paid</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder=""
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Column 3 */}
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="disclosureForm"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Disclosure Form Recieved</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="i9Form"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>I9 Recieved</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="w4Recieved"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>W4 Recived</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="WSPRecieved"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>WSPRecieved</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="testRecieved"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Test Recieved</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="idRecieved"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>ID Recieved</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="schoolPermission"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>School Permission</FormLabel>
+                            <FormDescription></FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="WSPDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>WSP ACCEPTED</FormLabel>
+                          <FormControl>
+                            <Input
+                              disabled={loading}
+                              placeholder=""
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </Card>
             </TabsContent>
             <TabsContent value="clinics">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Clinics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                <FormField
+            <FormField
                         control={form.control}
                         name="clinics"
                         render={() => (
                           <FormItem>
                             <div className="mb-4">
                               <FormLabel className="text-base">
-                                clinics scheduling
+                                Clinics
                               </FormLabel>
                             </div>
                             {clinics.map((item) => (
@@ -2129,16 +2090,23 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                                             item.id
                                           )}
                                           onCheckedChange={(checked) => {
-                                            return checked
-                                              ? field.onChange([
-                                                  ...field.value,
-                                                  item.id,
-                                                ])
-                                              : field.onChange(
-                                                  field.value?.filter(
-                                                    (value) => value !== item.id
-                                                  )
-                                                );
+                                            const currentValue =
+                                              field.value || [];
+                                            if (checked) {
+                                              // Add item.id to the array
+                                              field.onChange([
+                                                ...currentValue,
+                                                item.id,
+                                              ]);
+                                            } else {
+                                              // Remove item.id from the array
+                                              field.onChange(
+                                                currentValue.filter(
+                                                  (value: string) =>
+                                                    value !== item.id
+                                                )
+                                              );
+                                            }
                                           }}
                                         />
                                       </FormControl>
@@ -2154,26 +2122,8 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                           </FormItem>
                         )}
                       />
-                  <div className="md:grid md:grid-cols-3 gap-8">
-                   
-                    <div className="space-y-2">
-                      
-                    </div>
-
-                    
-                    <div className="space-y-2">
-                      
-                    </div>
-
-                    
-                    <div className="space-y-2">
-                      
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
-          </Tabs> */}
+          </Tabs>
           <Button disabled={loading} className="ml-auto" type="submit">
             {action}
           </Button>

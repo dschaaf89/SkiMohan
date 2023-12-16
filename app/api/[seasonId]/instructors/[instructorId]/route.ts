@@ -14,20 +14,21 @@ export async function GET(
 
     const instructor = await prismadb.instructor.findUnique({
       where: {
-        id: params.instructorId
-      }
+        id: params.instructorId,
+      },
     });
-  
+
     return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[intstructor_GET]', error);
+    console.log("[intstructor_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}
+
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { instructorId: string, seasonId: string } }
+  { params }: { params: { instructorId: string; seasonId: string } }
 ) {
   try {
     const { userId } = auth();
@@ -54,27 +55,51 @@ export async function DELETE(
     const instructor = await prismadb.instructor.delete({
       where: {
         id: params.instructorId,
-      }
+      },
     });
-  
+
     return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[instructor_DELETE]', error);
+    console.log("[instructor_DELETE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
-
+}
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { instructorId: string, seasonId: string } }
+  { params }: { params: { instructorId: string; seasonId: string } }
+  
 ) {
-  try {   
-    const { userId } = auth();
-
+  try {
     const body = await req.json();
-    
-    const { UniqueID,
+    console.log("Received data in PATCH route:", body);
+    const { clinics,classTimeIds, ageRequestByStaff, ...otherData } = body;
+    let validatedClinics;
+    if (Array.isArray(clinics)) {
+      validatedClinics = clinics.every(item => typeof item === 'string')
+        ? clinics
+        : null; // or handle the error
+    } else if (clinics === null || clinics === undefined) {
+      validatedClinics = null;
+    } else {
+      // Handle cases where `ageRequestByStaff` is not an array or null
+      // Maybe return an error or set a default value
+      validatedClinics = null; // or handle the error
+    }
+    let validatedAgeRequestByStaff;
+    if (Array.isArray(ageRequestByStaff)) {
+      validatedAgeRequestByStaff = ageRequestByStaff.every(item => typeof item === 'string')
+        ? ageRequestByStaff
+        : null; // or handle the error
+    } else if (ageRequestByStaff === null || ageRequestByStaff === undefined) {
+      validatedAgeRequestByStaff = null;
+    } else {
+      // Handle cases where `ageRequestByStaff` is not an array or null
+      // Maybe return an error or set a default value
+      validatedAgeRequestByStaff = null; // or handle the error
+    }
+    const {
+      UniqueID,
       NAME_FIRST,
       NAME_LAST,
       HOME_TEL,
@@ -85,12 +110,24 @@ export async function PATCH(
       CITY,
       STATE,
       ZIP,
-      GENDER,
-      AGE,      } = body;
-    
-    if (!userId) {
-      return new NextResponse("Unauthenticated", { status: 403 });
-    }
+      AGE,
+      STATUS,
+      COMMENTS,
+      prevYear,
+      dateReg,
+      dateConfirmed,
+      emailCommunication,
+      InstructorType,
+      PSIA,
+      AASI,
+      testScore,
+      ParentAuth,
+      OverNightLodge,
+      clinicInstructor,
+      Supervisor,
+    } = body;
+
+
 
     if (!NAME_FIRST) {
       return new NextResponse("Label is required", { status: 400 });
@@ -114,32 +151,41 @@ export async function PATCH(
     // if (!storeByUserId) {
     //   return new NextResponse("Unauthorized", { status: 405 });
     // }
-
+    console.log('Received data:', body);
     const instructor = await prismadb.instructor.update({
       where: {
         id: params.instructorId,
       },
       data: {
-        UniqueID,
-        NAME_FIRST,
-        NAME_LAST,
-        HOME_TEL,
-        C_TEL,
-        BRTHD,
-        E_mail_main,
-        ADDRESS,
-        CITY,
-        STATE,
-        ZIP,
-        GENDER,
-        AGE,
+        ...otherData,
+        clinics:validatedClinics,
+       ageRequestByStaff:validatedAgeRequestByStaff,
         seasonId: params.seasonId,
-      }
+        // Other updates...
+        // Remove existing class times
+        classTimes: {
+          deleteMany: {
+            instructorId: params.instructorId,
+          },
+        },
+      },
     });
-  
+    
+    // After removing existing class times, create new relations
+    await Promise.all(
+      classTimeIds.map((classTimeId: number) => 
+        prismadb.instructorClassTime.create({
+          data: {
+            instructorId: params.instructorId,
+            classTimeId: classTimeId,
+          },
+        })
+      )
+    );
+    console.log("Instructor UPDATED!!!!!!!!!!!!!!!!!!!!!!!",instructor); 
     return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[instructor_PATCH]', error);
+    console.error("Error in PATCH route:", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}

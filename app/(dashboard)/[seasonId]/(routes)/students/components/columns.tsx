@@ -38,7 +38,7 @@ export type StudentColumn = {
   C_TEL: string;
   Occupation: string;
   W_TEL: string;
-  AGE_GROUP: string; // Optional field
+  AGE_GROUP: number; // Optional field
   AGRESSIVENESS: string;
   GENDER: string;
   FeeComment:string;

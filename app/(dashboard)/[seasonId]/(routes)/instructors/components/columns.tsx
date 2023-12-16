@@ -9,46 +9,30 @@ export type InstructorColumn = {
   NAME_FIRST: string;
   NAME_LAST: string;
   HOME_TEL: string;
-  //E_MAIL: string;
-  //C_TEL: string;
   BRTHD: string | Date;
   E_mail_main: string;
   ADDRESS: string;
   CITY: string;
   STATE: string;
   ZIP: string;
-  GENDER:string;
-  // Employer: string;
-  // Occupation: string;
-  // W_Tel: string;
-  // CCPayment: string;
-  // DateFeePaid: string | Date;
-  // PSIAcertification: number;
-  // AASIcertification: number;
-  // NumDays: number;
-  // ApplyingFor: number;
-  // PaymentStatus: string;
-  // PROG_CODE: string;
-  // Clinic1: number;
-  // Clinic2: number;
-  // Clinic3: number;
-  // Clinic4: number;
-  // Clinic5: number;
-  // Clinic6: number;
-  // AcceptedTerms: boolean;
-  // Schedule1: boolean;
-  // Schedule2: boolean;
-  // Schedule3: boolean;
-  // Schedule4: boolean;
-  // Schedule5: boolean;
-  // Schedule6: boolean;
-  // Schedule7: boolean;
-  // Schedule8: boolean;
-  // Schedule9: boolean;
-  // WComment: string;
-  // returning: boolean;
+  STATUS:string;
+  COMMENTS:string;
+  prevYear:string;
+  dateReg:string;
+  emailCommunication:boolean;
+  InstructorType:string;
+  PSIA:string;
   createAt: Date;
   updateAt: Date;
+  AASI:string;
+  testScore:string;
+  ParentAuth:boolean;
+  OverNightLodge:boolean;
+  ageRequestByStaff:string[] | null;
+  clinics:string[] | null;
+  clinicInstructor:boolean;
+  Supervisor:boolean;
+  classTimeIds:number[] | null;
 }
 
 
@@ -99,8 +83,8 @@ export const columns: ColumnDef<InstructorColumn>[] = [
     header: "ZIP",
   },
   {
-    accessorKey: "GENDER",
-    header: "Gender",
+    accessorKey: "AGE",
+    header: "AGE",
   },
   // {
   //   accessorKey: "Employer",

@@ -61,6 +61,17 @@ const calculateAge = (birthdate: Date | null): number => {
   }
   return differenceInYears(new Date(), birthdate);
 };
+const calculateAgeGroup = (birthdate: Date | null): number => {
+  if (birthdate === null) {
+    // Return a default value for age that indicates an invalid or unknown value.
+    // Commonly, people use -1 or 0, depending on what makes sense for the application.
+    return -1;
+  }
+  const nextYear = new Date().getFullYear() + 1;
+  const jan1stNextYear = new Date(nextYear, 0, 1);
+  return differenceInYears(jan1stNextYear, birthdate);
+};
+
 const getAllPrograms = () => {
   return [
     ...mondayPrograms,
@@ -69,7 +80,7 @@ const getAllPrograms = () => {
     ...thursdayPrograms,
     ...fridayNightPrograms,
     ...saturdayPrograms,
-    ...sundayPrograms
+    ...sundayPrograms,
   ];
 };
 
@@ -107,7 +118,7 @@ const formSchema = z.object({
   W_TEL: z.string().optional(),
   AGRESSIVENESS: z.string().optional(),
   GENDER: z.string().optional(),
-  AGE_GROUP: z.string().optional(),
+  AGE_GROUP: z.number().optional(),
   FeeComment: z.string().optional(),
   DAY: z.string().optional(),
   StartTime: z.string().optional(),
@@ -156,7 +167,7 @@ const createDefaultValues = (
     C_TEL: "",
     Occupation: "",
     W_TEL: "",
-    AGE_GROUP: "",
+    AGE_GROUP: 0,
     AGRESSIVENESS: "",
     GENDER: "",
     FeeComment: "",
@@ -167,8 +178,10 @@ const createDefaultValues = (
   };
 
   if (initialData) {
-    const initialProgram = allPrograms.find(p => p.code === initialData.ProgCode);
-    
+    const initialProgram = allPrograms.find(
+      (p) => p.code === initialData.ProgCode
+    );
+
     if (initialProgram) {
       defaultValues.StartTime = initialProgram.startTime;
       defaultValues.EndTime = initialProgram.endTime;
@@ -219,7 +232,6 @@ const createDefaultValues = (
             case "C_TEL":
             case "Occupation":
             case "W_TEL":
-            case "AGE_GROUP":
             case "AGRESSIVENESS":
             case "GENDER":
             case "FeeComment":
@@ -227,7 +239,6 @@ const createDefaultValues = (
             case "ProgCode":
             case "StartTime":
             case "EndTime":
-            
               defaultValues[key] =
                 initialData[key] !== null ? (initialData[key] as string) : "";
               break;
@@ -250,15 +261,18 @@ const createDefaultValues = (
             //     : (initialData[key] as string) || "";
             //   break;
             case "BRTHD":
-            // case"updateAt":
+              // case"updateAt":
               defaultValues[key] = (initialData[key] as Date) || new Date();
               break;
             case "AGE":
               defaultValues.AGE = calculateAge(initialData.BRTHD);
               break;
             case "AppType":
-              defaultValues.AppType =
-                initialData[key] !== null ? (initialData[key] as number) : 0;
+              defaultValues.AppType = (initialData[key] as number) || 0;
+              break;
+            case "AGE_GROUP":
+              defaultValues.AGE_GROUP = (initialData[key] as number) || 0;
+              break;
             default:
               if (initialData[key] !== null && initialData[key] !== undefined) {
                 defaultValues[key] = initialData[key];
@@ -276,11 +290,14 @@ const createDefaultValues = (
 export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   const params = useParams();
   const router = useRouter();
-  const [allPrograms, setAllPrograms] = useState<ProgramDetails[]>(getAllPrograms());
+  const [allPrograms, setAllPrograms] = useState<ProgramDetails[]>(
+    getAllPrograms()
+  );
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [age, setAge] = useState<number | null>(null);
+  const [ageGroup, setAgeGroup] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     initialData?.BRTHD || null
   );
@@ -297,20 +314,22 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
 
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: createDefaultValues(initialData,allPrograms)
+    defaultValues: createDefaultValues(initialData, allPrograms),
   });
 
   useEffect(() => {
     if (initialData && initialData.ProgCode) {
       // Assume getAllPrograms is a function that returns all programs regardless of the day
-      const allPrograms = getAllPrograms(); 
-      const programToSelect = allPrograms.find(p => p.code === initialData.ProgCode);
+      const allPrograms = getAllPrograms();
+      const programToSelect = allPrograms.find(
+        (p) => p.code === initialData.ProgCode
+      );
       if (programToSelect) {
         setSelectedProgram(programToSelect);
         // If the day is also being set from initial data, make sure to update it
         setSelectedDay(programToSelect.day);
         // Filter programs based on the selected day
-        setPrograms(allPrograms.filter(p => p.day === programToSelect.day));
+        setPrograms(allPrograms.filter((p) => p.day === programToSelect.day));
       }
     }
   }, [initialData]);
@@ -347,8 +366,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
     setSelectedDay(selectedDay);
 
     // Filter the programs based on the selected day directly
-    const filteredPrograms = allPrograms.filter(p => p.day === selectedDay);
-    
+    const filteredPrograms = allPrograms.filter((p) => p.day === selectedDay);
+
     setPrograms(filteredPrograms);
     setSelectedProgram(null);
   };
@@ -389,12 +408,16 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
 
     if (selectedDate) {
       const newAge = calculateAge(selectedDate);
+      const ageGroup = calculateAgeGroup(selectedDate);
       if (newAge !== null) {
         setAge(newAge);
+        setAgeGroup(ageGroup);
         form.setValue("AGE", newAge);
+        form.setValue("AGE_GROUP", ageGroup);
         form.setValue("BRTHD", selectedDate);
       } else {
         form.setValue("AGE", newAge);
+        form.setValue("AGE_GROUP", ageGroup);
         form.setValue("BRTHD", selectedDate);
       }
     } else {
@@ -404,6 +427,15 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
       form.setValue("BRTHD", new Date());
     }
   };
+  useEffect(() => {
+    if (initialData?.BRTHD) {
+      const birthdate = new Date(initialData.BRTHD);
+      const age = calculateAge(birthdate);
+      const ageGroup = calculateAgeGroup(birthdate);
+      setAge(age);
+      setAgeGroup(ageGroup);
+    }
+  }, [initialData]);
 
   return (
     <>
@@ -648,6 +680,16 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 <Input
                   type="text"
                   value={age !== null ? age.toString() : ""}
+                  readOnly
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Age Group</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  value={ageGroup !== null ? ageGroup.toString() : ""}
                   readOnly
                 />
               </FormControl>
@@ -989,9 +1031,12 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 <FormItem className="m-10">
                   <FormLabel>fee</FormLabel>
                   <FormControl>
-                    <Input disabled={loading}
-                     placeholder="" {...field}
-                     readOnly />
+                    <Input
+                      disabled={loading}
+                      placeholder=""
+                      {...field}
+                      readOnly
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1004,13 +1049,18 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 <FormItem className="m-10">
                   <FormLabel>Date Registered</FormLabel>
                   <FormControl>
-                    <Input disabled={loading} placeholder="" {...field} readOnly />
+                    <Input
+                      disabled={loading}
+                      placeholder=""
+                      {...field}
+                      readOnly
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-              {/* <FormField
+            {/* <FormField
               control={form.control}
               name="updateAt"
               render={({ field }) => (

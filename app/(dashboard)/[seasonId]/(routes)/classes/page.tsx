@@ -1,9 +1,39 @@
-const ClassesPage = () => {
-  return(
-    <div>
-      Classes Page
+import { format } from "date-fns";
+
+import prismadb from "@/lib/prismadb";
+import { Button } from "@/components/ui/button";
+import { ClassColumn } from "./components/columns"
+import { ClassClient } from "./components/client";
+
+const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
+
+  const classes = await prismadb.classes.findMany({
+    where: {
+      seasonId: params.seasonId
+    }
+  });
+
+  const formattedClasses: ClassColumn[] = classes.map((item) => ({
+
+    classId:item.classId || 0,
+    meetColor:item.meetColor || "",
+    meetingPoint:item.meetingPoint || 0,
+    discipline: item.discipline || "",
+    numberStudents:item.numberStudents || 0,
+    Level: item.Level || "",
+    Age: item.Age || 0,
+    Instructor_NAME: item.Instructor_NAME||"",
+    Phone:item.Phone || "",
+    }
+  ));
+  return (
+    <div className="flex-col">
+      <div className=" flex-1 space-y-4 p-8 pt-6">
+        <h1 className="text-center">Classes</h1>
+        <ClassClient data={formattedClasses}/>
+      </div>
     </div>
   );
-}
+};
 
 export default ClassesPage;

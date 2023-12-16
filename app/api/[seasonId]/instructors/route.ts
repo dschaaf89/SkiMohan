@@ -1,10 +1,7 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs";
 
-import prismadb from '@/lib/prismadb';
-
-
-
+import prismadb from "@/lib/prismadb";
 
 export async function POST(
   req: Request,
@@ -14,21 +11,59 @@ export async function POST(
     const { userId } = auth();
 
     const body = await req.json();
+    const { clinics,classTimeIds, ageRequestByStaff, ...otherData } = body;
+    let validatedClinics;
+    if (Array.isArray(clinics)) {
+      validatedClinics = clinics.every(item => typeof item === 'string')
+        ? clinics
+        : null; // or handle the error
+    } else if (clinics === null || clinics === undefined) {
+      validatedClinics = null;
+    } else {
+      // Handle cases where `ageRequestByStaff` is not an array or null
+      // Maybe return an error or set a default value
+      validatedClinics = null; // or handle the error
+    }
 
-    const {     
-    UniqueID,
-    NAME_FIRST,
-    NAME_LAST,
-    HOME_TEL,
-    C_TEL,
-    BRTHD,
-    E_mail_main,
-    ADDRESS,
-    CITY,
-    STATE,
-    ZIP,
-    GENDER,
-    AGE,
+    let validatedAgeRequestByStaff;
+    if (Array.isArray(ageRequestByStaff)) {
+      validatedAgeRequestByStaff = ageRequestByStaff.every(item => typeof item === 'string')
+        ? ageRequestByStaff
+        : null; // or handle the error
+    } else if (ageRequestByStaff === null || ageRequestByStaff === undefined) {
+      validatedAgeRequestByStaff = null;
+    } else {
+      // Handle cases where `ageRequestByStaff` is not an array or null
+      // Maybe return an error or set a default value
+      validatedAgeRequestByStaff = null; // or handle the error
+    }
+    const {
+      UniqueID,
+      NAME_FIRST,
+      NAME_LAST,
+      HOME_TEL,
+      C_TEL,
+      BRTHD,
+      E_mail_main,
+      ADDRESS,
+      CITY,
+      STATE,
+      ZIP,
+      AGE,
+      STATUS,
+      COMMENTS,
+      prevYear,
+      dateReg,
+      dateConfirmed,
+      emailCommunication,
+      InstructorType,
+      PSIA,
+      AASI,
+      testScore,
+      ParentAuth,
+      OverNightLodge,
+      clinicInstructor,
+      Supervisor,
     } = body;
 
     if (!userId) {
@@ -58,29 +93,29 @@ export async function POST(
     //   return new NextResponse("Unauthorized", { status: 405 });
     // }
 
-    const student = await prismadb.instructor.create({
+    const instructor = await prismadb.instructor.create({
       data: {
-        UniqueID,
-        NAME_FIRST,
-        NAME_LAST,
-        HOME_TEL,
-        C_TEL,
-        BRTHD,
-        E_mail_main,
-        ADDRESS,
-        CITY,
-        STATE,
-        ZIP,
-        GENDER,
-        AGE,    // Add missing properties with default values if needed
-    
+       ...otherData,
+       clinics:validatedClinics,
+       ageRequestByStaff:validatedAgeRequestByStaff,
         seasonId: params.seasonId,
+        classTimes: {
+          createMany: {
+            data: classTimeIds.map((classTimeId: number) => ({
+              classTimeId,
+            }))
+          },
+        },
+      },
+      include: {
+        classTimes: true, // Include the related classTimes in the result
       },
     });
-  
-    return NextResponse.json(student);
+    console.log(instructor); 
+
+    return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[Instructors_POST]', error);
+    console.log("[Instructors_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}

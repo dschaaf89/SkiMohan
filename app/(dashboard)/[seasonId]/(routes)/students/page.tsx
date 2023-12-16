@@ -51,7 +51,7 @@ const StudentPage = async ({
   C_TEL: item.C_TEL|| "", // Assuming this field is present in your document
   Occupation: item.Occupation|| "", // Assuming this field is present in your document
   W_TEL: item.W_TEL|| "", // Assuming this field is present in your document
-  AGE_GROUP: item.AGE_GROUP|| "", // Optional field (not present in your Prisma model
+  AGE_GROUP: item.AGE_GROUP|| 0, // Optional field (not present in your Prisma model
   GENDER: item.GENDER|| "",
   FeeComment:item.FeeComment|| "",
   AGRESSIVENESS:item.AGRESSIVENESS|| "",

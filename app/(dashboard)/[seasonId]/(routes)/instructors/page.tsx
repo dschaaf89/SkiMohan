@@ -13,6 +13,13 @@ const InstructorPage = async ({
   const instructors = await prismadb.instructor.findMany({
     where: {
       seasonId: params.seasonId
+    },
+    include: {
+      classTimes: {
+        include: {
+          classTime: true
+        }
+      }
     }
   });
 
@@ -29,9 +36,32 @@ const InstructorPage = async ({
   BRTHD: item.BRTHD ? format(new Date(item.BRTHD), "MM/dd/yyyy") : "",
   AGE: item.AGE,// Assuming this field is present in your document and corresponds to DOB
   E_mail_main: item.E_mail_main|| "", // Assuming this field is present in your document
-  GENDER: item.GENDER,
-  updateAt:item.updateAt,
-  createAt:item.createAt,
+  STATUS:item.STATUS || "",
+  COMMENTS:item.COMMENTS|| "",
+  prevYear:item.prevYear|| "",
+  dateReg:item.dateReg|| "",
+  emailCommunication:item.emailCommunication||false,
+  InstructorType:item.InstructorType || "",
+  PSIA:item.PSIA || "",
+  updateAt:item.updateAt || new Date() ,
+  createAt:item.createAt || new Date() ,
+  AASI:item.AASI || "",
+  testScore:item.testScore || "",
+  ParentAuth:item.ParentAuth || false,
+  OverNightLodge:item.OverNightLodge || false,
+  ageRequestByStaff: Array.isArray(item.ageRequestByStaff)
+  ? item.ageRequestByStaff.filter((v): v is string => typeof v === 'string')
+  : null,
+  clinics: Array.isArray(item.clinics)
+  ? item.clinics.filter((v): v is string => typeof v === 'string')
+  : null,
+  clinicInstructor:item.clinicInstructor||false,
+  Supervisor:item.Supervisor || false,
+  classTimeIds: item.classTimes
+      ? item.classTimes
+          .map(ct => ct.classTime ? ct.classTime.id : null) // Use optional chaining
+          .filter((id): id is number => id !== null) // Filter out null values
+      : [],
 }
   
 
