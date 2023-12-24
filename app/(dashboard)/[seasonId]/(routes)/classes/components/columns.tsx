@@ -6,7 +6,7 @@ import {Button} from "@/components/ui/button"
 import { CellAction } from "./cell-action"
 
 export type ClassColumn = {
-  id:number
+  DAY:string;
   classId : number
   meetingPoint: number
   meetColor: string
@@ -14,9 +14,7 @@ export type ClassColumn = {
   numberStudents:number
   Level: string
   Age:number
-  Instructor_NAME: string
-  Phone:string
-  
+  instructorID:number
 
   
 }
@@ -29,6 +27,7 @@ export const columns: ColumnDef<ClassColumn>[] = [
     id:"actions",
     cell: ({row}) => <CellAction data={row.original}/>
   },
+ 
   {
     accessorKey: "classId",
     header: ({ column }) => {
@@ -38,6 +37,20 @@ export const columns: ColumnDef<ClassColumn>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           class Id
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "DAY",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Day
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )

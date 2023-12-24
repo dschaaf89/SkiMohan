@@ -45,7 +45,7 @@ export const StudentClient: React.FC<StudentClientProps> = ({
           const jsonData = XLSX.utils.sheet_to_json(worksheet, {
             header: 1
           });
-  
+            
           // Log the JSON object to inspect it
           console.log(jsonData);
           

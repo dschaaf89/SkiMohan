@@ -188,6 +188,7 @@ model Classes {
   meetColor      String?     @map("meetColor")
   meetingPoint   Int?        @map("meetingPoint")
   students       Json        @map("students")
+  day         String         @map("day")
   discipline     String // Add this field
   numberStudents Int
   Level          String?

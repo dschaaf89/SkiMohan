@@ -73,7 +73,7 @@ function groupForFriday(students: Student[]): StudentGroup[] {
   const groups: StudentGroup[] = [];
 
   // Group students by discipline for Friday classes
-  const groupedByDiscipline = groupBy(students, 'APPLYING_FOR');
+  const groupedByDiscipline = groupBy(students.filter(student => student.APPLYING_FOR !== 'Transportation'), 'APPLYING_FOR');
 
   // Iterate through the groups and create StudentGroup objects
   for (const disciplineGroup of Object.values(groupedByDiscipline)) {
@@ -90,7 +90,7 @@ function groupForMagicKingdom(students: Student[], codes: string[]): StudentGrou
 
   codes.forEach(progCode => {
     const studentsInProgram = students.filter(student => student.ProgCode === progCode);
-    const programGroups = chunkArray(studentsInProgram, 5);
+    const programGroups = chunkArray(studentsInProgram, 3);
     groups.push(...programGroups.map(createStudentGroup));
   });
 
@@ -159,6 +159,7 @@ function createStudentGroup(students: Student[]): StudentGroup {
   const groupAge = students[0].AGE ?? 0;
   const meetColor = determineMeetColor(students[0]);
   const meetingPoint = determineMeetingPoint(students[0]);
+  const day = students[0].DAY;
 
   return {
     day: students[0].DAY ?? 'Unknown',
@@ -205,44 +206,66 @@ export async function POST(
 ) {
   try {
     // Fetch all students
-    const allStudents = await prismadb.student.findMany();
-    const fridayGroups: StudentGroup[] = groupForFriday(allStudents);
-    const saturdayMKGroups = groupForMagicKingdom(allStudents, saturdayMagicKindomCodes);
-    const sundayMKGroups = groupForMagicKingdom(allStudents, sundayMagicKindomCodes);
-    const saturdayRegularGroups = groupForRegularWeekend(allStudents, saturdayCodes);
-    const sundayRegularGroups = groupForRegularWeekend(allStudents, sundayCodes);
+   // Fetch all students
+const allStudents = await prismadb.student.findMany();
+const assignedStudents = new Set();
 
-    const combinedGroups = [...fridayGroups, ...saturdayMKGroups, ...sundayMKGroups, ...saturdayRegularGroups, ...sundayRegularGroups];
-    // Iterate over the student groups and create classes in the database
-    for (const group of combinedGroups) {
-      // Extract student IDs for the class creation
-      const studentIds = group.students.map(student => student.id);
-      // Create class in the database for each group
-      await prismadb.classes.create({
-        data: {
-          seasonId: params.seasonId,
-          meetColor: group.meetColor,
-          Age: group.age,
-          meetingPoint: group.meetingPoint,
-          discipline: group.discipline!,
-          Level: group.level,
-          numberStudents: group.numberStudents,
-          // You would have a relation set up in your Prisma schema for this
-          students: {
-            connect: studentIds.map(id => ({ id })),
-          },
+// Group students by discipline for Friday classes
+const fridayGroups: StudentGroup[] = groupForFriday(allStudents);
+const saturdayMKGroups = groupForMagicKingdom(allStudents, saturdayMagicKindomCodes);
+const sundayMKGroups = groupForMagicKingdom(allStudents, sundayMagicKindomCodes);
+const saturdayRegularGroups = groupForRegularWeekend(allStudents, saturdayCodes);
+const sundayRegularGroups = groupForRegularWeekend(allStudents, sundayCodes);
+
+const combinedGroups = [...fridayGroups, ...saturdayMKGroups, ...sundayMKGroups, ...saturdayRegularGroups, ...sundayRegularGroups];
+
+// Iterate over the student groups and create classes in the database
+for (const group of combinedGroups) {
+  // Filter unassigned students from the group
+  const unassignedStudents = group.students.filter(student => !assignedStudents.has(student.id));
+  
+  // If there are unassigned students in the group, create a class for them
+  if (unassignedStudents.length > 0) {
+    // Extract student IDs for the class creation
+    const studentIds = unassignedStudents.map(student => student.id);
+
+    // Create class in the database for the unassigned students
+    await prismadb.classes.create({
+      data: {
+        seasonId: params.seasonId,
+        meetColor: group.meetColor,
+        Age: group.age,
+        meetingPoint: group.meetingPoint,
+        discipline: group.discipline!,
+        Level: group.level,
+        day: group.day!, // Assign the day of the class
+        numberStudents: group.numberStudents,
+        // You would have a relation set up in your Prisma schema for this
+        students: {
+          connect: studentIds.map(id => ({ id })),
         },
-      });
-    }
+      },
+    });
+
+    // Add the IDs of the assigned students to the set
+    studentIds.forEach(id => assignedStudents.add(id));
+  }
+}
+
+// Check if there are any unassigned students
+const unassignedStudents = allStudents.filter(student => !assignedStudents.has(student.id));
+
+if (unassignedStudents.length > 0) {
+  // Handle the case where there are unassigned students (excluding Transportation Only students)
+  // You can log an error or take appropriate action here.
+}
+
 
     // If all classes are created successfully, send a success response
     return NextResponse.json({ message: "Classes created successfully" });
-
   } catch (error) {
     // Log the error and return a server error response
     console.error("[POST Error]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
-
-

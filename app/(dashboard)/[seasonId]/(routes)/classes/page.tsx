@@ -14,7 +14,7 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
   });
 
   const formattedClasses: ClassColumn[] = classes.map((item) => ({
-
+    DAY:item.day ||"",
     classId:item.classId || 0,
     meetColor:item.meetColor || "",
     meetingPoint:item.meetingPoint || 0,
@@ -22,10 +22,13 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
     numberStudents:item.numberStudents || 0,
     Level: item.Level || "",
     Age: item.Age || 0,
-    Instructor_NAME: item.Instructor_NAME||"",
-    Phone:item.Phone || "",
+    instructorID:item.instructorId || 0,
+    
+
     }
   ));
+
+  
   return (
     <div className="flex-col">
       <div className=" flex-1 space-y-4 p-8 pt-6">
