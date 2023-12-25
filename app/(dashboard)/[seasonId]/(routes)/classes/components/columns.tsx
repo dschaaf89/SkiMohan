@@ -15,6 +15,7 @@ export type ClassColumn = {
   Level: string
   Age:number
   instructorID:number
+  progCode:string
 
   
 }
@@ -51,6 +52,20 @@ export const columns: ColumnDef<ClassColumn>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Day
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "progCode",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Program Code
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )

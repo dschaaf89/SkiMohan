@@ -14,9 +14,38 @@ interface ClassClientProps {
   data: ClassColumn[];
 }
 
+interface ProgCodeTimeSlots {
+  [progCode: string]: 'Morning' | 'Afternoon';
+}
 
+const saturdayProgCodeTimeSlots: ProgCodeTimeSlots = {
+  // Saturday Morning Program Codes
+  'G710-B-LO': 'Morning',
+  'G710-S-LO': 'Morning',
+  'G715-S-LO': 'Morning',
 
+  // Saturday Afternoon Program Codes
+  'G720-B-LO': 'Afternoon',
+  'G720-S-LO': 'Afternoon',
+  'G725-S-LO': 'Afternoon',
+};
 
+const sundayProgCodeTimeSlots: ProgCodeTimeSlots = {
+  // Saturday Morning Program Codes
+  'G110-B-LO': 'Morning',
+  'G110-S-LO': 'Morning',
+  'G115-S-LO': 'Morning',
+
+  // Saturday Afternoon Program Codes
+  'G120-B-LO': 'Afternoon',
+  'G120-S-LO': 'Afternoon',
+  'G125-S-LO': 'Afternoon',
+};
+const progCodeTimeSlots: ProgCodeTimeSlots = {
+  ...saturdayProgCodeTimeSlots,
+  ...sundayProgCodeTimeSlots,
+  //
+} 
 
 export const ClassClient: React.FC<ClassClientProps> = ({
   data
@@ -41,9 +70,18 @@ export const ClassClient: React.FC<ClassClientProps> = ({
   const handleDayChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = event.target.value;
     setSelectedDay(selected);
-
-    // Filter the data based on the selected day
-    const filtered = data.filter((item) => item.DAY === selected);
+  
+    let filtered;
+    if (selected.includes("Saturday") || selected.includes("Sunday")) {
+      // Saturday and Sunday with morning and afternoon sessions
+      const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
+      filtered = data.filter(item => 
+        progCodeTimeSlots[item.progCode] === timeSlot && item.DAY === selected.split(" ")[0]);
+    } else {
+      // Other days with only one time slot
+      filtered = data.filter(item => item.DAY === selected);
+    }
+  
     setFilteredData(filtered);
   };
   return(
@@ -69,8 +107,10 @@ export const ClassClient: React.FC<ClassClientProps> = ({
         <option value="Wednesday">Wednesday</option>
         <option value="Thursday">Thursday</option>
         <option value="Friday">Friday</option>
-        <option value="Saturday">Saturday</option>
-        <option value="Sunday">Sunday</option>
+        <option value="Saturday Morning">Saturday Morning</option>
+        <option value="Saturday Afternoon">Saturday Afternoon</option>
+        <option value="Sunday Morning">Sunday Morning</option>
+        <option value="Sunday Afternoon">Sunday Afternoon</option>
       </select>
     <Separator/>
     <DataTable searchKey="classId" columns={columns} data={filteredData}/>

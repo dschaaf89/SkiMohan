@@ -76,7 +76,7 @@ model Student {
   EndTime       String?  @map("EndTime")
   createAt      DateTime @default(now())
   updateAt      DateTime @updatedAt
-  classID       Int?
+  classID       Int?     @map("classID")
 
   @@index([classID])
   @@index([seasonId])
@@ -189,6 +189,7 @@ model Classes {
   meetingPoint   Int?        @map("meetingPoint")
   students       Json        @map("students")
   day         String         @map("day")
+  progCode    String         @map("progCode")
   discipline     String // Add this field
   numberStudents Int
   Level          String?

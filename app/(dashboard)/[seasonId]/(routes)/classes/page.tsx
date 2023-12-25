@@ -23,7 +23,7 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
     Level: item.Level || "",
     Age: item.Age || 0,
     instructorID:item.instructorId || 0,
-    
+    progCode:item.progCode || "",
 
     }
   ));
