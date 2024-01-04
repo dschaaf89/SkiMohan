@@ -99,7 +99,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     const exportData = [...filteredData]; // Create a copy of filteredData
     console.log(exportData);
     // Sort the data
-    exportData.sort((a, b) => a.Age - b.Age);
+    exportData.sort((a, b) => a.meetingPoint - b.meetingPoint);
 
     console.log("Selected Day for Export:", selectedDay);
     console.log("Data to be Exported:", exportData);

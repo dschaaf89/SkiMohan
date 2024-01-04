@@ -240,6 +240,9 @@ function determineClassSizeBasedOnCriteria(level: string): number {
 //   return groups;
 // }
 function determineTimeSlot(progCode: string | null): keyof MeetingPointsType {
+  if (!progCode) {
+    throw new Error("progCode is null or undefined.");
+  }
   if (fridayProgCodes.includes(progCode || "")) {
     return "Friday";
   }
@@ -270,7 +273,7 @@ function createStudentGroup({ students, progCode }: { students: Student[], progC
   const discipline = (commonApplyingFor === "SKI" ? "Ski" : "Board") as keyof DisciplineMeetingPoints;
 
   const meetColor = determineMeetColor(commonApplyingFor); // Use the function to determine the meet color
-  const meetingPointDetails = determineMeetingPoint(daySlot, discipline, commonLevel);
+  const meetingPointDetails = determineMeetingPoint(daySlot, discipline, commonLevel,progCode);
 
   return {
     progCode: commonProgCode,
@@ -348,7 +351,7 @@ let meetingPoints: MeetingPointsType = {
   "Saturday Morning": { Ski: 1, Board: 1 },
   "Saturday Afternoon": { Ski: 1, Board: 1 },
   "Sunday Morning": { Ski: 1, Board: 1 },
-  "Sunday Afternoon": { Ski: 1, Board: 1 }
+  "Sunday Afternoon": { Ski: 1, Board: 1 },
 } as MeetingPointsType;
 
 function determineMeetColor(applyingFor: string): string {
@@ -364,46 +367,52 @@ function resetMeetingPoint(daySlot: keyof MeetingPointsType) {
 }
 
 // Function to determine the next available meeting point
-function determineMeetingPoint(daySlot: keyof MeetingPointsType, discipline: 'Ski' | 'Board', level: string): { point: number, color: string } {
+function determineMeetingPoint(daySlot: keyof MeetingPointsType, discipline: 'Ski' | 'Board', level: string, progCode: string): { point: number, color: string } {
   let disciplineKey: keyof DisciplineMeetingPoints = discipline === "Ski" ? 'Ski' : 'Board';
-  let levelRanges: { [key: string]: { start: number; end: number } } = {
-    "1/2 novice": { start: 1, end: 15 },
-    "3/4 inter": { start: 16, end: 30 },
-    "5/6 adv inter": { start: 31, end: 40 },
-    "7/8 advance": { start: 41, end: 50 },
-    "9 atac": { start: 41, end: 50 },
-  };
-
   let currentPoint = meetingPoints[daySlot][disciplineKey];
-  let range = levelRanges[level as keyof typeof levelRanges]; // Type assertion added here
 
-  if (!range) {
-    throw new Error(`Invalid level: ${level}`);
-  }
-
-  let { start, end } = range;
-
-  // If currentPoint is outside the level's range, reset to start of the range
-  if (currentPoint < start || currentPoint > end) {
-    currentPoint = start;
-  }
-
-  let meetColor = "Red"; // default color
-
-  // Check if the currentPoint has reached the end of the range
-  if (currentPoint === end) {
-    meetColor = "Yellow"; // Change color to yellow
-    currentPoint = start; // Reset point to start of the range
+  // Handling for Magic Kingdom classes
+  if (magicKingdomProgCodes.includes(progCode)) {
+    if (currentPoint > 3) { // Reset to 1 if it exceeds 3
+      currentPoint = 1;
+    } else {
+      currentPoint = (currentPoint < 3) ? currentPoint + 1 : 1;
+    }
   } else {
-    currentPoint++; // Increment the meeting point for the next group
+    // General handling for other classes
+    let levelRanges: { [key: string]: { start: number; end: number } } = {
+      "1/2 novice": { start: 1, end: 15 },
+      "3/4 inter": { start: 16, end: 29 },
+      "5/6 adv inter": { start: 30, end: 40 },
+      "7/8 advance": { start: 41, end: 50 },
+      "9 atac": { start: 41, end: 50 },
+    };
+
+    let range = levelRanges[level as keyof typeof levelRanges];
+    if (!range) {
+      throw new Error(`Invalid level: ${level}`);
+    }
+
+    let { start, end } = range;
+
+    // If currentPoint is outside the level's range, reset to start of the range
+    if (currentPoint < start || currentPoint > end) {
+      currentPoint = start;
+    }
+
+    // Check if the currentPoint has reached the end of the range
+    if (currentPoint === end) {
+      currentPoint = start; // Reset point to start of the range
+    } else {
+      currentPoint++; // Increment the meeting point for the next group
+    }
   }
 
-  // Update the meeting point in the global variable
-  meetingPoints[daySlot][disciplineKey] = currentPoint;
+  meetingPoints[daySlot][disciplineKey] = currentPoint; // Update the current point
+  let meetColor = "Red"; // Default color, adjust as needed
 
   return { point: currentPoint, color: meetColor };
 }
-
 // let currentLowerMeetingPoint = 1; // Start from 1 for "1/2 novice" and "3/4 inter"
 // let currentUpperMeetingPoint = 30; // Start from 30 for other levels
 
