@@ -31,23 +31,27 @@ interface StudentGroup {
 const fridayProgCodes = [
   'ECKS-S-LT', 'HAML-B-LT', 'HAML-S-LT', 'ECKS-B-LT', 'BALL-S-LT', 
   'JANE-S-LT', 'ROOS-S-LT', 'EAST-S-LT', 'WHIT-B-LT', 'BALL-B-LT', 
-  'EAST-B-LT', 'LINC-S-LT', 'WHIT-S-LT', 'JANE-B-LT', 'NATH-S-LT'
+  'EAST-B-LT', 'LINC-S-LT', 'WHIT-S-LT', 'JANE-B-LT', 'NATH-S-LT',
+  'NATH-B-LT', 'ROOS-B-LT' ,'LINC-B-LT',
 ];
 
-const saturdayMagicKindomCodes = [
-  'G715-S-LO','G725-S-LO',
+
+
+const saturdayMorningCodes = [
+  'G710-S-LO','G710-B-LO','G715-S-LO'
 ];
-const sundayMagicKindomCodes = [
-  'G115-S-LO','G125-S-LO',
+const saturdayAfternoonCodes = [
+  'G720-S-LO','G720-B-LO','G725-S-LO'
 ];
 
-const saturdayCodes = [
-  'G720-S-LO','G720-B-LO','G710-S-LO','G710-B-LO'
+const sundayMorningCodes = [
+  'G110-S-LO','G110-B-LO','G115-S-LO'
 ];
+const sundayAfternoonCodes = [
+  'G120-B-LO','G120-S-LO','G125-S-LO'
+];
+const magicKingdomProgCodes = ['G725-S-LO', 'G715-S-LO', 'G125-S-LO', 'G115-S-LO'];
 
-const sundayCodes = [
-  'G110-S-LO','G110-B-LO','G120-B-LO','G120-S-LO'
-];
 
 function chunkArray<T>(array: T[], size: number): T[][] {
   return array.reduce((chunks, item, index) => {
@@ -58,286 +62,354 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 }
 
 function filterByAge(students: Student[], minAge: number, maxAge: number): Student[] {
-  return students.filter(student => student.AGE !== null && student.AGE >= minAge && student.AGE <= maxAge);
+  return students.filter(student => student.AGE !== null && student.AGE >= minAge && (maxAge === Infinity ? true : student.AGE <= maxAge));
 }
+// function createClasses(students: Student[]): StudentGroup[] {
+//   const groups: StudentGroup[] = [];
+
+//   // Special handling for age 5
+//   const age5Students = filterByAge(students, 5, 5);
+//   const age5Classes = chunkArray(age5Students, 3); // Classes of size 3 for age 5
+//   age5Classes.forEach(classGroup => groups.push(createStudentGroup(classGroup)));
+
+//   // Handle any leftover age 5 students
+//   const leftoverAge5 = age5Students.length % 3;
+//   if (leftoverAge5 > 0) {
+//     const leftoverStudents = age5Students.slice(-leftoverAge5);
+//     groups.push(createStudentGroup(leftoverStudents));
+//   }
+//   // Handling for other age groups
+//   const ageGroups = [
+//     { min: 6, max: 7 },
+//     { min: 8, max: 10 },
+//     { min: 11, max: 14 },
+//     { min: 15, max: 17 },
+//     { min: 18, max:Infinity}
+//   ];
+
+//   ageGroups.forEach(({ min, max }) => {
+//     const ageGroupStudents = filterByAge(students, min, max);
+//     const levelGroups = groupByMultipleCriteria(ageGroupStudents, ['LEVEL']);
+
+//     levelGroups.forEach(levelGroup => {
+//       // Determine chunk size based on level
+//       const isLowerLevel = levelGroup.some(student => student.LEVEL === "1/2" || student.LEVEL === "3/4");
+//       const chunkSize = isLowerLevel ? 5 : 8;
+
+//       const classes = chunkArray(levelGroup, chunkSize);
+//       classes.forEach(classGroup => groups.push(createStudentGroup(classGroup)));
+//     });
+//   });
+
+//   return groups;
+// }
+// Utility function to combine small groups
+
+function combineSmallGroups(groups: Student[][], classSize: number): Student[][] {
+  let combinedGroups: Student[][] = [];
+  let leftovers: Student[] = [];
+
+  groups.forEach((group: Student[]) => {
+    if (group.length < classSize) {
+      leftovers = [...leftovers, ...group];
+    } else {
+      combinedGroups.push(group);
+    }
+  });
+
+  // Further combine leftovers if possible
+  while (leftovers.length > 0) {
+    if (leftovers.length <= classSize) {
+      combinedGroups.push(leftovers);
+      break;
+    } else {
+      combinedGroups.push(leftovers.slice(0, classSize));
+      leftovers = leftovers.slice(classSize);
+    }
+  }
+
+  return combinedGroups;
+}
+
 function createClasses(students: Student[]): StudentGroup[] {
   const groups: StudentGroup[] = [];
-
-  // Special handling for age 5
-  const age5Students = filterByAge(students, 5, 5);
-  const age5Classes = chunkArray(age5Students, 3); // Classes of size 3 for age 5
-  age5Classes.forEach(classGroup => groups.push(createStudentGroup(classGroup)));
-
-  // Handling for other age groups
+  const magicKingdomClassSize = 3; // Class size for Magic Kingdom classes
+  const fridayClassSize = 5; // Class size for Friday classes
+  const otherClassSize = 8; // Default class size for other classes
   const ageGroups = [
     { min: 6, max: 7 },
     { min: 8, max: 10 },
     { min: 11, max: 14 },
     { min: 15, max: 17 },
-    // Add more age groups as needed
+    { min: 18, max: Infinity }
   ];
 
-  ageGroups.forEach(({ min, max }) => {
-    const ageGroupStudents = filterByAge(students, min, max);
-    const levelGroups = groupByMultipleCriteria(ageGroupStudents, ['LEVEL']);
+  const groupedByProgCode = groupBy(students, 'ProgCode');
 
-    levelGroups.forEach(levelGroup => {
-      const classes = chunkArray(levelGroup, 5); // Classes of size 5 for other age groups
-      classes.forEach(classGroup => groups.push(createStudentGroup(classGroup)));
-    });
+  Object.entries(groupedByProgCode).forEach(([progCode, progCodeGroup]) => {
+    // Reset meeting points for each new progCode
+    resetMeetingPoint(determineTimeSlot(progCode));
+
+    if (magicKingdomProgCodes.includes(progCode)) {
+      // Handle Magic Kingdom classes
+      let classGroups = chunkArray(progCodeGroup, magicKingdomClassSize);
+      classGroups.forEach(classGroup => {
+        groups.push(createStudentGroup({ students: classGroup, progCode }));
+      });
+    } else if (fridayProgCodes.includes(progCode)) {
+      // Handle Friday classes grouped by level
+      const groupedByLevel = groupBy(progCodeGroup, 'LEVEL');
+      Object.entries(groupedByLevel).forEach(([level, levelGroup]) => {
+        let classSize = determineClassSizeBasedOnCriteria(level);
+        let classGroups = chunkArray(levelGroup, classSize);
+        classGroups = combineSmallGroups(classGroups, classSize);
+        classGroups.forEach(classGroup => {
+          groups.push(createStudentGroup({ students: classGroup, progCode }));
+        });
+      });
+    } else {
+      // Handle other classes grouped by age and level
+      let allClassesForProgCode: Student[][] = [];
+      ageGroups.forEach(({ min, max }) => {
+        const ageGroupStudents = filterByAge(progCodeGroup, min, max);
+        const groupedByLevel = groupBy(ageGroupStudents, 'LEVEL');
+        Object.entries(groupedByLevel).forEach(([level, levelGroup]) => {
+          let classSize = determineClassSizeBasedOnCriteria(level);
+          let classes = chunkArray(levelGroup, classSize);
+          allClassesForProgCode = allClassesForProgCode.concat(classes);
+        });
+      });
+
+      // Combine small groups after processing all ages and levels
+      let combinedClasses = combineSmallGroups(allClassesForProgCode, otherClassSize);
+      combinedClasses.forEach(classGroup => {
+        groups.push(createStudentGroup({ students: classGroup, progCode }));
+      });
+    }
   });
-
-  // Add additional logic for students 18+ if necessary
-  
-  // Handling for age 18 and older
-  const adultStudents = filterByAge(students, 18, Infinity); // Include all students 18 and older
-  const adultClasses = chunkArray(adultStudents, 5); // Adjust the class size as needed for adults
-  adultClasses.forEach(classGroup => groups.push(createStudentGroup(classGroup)));
 
   return groups;
 }
 
+// Additional utility functions and types remain the same as in your original implementation.
 
-function createStudentGroup(students: Student[]): StudentGroup {
-  const commonDay = mostCommonValue(students, 'DAY');
-  const commonApplyingFor = mostCommonValue(students, 'APPLYING_FOR');
-  const commonLevel = mostCommonValue(students, 'LEVEL');
-  const commonProgCode = mostCommonValue(students, 'ProgCode');
-  const meetColor = determineMeetColor(typeof commonApplyingFor === 'string' ? commonApplyingFor : null);
-  const meetingPoint = determineMeetingPoint(typeof commonLevel === 'string' ? commonLevel : null);
 
-  return {
-    progCode: typeof commonProgCode === 'string' ? commonProgCode : null,
-    day: typeof commonDay === 'string' ? commonDay : null,
-    applyingFor: typeof commonApplyingFor === 'string' ? commonApplyingFor : null,
-    age: students[0]?.AGE || null,
-    level: typeof commonLevel === 'string' ? commonLevel : null,
-    discipline: typeof commonApplyingFor === 'string' ? commonApplyingFor : null,
-    numberStudents: students.length,
-    meetColor: meetColor,
-    meetingPoint: meetingPoint,
-    students: students,
-  };
+
+function determineClassSizeBasedOnCriteria(level: string): number {
+  // For lower levels "1/2" and "3/4", class size is 5
+  if (level.includes( "1/2 novice") || level.includes("3/4 inter")) {
+    return 5;
+  }
+  // For all other levels, class size is 8
+  return 8;
 }
 
 
+// function createClasses(students: Student[]): StudentGroup[] {
+//   const groups: StudentGroup[] = [];
+//   const classSize = 3; // Class size for Magic Kingdom classes
+
+//   // Group students by ProgCode
+//   const groupedByProgCode = groupBy(students, 'ProgCode');
+
+//   // Process each ProgCode group
+//   groupedByProgCode.forEach(progCodeGroup => {
+//     // Check if the progCode group belongs to Magic Kingdom
+//     if (progCodeGroup.some(student => magicKingdomProgCodes.includes(student.ProgCode))) {
+//       // Chunk students into classes of 3
+//       const classGroups = chunkArray(progCodeGroup, classSize);
+
+//       // Create StudentGroup for each class
+//       classGroups.forEach(classGroup => {
+//         const newGroup = createStudentGroup(classGroup);
+//         groups.push(newGroup);
+//       });
+//     }
+//   });
+
+//   return groups;
+// }
+function determineTimeSlot(progCode: string | null): keyof MeetingPointsType {
+  if (fridayProgCodes.includes(progCode || "")) {
+    return "Friday";
+  }
+  if (saturdayMorningCodes.includes(progCode || "")) {
+    return "Saturday Morning";
+  }
+  if (saturdayAfternoonCodes.includes(progCode || "")) {
+    return "Saturday Afternoon";
+  }
+  if (sundayMorningCodes.includes(progCode || "")) {
+    return "Sunday Morning";
+  }
+  if (sundayAfternoonCodes.includes(progCode || "")) {
+    return "Sunday Afternoon";
+  }
+
+  throw new Error(`No valid time slot found for progCode: ${progCode}`);
+}
+
+function createStudentGroup({ students, progCode }: { students: Student[], progCode: string }): StudentGroup {
+  const commonApplyingFor = mostCommonValue(students, 'APPLYING_FOR') || "";
+  const commonLevel = mostCommonValue(students, 'LEVEL') || "";
+  const commonProgCode = mostCommonValue(students, 'ProgCode') || "";
+
+  const youngestAge = students.reduce((minAge, student) => student.AGE !== null && student.AGE < minAge ? student.AGE : minAge, Infinity);
+
+  const daySlot = determineTimeSlot(progCode);
+  const discipline = (commonApplyingFor === "SKI" ? "Ski" : "Board") as keyof DisciplineMeetingPoints;
+
+  const meetColor = determineMeetColor(commonApplyingFor); // Use the function to determine the meet color
+  const meetingPointDetails = determineMeetingPoint(daySlot, discipline, commonLevel);
+
+  return {
+    progCode: commonProgCode,
+    day: daySlot,
+    applyingFor: commonApplyingFor,
+    age: youngestAge,
+    level: commonLevel,
+    discipline, // Shorthand notation used here
+    numberStudents: students.length,
+    meetColor: meetColor, // Set the color based on the discipline
+    meetingPoint: meetingPointDetails.point,
+    students
+  };
+}
+
 // Utility function to find the most common value for a property in an array of objects
-function mostCommonValue<T extends { [key: string]: any }>(array: T[], key: keyof T): T[keyof T] | null {
+function mostCommonValue<T extends { [key: string]: any }>(array: T[], key: keyof T): string | null {
   const frequency: Record<string, number> = {};
 
   array.forEach((item) => {
-    const valueAsString = String(item[key]);
+    const value = item[key];
+    const valueAsString = typeof value === 'number' ? value.toString() : value;
     frequency[valueAsString] = (frequency[valueAsString] || 0) + 1;
   });
 
   let maxFrequency = 0;
-  let mostCommonValue: T[keyof T] | null = null;
+  let mostCommonValue: string | null = null;
 
   Object.keys(frequency).forEach((key) => {
-    const value = key as unknown as T[keyof T];
     const count = frequency[key];
     if (count > maxFrequency) {
       maxFrequency = count;
-      mostCommonValue = value;
+      mostCommonValue = key; // key is already a string
     }
   });
 
   return mostCommonValue;
 }
 
-// Function to group students by program code for Friday
-// function groupForFriday(students: Student[]): StudentGroup[] {
-//   const groups: StudentGroup[] = [];
-
-//   fridayProgCodes.forEach(progCode => {
-//     const studentsInProgram = students.filter(student => student.ProgCode === progCode);
-//     const groupedByLevel = groupBy(studentsInProgram, 'LEVEL');
-//     const levelGroups = groupedByLevel.flatMap(levelGroup => chunkArray(levelGroup, 5));
-
-//     groups.push(...levelGroups.map(createStudentGroup));
-//   });
-
-//   return groups;
-// }
-// function groupForFriday(students: Student[]): StudentGroup[] {
-//   const groups: StudentGroup[] = [];
-
-//   // Group students by discipline for Friday classes
-//   const groupedByDiscipline = groupBy(students.filter(student => student.APPLYING_FOR !== 'Transportation'), 'APPLYING_FOR');
-
-//   // Iterate through the groups and create StudentGroup objects
-//   for (const disciplineGroup of Object.values(groupedByDiscipline)) {
-//     const levelGroups = chunkArray(disciplineGroup, 5);
-//     groups.push(...levelGroups.map(createStudentGroup));
-//   }
-
-//   return groups;
-// }
-
-// // Function to group students by program code for Magic Kingdom classes
-// function groupForMagicKingdom(students: Student[], codes: string[]): StudentGroup[] {
-//   const groups: StudentGroup[] = [];
-
-//   codes.forEach(progCode => {
-//     const studentsInProgram = students.filter(student => student.ProgCode === progCode);
-//     const programGroups = chunkArray(studentsInProgram, 3);
-//     groups.push(...programGroups.map(createStudentGroup));
-//   });
-
-//   return groups;
-// }
-
-
-// // Function to group students by program code for regular Saturday and Sunday classes
-// function groupForRegularWeekend(students: Student[], codes: string[]): StudentGroup[] {
-//   const groups: StudentGroup[] = [];
-
-//   codes.forEach(progCode => {
-//     const studentsInProgram = students.filter(student => student.ProgCode === progCode);
-
-//     // Split students into two groups: aged 18 and older and under 18
-//     const olderThan18 = studentsInProgram.filter(student => student.AGE !== null && student.AGE >= 18);
-//     const under18 = studentsInProgram.filter(student => student.AGE !== null && student.AGE < 18);
-
-//     if (olderThan18.length > 0) {
-//       // Group students aged 18 and older by level
-//       const groupedByLevel18Plus = groupBy(olderThan18, 'LEVEL');
-      
-//       for (const levelGroup of groupedByLevel18Plus) {
-//         const ageAndLevelGroup18Plus = chunkArray(levelGroup, 5);
-//         groups.push(...ageAndLevelGroup18Plus.map(createStudentGroup));
-//       }
-//     }
-
-//     if (under18.length > 0) {
-//       // Group students under 18 by level
-//       const groupedByLevelUnder18 = groupBy(under18, 'LEVEL');
-
-//       for (const levelGroup of groupedByLevelUnder18) {
-//         const ageAndLevelGroupUnder18 = chunkArray(levelGroup, 5);
-//         groups.push(...ageAndLevelGroupUnder18.map(createStudentGroup));
-//       }
-//     }
-//   });
-
-//   return groups;
-// }
-
 
 //Helper function to group by multiple criteria
-function groupByMultipleCriteria(students: Student[], criteria: (keyof Student)[]): Student[][] {
-  // Start with the original list and progressively group by each criterion
-  return criteria.reduce((grouped: Student[][], criterion: keyof Student) => {
-    return grouped.flatMap(group => groupBy(group, criterion));
-  }, [students]);
-}
+// function groupByMultipleCriteria(students: Student[], criteria: (keyof Student)[]): Student[][] {
+//   // Start with the original list and progressively group by each criterion
+//   return criteria.reduce((grouped: Student[][], criterion: keyof Student) => {
+//     return grouped.flatMap(group => groupBy(group, criterion));
+//   }, [students]);
+// }
 
 // // Utility function to group an array of objects by a property
-function groupBy<T>(array: T[], key: keyof T): T[][] {
-  const groups: Record<string, T[]> = {};
-  array.forEach((item) => {
+function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
+  return array.reduce((groups, item) => {
     const groupKey = String(item[key]);
     groups[groupKey] = groups[groupKey] || [];
     groups[groupKey].push(item);
-  });
-  return Object.values(groups);
+    return groups;
+  }, {} as Record<string, T[]>);
 }
 
-// function createStudentGroup(students: Student[]): StudentGroup {
-//   // Implement logic to create a StudentGroup from an array of Students
-//   // Example implementation:
-//   const groupAge = students[0].AGE ?? 0;
-//   const meetColor = determineMeetColor(students[0]);
-//   const meetingPoint = determineMeetingPoint(students[0]);
-//   const day = students[0].DAY;
+type DisciplineMeetingPoints = {
+  Ski: number;
+  Board: number;
+};
 
-//   return {
-//     day: students[0].DAY ?? 'Unknown',
-//     applyingFor: students[0].APPLYING_FOR ?? 'Unknown',
-//     age: groupAge,
-//     level: students[0].LEVEL ?? 'Unknown',
-//     discipline: students[0].APPLYING_FOR ?? 'Unknown',
-//     numberStudents: students.length,
-//     meetColor,
-//     meetingPoint,
-//     students,
-//   };
-// }
+type MeetingPointsType = {
+  "Friday": DisciplineMeetingPoints;
+  "Saturday Morning": DisciplineMeetingPoints;
+  "Saturday Afternoon": DisciplineMeetingPoints;
+  "Sunday Morning": DisciplineMeetingPoints;
+  "Sunday Afternoon": DisciplineMeetingPoints;
+  // Add other specific days or time slots as needed
+};
 
+let meetingPoints: MeetingPointsType = {
+  "Friday": { Ski: 1, Board: 1 },
+  "Saturday Morning": { Ski: 1, Board: 1 },
+  "Saturday Afternoon": { Ski: 1, Board: 1 },
+  "Sunday Morning": { Ski: 1, Board: 1 },
+  "Sunday Afternoon": { Ski: 1, Board: 1 }
+} as MeetingPointsType;
 
-// function createGroupsFromStudents(studentBatches: Student[][]): StudentGroup[] {
-//   const flattenedStudents = studentBatches.flat();
-//   return [createStudentGroup(flattenedStudents)];
-// }
-function determineMeetColor(applyingFor: string | null): string {
-  if (applyingFor === "SKI") {
-    return "Red";
-  } else {
-    return "Blue"; // or some default color if 'applyingFor' is null
+function determineMeetColor(applyingFor: string): string {
+  return applyingFor === "SKI" ? "Red" : "Blue";
+}
+
+const maxMeetingPoint = 50; // Maximum value for a meeting point
+
+// Function to reset meeting points for a day/time slot
+function resetMeetingPoint(daySlot: keyof MeetingPointsType) {
+  meetingPoints[daySlot].Ski = 1;
+  meetingPoints[daySlot].Board = 1;
+}
+
+// Function to determine the next available meeting point
+function determineMeetingPoint(daySlot: keyof MeetingPointsType, discipline: 'Ski' | 'Board', level: string): { point: number, color: string } {
+  let disciplineKey: keyof DisciplineMeetingPoints = discipline === "Ski" ? 'Ski' : 'Board';
+  let levelRanges: { [key: string]: { start: number; end: number } } = {
+    "1/2 novice": { start: 1, end: 15 },
+    "3/4 inter": { start: 16, end: 30 },
+    "5/6 adv inter": { start: 31, end: 40 },
+    "7/8 advance": { start: 41, end: 50 },
+    "9 atac": { start: 41, end: 50 },
+  };
+
+  let currentPoint = meetingPoints[daySlot][disciplineKey];
+  let range = levelRanges[level as keyof typeof levelRanges]; // Type assertion added here
+
+  if (!range) {
+    throw new Error(`Invalid level: ${level}`);
   }
-}
 
-let currentLowerMeetingPoint = 1; // Start from 1 for "1/2 novice" and "3/4 inter"
-let currentUpperMeetingPoint = 30; // Start from 30 for other levels
+  let { start, end } = range;
 
-function determineMeetingPoint(level: string | null): number {
-  // Check if level is "1/2 novice" or "3/4 inter"
-  if (level === "1/2 novice" || level === "3/4 inter") {
-    if (currentLowerMeetingPoint > 29) {
-      currentLowerMeetingPoint = 1; // Reset if it exceeds the range
-    }
-    return currentLowerMeetingPoint++; // Increment and return the meeting point
-  } else {
-    // For levels other than "1/2 novice" or "3/4 inter"
-    if (currentUpperMeetingPoint > 50) {
-      currentUpperMeetingPoint = 30; // Reset if it exceeds the range
-    }
-    return currentUpperMeetingPoint++; // Increment and return the meeting point
+  // If currentPoint is outside the level's range, reset to start of the range
+  if (currentPoint < start || currentPoint > end) {
+    currentPoint = start;
   }
+
+  let meetColor = "Red"; // default color
+
+  // Check if the currentPoint has reached the end of the range
+  if (currentPoint === end) {
+    meetColor = "Yellow"; // Change color to yellow
+    currentPoint = start; // Reset point to start of the range
+  } else {
+    currentPoint++; // Increment the meeting point for the next group
+  }
+
+  // Update the meeting point in the global variable
+  meetingPoints[daySlot][disciplineKey] = currentPoint;
+
+  return { point: currentPoint, color: meetColor };
 }
 
-// export async function POST(
-//   req: Request,
-//   { params }: { params: { seasonId: string } }
-// ) {
-//   try {
-//     // Fetch all students
-//     const allStudents = await prismadb.student.findMany();
-//     const filteredStudents = allStudents.filter(student => student.APPLYING_FOR !== "Transportation");
-//     // Use the new createClasses function to group students and create classes
-//     const studentGroups = createClasses(filteredStudents);
+// let currentLowerMeetingPoint = 1; // Start from 1 for "1/2 novice" and "3/4 inter"
+// let currentUpperMeetingPoint = 30; // Start from 30 for other levels
 
-//     // Iterate over the student groups and create classes in the database
-//     for (const group of studentGroups) {
-//       // Extract student IDs for the class creation
-//       const studentIds = group.students.map(student => student.id);
-
-//       // Create class in the database for the group
-//       await prismadb.classes.create({
-//         data: {
-//           seasonId: params.seasonId,
-//           meetColor: group.meetColor,
-//           Age: group.age,
-//           meetingPoint: group.meetingPoint,
-//           discipline: group.discipline!,
-//           Level: group.level,
-//           progCode: group.progCode!,
-//           day: group.day!, // Assign the day of the class
-//           numberStudents: group.numberStudents,
-//           // You would have a relation set up in your Prisma schema for this
-//           students: {
-//             connect: studentIds.map(id => ({ id })),
-//           },
-//         },
-//       });
+// function determineMeetingPoint(level: string | null): number {
+//   // Check if level is "1/2 novice" or "3/4 inter"
+//   if (level === "1/2 novice" || level === "3/4 inter") {
+//     if (currentLowerMeetingPoint > 29) {
+//       currentLowerMeetingPoint = 1; // Reset if it exceeds the range
 //     }
-
-//     // If all classes are created successfully, send a success response
-//     return NextResponse.json({ message: "Classes created successfully" });
-//   } catch (error) {
-//     // Log the error and return a server error response
-//     console.error("[POST Error]", error);
-//     return new NextResponse("Internal Server Error", { status: 500 });
+//     return currentLowerMeetingPoint++; // Increment and return the meeting point
+//   } else {
+//     // For levels other than "1/2 novice" or "3/4 inter"
+//     if (currentUpperMeetingPoint > 50) {
+//       currentUpperMeetingPoint = 30; // Reset if it exceeds the range
+//     }
+//     return currentUpperMeetingPoint++; // Increment and return the meeting point
 //   }
 // }
 
@@ -373,111 +445,38 @@ export async function POST(
   }
 }
 
-async function processStudentGroups(
-  groups: StudentGroup[], 
-  prisma: PrismaClient, 
-  seasonId: string
-) {
-  for (const group of groups) {
-    // Start a transaction
-    await prismadb.$transaction(async (prismadb) => {
-      // Create class in the database for the group
-      const createdClass = await prismadb.classes.create({
-        data: {
-          seasonId: seasonId,
-          meetColor: group.meetColor,
-          Age: group.age,
-          meetingPoint: group.meetingPoint,
-          discipline: group.discipline!,
-          Level: group.level,
-          day: group.day!, 
-          progCode: group.progCode!,
-          numberStudents: group.numberStudents,
-          students: {
-            connect: group.students.map(student => ({ id: student.id })),
-          },
+async function processStudentGroups(groups: (StudentGroup | undefined)[], prisma: PrismaClient, seasonId: string) {
+  // Filter out undefined groups
+  const validGroups = groups.filter(group => group !== undefined) as StudentGroup[];
+
+  for (const group of validGroups) {
+    // Create class in the database for the group
+    const createdClass = await prismadb.classes.create({
+      data: {
+        seasonId: seasonId,
+        meetColor: group.meetColor,
+        Age: group.age,
+        meetingPoint: group.meetingPoint,
+        discipline: group.discipline!,
+        Level: group.level,
+        day: group.day!, 
+        progCode: group.progCode!,
+        numberStudents: group.numberStudents,
+        students: {
+          connect: group.students.map(student => ({ id: student.id })),
         },
-      });
-
-      // Extract classId from created class
-      const classId = createdClass.classId;
-
-      // Update each student in the group with the new classId
-      for (const student of group.students) {
-        await prisma.student.update({
-          where: { id: student.id },
-          data: { classID: classId },
-        });
-      }
+      },
     });
+
+    // Extract classId from created class
+    const classId = createdClass.classId;
+
+    // Update students in separate transactions
+    for (const student of group.students) {
+      await prismadb.student.update({
+        where: { id: student.id },
+        data: { classID: classId, meetingPoint: group.meetingPoint },
+      });
+    }
   }
 }
-// export async function POST(
-//   req: Request,
-//   { params }: { params: { seasonId: string } }
-// ) {
-//   try {
-//     // Fetch all students
-//    // Fetch all students
-// const allStudents = await prismadb.student.findMany();
-// const assignedStudents = new Set();
-
-// // Group students by discipline for Friday classes
-// const fridayGroups: StudentGroup[] = groupForFriday(allStudents);
-// const saturdayMKGroups = groupForMagicKingdom(allStudents, saturdayMagicKindomCodes);
-// const sundayMKGroups = groupForMagicKingdom(allStudents, sundayMagicKindomCodes);
-// const saturdayRegularGroups = groupForRegularWeekend(allStudents, saturdayCodes);
-// const sundayRegularGroups = groupForRegularWeekend(allStudents, sundayCodes);
-
-// const combinedGroups = [...fridayGroups, ...saturdayMKGroups, ...sundayMKGroups, ...saturdayRegularGroups, ...sundayRegularGroups];
-
-// // Iterate over the student groups and create classes in the database
-// for (const group of combinedGroups) {
-//   // Filter unassigned students from the group
-//   const unassignedStudents = group.students.filter(student => !assignedStudents.has(student.id));
-  
-//   // If there are unassigned students in the group, create a class for them
-//   if (unassignedStudents.length > 0) {
-//     // Extract student IDs for the class creation
-//     const studentIds = unassignedStudents.map(student => student.id);
-
-//     // Create class in the database for the unassigned students
-//     await prismadb.classes.create({
-//       data: {
-//         seasonId: params.seasonId,
-//         meetColor: group.meetColor,
-//         Age: group.age,
-//         meetingPoint: group.meetingPoint,
-//         discipline: group.discipline!,
-//         Level: group.level,
-//         day: group.day!, // Assign the day of the class
-//         numberStudents: group.numberStudents,
-//         // You would have a relation set up in your Prisma schema for this
-//         students: {
-//           connect: studentIds.map(id => ({ id })),
-//         },
-//       },
-//     });
-
-//     // Add the IDs of the assigned students to the set
-//     studentIds.forEach(id => assignedStudents.add(id));
-//   }
-// }
-
-// // Check if there are any unassigned students
-// const unassignedStudents = allStudents.filter(student => !assignedStudents.has(student.id));
-
-// if (unassignedStudents.length > 0) {
-//   // Handle the case where there are unassigned students (excluding Transportation Only students)
-//   // You can log an error or take appropriate action here.
-// }
-
-
-//     // If all classes are created successfully, send a success response
-//     return NextResponse.json({ message: "Classes created successfully" });
-//   } catch (error) {
-//     // Log the error and return a server error response
-//     console.error("[POST Error]", error);
-//     return new NextResponse("Internal Server Error", { status: 500 });
-//   }
-// }

@@ -36,7 +36,7 @@ type StudentData = {
   C_TEL: string;
   Occupation: string;
   W_TEL: string;
-  AGE_GROUP: string; // Optional field
+  AGE_GROUP: number | null;  // Optional field
   AGRESSIVENESS: string;
   GENDER: string;
   FeeComment:string;
@@ -223,7 +223,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         }else if (header === 'BUDDY') { // Add this condition for 'E_mail_main'
           studentObject['BUDDY'] = value === null ? '' : value.toString();
         }else if (header === 'AGE_GROUP') { // Add this condition for 'AGE_GROUP'Q
-          studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
+          studentObject[header] = null; // You can set an appropriate value for AGE_GROUP here
         }else if (header === 'AcceptedTerms') { // Add this condition for 'AGE_GROUP'Q
           studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
         }else if (header === 'WComment') { // Add this condition for 'AGE_GROUP'

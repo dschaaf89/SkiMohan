@@ -83,10 +83,11 @@ interface ClassFormProps {
 const createDefaultValues = (initialData: Classes | null): ClassFormValues => {
   const defaultValues: ClassFormValues = {
     classId: 0,
-    skillLevel: initialData?.Level,
+    skillLevel: initialData?.Level ?? "",
   };
   return defaultValues; // Make sure this return statement is present
 };
+
 
 export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const params = useParams();
@@ -104,6 +105,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     resolver: zodResolver(formSchema),
     defaultValues: createDefaultValues(initialData),
   });
+  
 
   const onSubmit = async (data: ClassFormValues) => {
     const submissionData = {
@@ -129,6 +131,34 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
       setLoading(false);
     }
   };
+
+  // const fetchStudentNames = async () => {
+  //   const studentData = initialData?.students as StudentConnection | undefined;
+  //   const details = await Promise.all(
+  //     studentData.connect.map(async ({ id }) => {
+  //       try {
+  //         const response = await axios.get(
+  //           `/api/${params.seasonId}/students/${id}`
+  //         );
+  //         console.log("API Response:", response.data); // Log the API response
+  //         const student = response.data;
+  //         return {
+  //           id: student.id,
+  //           name: `${student.NAME_FIRST ?? ""} ${
+  //             student.NAME_LAST ?? ""
+  //           }`.trim(),
+  //           age: student.AGE, // Ensure this matches the API response
+  //           skillLevel: student.LEVEL, // Ensure this matches the API response
+  //         };
+  //       } catch (error) {
+  //         console.error("Error fetching student data", error);
+  //         return null;
+  //       }
+  //     })
+  //   );
+  //   console.log("Details:", details); // Log the processed details
+  //   setStudentDetails(details.filter((detail) => detail !== null));
+  // };
 
   const onDelete = async () => {
     try {
@@ -180,38 +210,37 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   //     fetchStudentNames();
   //   }
   // }, [initialData]);
+
   useEffect(() => {
-    // Check if there are student connections in the initial data
-    const studentData = initialData?.students as StudentConnection | undefined;
+    const fetchStudentNames = async () => {
+      const studentData = initialData?.students as StudentConnection | undefined;
+      if (studentData?.connect) {
+        const details = await Promise.all(
+          studentData.connect.map(async ({ id }) => {
+            try {
+              const response = await axios.get(`/api/${params.seasonId}/students/${id}`);
+              const student = response.data;
+              return {
+                id: student.id,
+                name: `${student.NAME_FIRST ?? ""} ${student.NAME_LAST ?? ""}`.trim(),
+                age: student.AGE,
+                skillLevel: student.LEVEL,
+              };
+            } catch (error) {
+              console.error("Error fetching student data", error);
+              return null;
+            }
+          })
+        );
+        setStudentDetails(details.filter((detail) => detail !== null) as StudentDetail[]);
+      }
+    };
   
-    if (studentData?.connect) {
+    // Type assertion here
+    if ((initialData?.students as StudentConnection | undefined)?.connect) {
       fetchStudentNames();
     }
-  }, [initialData]);
-
-  const fetchStudentNames = async () => {
-    const studentData = initialData?.students as StudentConnection | undefined;
-    const details = await Promise.all(
-      studentData.connect.map(async ({ id }) => {
-        try {
-          const response = await axios.get(`/api/${params.seasonId}/students/${id}`);
-          console.log("API Response:", response.data); // Log the API response
-          const student = response.data;
-          return {
-            id: student.id,
-            name: `${student.NAME_FIRST ?? ""} ${student.NAME_LAST ?? ""}`.trim(),
-            age: student.AGE, // Ensure this matches the API response
-            skillLevel: student.LEVEL // Ensure this matches the API response
-          };
-        } catch (error) {
-          console.error("Error fetching student data", error);
-          return null;
-        }
-      })
-    );
-    console.log("Details:", details); // Log the processed details
-    setStudentDetails(details.filter((detail) => detail !== null));
-  };
+  }, [initialData, params.seasonId]);
 
   // Function to handle adding a student
   // const handleAddStudent = (student) => {
@@ -247,11 +276,11 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
 
       form.reset({
         classId: initialData.classId,
-        meetColor: initialData.meetColor,
-        meetingPoint: initialData.meetingPoint,
+        meetColor: initialData.meetColor!,
+        meetingPoint: initialData.meetingPoint!,
         Day: initialData.day,
-        AgeGroup: initialData.Age,
-        skillLevel: initialData.Level,
+        AgeGroup: initialData.Age!,
+        skillLevel: initialData.Level!,
 
         // ... include mappings for other fields present in initialData
       });
@@ -384,7 +413,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                 />
 
                 <h3>Student Names</h3>
-                {console.log(studentNames)}
+                {/* {console.log(studentNames)} */}
                 <ul>
                   {studentDetails.map((student, index) => (
                     <li key={index}>

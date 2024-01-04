@@ -58,7 +58,9 @@ const StudentPage = async ({
   DAY: item.DAY || "",
   StartTime:item.StartTime || "",
   EndTime: item.EndTime || "",
-  //updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
+  classID: item.classID !== undefined ? item.classID : null, // Assign null if undefined
+  meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
+  updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
 }
   
 

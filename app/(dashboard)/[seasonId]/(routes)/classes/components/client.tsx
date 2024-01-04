@@ -9,7 +9,8 @@ import { ClassColumn, columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import axios from 'axios';
 import { useState } from "react";
-
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 interface ClassClientProps {
   data: ClassColumn[];
 }
@@ -70,20 +71,76 @@ export const ClassClient: React.FC<ClassClientProps> = ({
   const handleDayChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = event.target.value;
     setSelectedDay(selected);
-  
-    let filtered;
-    if (selected.includes("Saturday") || selected.includes("Sunday")) {
-      // Saturday and Sunday with morning and afternoon sessions
-      const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
-      filtered = data.filter(item => 
-        progCodeTimeSlots[item.progCode] === timeSlot && item.DAY === selected.split(" ")[0]);
-    } else {
-      // Other days with only one time slot
-      filtered = data.filter(item => item.DAY === selected);
-    }
-  
+
+    // Filter data based on the selected day (which now includes the time of day)
+    const filtered = data.filter(item => item.DAY === selected);
+
     setFilteredData(filtered);
+};
+  // const handleDayChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const selected = event.target.value;
+  //   setSelectedDay(selected);
+  
+  //   let filtered: ClassColumn[] = []; // Explicitly declare 'filtered' as an array of ClassColumn
+  
+  //   if (selected.includes("Saturday") || selected.includes("Sunday")) {
+  //     const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
+  //     filtered = data.filter(item => 
+  //       progCodeTimeSlots[item.progCode] === timeSlot && item.DAY === selected.split(" ")[0]);
+  //   } else {
+  //     filtered = data.filter(item => item.DAY === selected);
+  //   }
+  
+  //   setFilteredData(filtered);
+  // };
+
+  const handleExportToPDF = async () => {
+    // Filter based on the selected day
+    const exportData = [...filteredData]; // Create a copy of filteredData
+    console.log(exportData);
+    // Sort the data
+    exportData.sort((a, b) => a.Age - b.Age);
+
+    console.log("Selected Day for Export:", selectedDay);
+    console.log("Data to be Exported:", exportData);
+
+    const doc = new jsPDF({
+      orientation: "landscape",
+    });
+    const title = "List of All Classes by Session"; // Your title
+    const titleX = 15; // X coordinate for the title, adjust as needed
+    const titleY = 10; // 
+    doc.setFontSize(18); // Set font size
+    doc.text(title, titleX, titleY);
+    const columns = [
+      { title: "Sign#", dataKey: "meetingPoint" },
+      { title: "#ofStudents", dataKey: "numberStudents" },
+      { title: "Discipline", dataKey: "discipline" },
+      { title: "Ability", dataKey: "Level" },
+      { title: "Age", dataKey: "Age" },
+      { title: "ClassId", dataKey: "classId" },
+      { title: "Instructor", dataKey: "instructor" },
+      { title: "Phone", dataKey: "phone" },
+    
+    ];
+    const rows = exportData.map((classes) => ({
+   
+      meetingPoint: classes.meetingPoint,
+      numberStudents: classes.numberStudents,
+      discipline:classes.discipline,
+      Level:classes.Level,
+      Age: classes.Age,
+      classId:classes.classId,
+      instructor: "",
+      phone:"",
+
+    }));
+
+    doc.autoTable({ columns: columns, body: rows });
+    const fileName = selectedDay ? `${selectedDay.replace(" ", "_")}_classes.pdf` : "All_Classes.pdf";
+    doc.save(fileName);
   };
+
   return(
     <>
     <div className=" flex items-center justify-between">
@@ -92,12 +149,17 @@ export const ClassClient: React.FC<ClassClientProps> = ({
           description="manage Classes for the season website"
         />
     </div>
-    <Button onClick={() => router.push(`/${params.seasonId}/classes/new`)}>
+    <div className="flex items-center">
+    <Button className="mr-4" onClick={() => router.push(`/${params.seasonId}/classes/new`)}>
         <Plus className=" m-2 b-4 w-4"/>
         Add New
       </Button>
-
+      <Button className="mr-4" onClick={handleExportToPDF}>
+            <Plus className="mr-4 b-4 w-4" />
+            Export classes
+          </Button>
     <Button onClick={handleCreateClasses} >Create Classes</Button>
+    
     <select value={selectedDay ?? ''} onChange={handleDayChange}
         className="block w-40 p-2 border rounded-lg mt-4"
       >
@@ -112,6 +174,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
         <option value="Sunday Morning">Sunday Morning</option>
         <option value="Sunday Afternoon">Sunday Afternoon</option>
       </select>
+      </div>
     <Separator/>
     <DataTable searchKey="classId" columns={columns} data={filteredData}/>
     </>

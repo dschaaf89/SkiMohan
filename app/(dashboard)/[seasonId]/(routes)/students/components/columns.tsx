@@ -45,6 +45,8 @@ export type StudentColumn = {
   DAY:string;
   StartTime: string;
   EndTime: string;
+  classID: number | null;
+  meetingPoint: number | null;
   //updateAt:string | Date;
 }
 
@@ -65,6 +67,34 @@ export const columns: ColumnDef<StudentColumn>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           UniqueID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "classID",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          ClassId
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "meetingPoint",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Meeting Point
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
