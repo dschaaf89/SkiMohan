@@ -134,41 +134,30 @@ function combineSmallGroups(groups: Student[][], classSize: number): Student[][]
 function createClasses(students: Student[]): StudentGroup[] {
   const groups: StudentGroup[] = [];
   const magicKingdomClassSize = 3; // Class size for Magic Kingdom classes
-  const fridayClassSize = 5; // Class size for Friday classes
+  const fridayClassSize = 8; // Class size for Friday classes
   const otherClassSize = 8; // Default class size for other classes
+
   const ageGroups = [
     { min: 6, max: 7 },
     { min: 8, max: 10 },
     { min: 11, max: 14 },
     { min: 15, max: 17 },
-    { min: 18, max: Infinity }
+    { min: 18, max: Infinity },
   ];
 
   const groupedByProgCode = groupBy(students, 'ProgCode');
 
   Object.entries(groupedByProgCode).forEach(([progCode, progCodeGroup]) => {
-    // Reset meeting points for each new progCode
     resetMeetingPoint(determineTimeSlot(progCode));
 
     if (magicKingdomProgCodes.includes(progCode)) {
-      // Handle Magic Kingdom classes
       let classGroups = chunkArray(progCodeGroup, magicKingdomClassSize);
       classGroups.forEach(classGroup => {
         groups.push(createStudentGroup({ students: classGroup, progCode }));
       });
     } else if (fridayProgCodes.includes(progCode)) {
-      // Handle Friday classes grouped by level
-      const groupedByLevel = groupBy(progCodeGroup, 'LEVEL');
-      Object.entries(groupedByLevel).forEach(([level, levelGroup]) => {
-        let classSize = determineClassSizeBasedOnCriteria(level);
-        let classGroups = chunkArray(levelGroup, classSize);
-        classGroups = combineSmallGroups(classGroups, classSize);
-        classGroups.forEach(classGroup => {
-          groups.push(createStudentGroup({ students: classGroup, progCode }));
-        });
-      });
+      // Skip handling Friday classes here, will handle them separately after this loop
     } else {
-      // Handle other classes grouped by age and level
       let allClassesForProgCode: Student[][] = [];
       ageGroups.forEach(({ min, max }) => {
         const ageGroupStudents = filterByAge(progCodeGroup, min, max);
@@ -180,7 +169,6 @@ function createClasses(students: Student[]): StudentGroup[] {
         });
       });
 
-      // Combine small groups after processing all ages and levels
       let combinedClasses = combineSmallGroups(allClassesForProgCode, otherClassSize);
       combinedClasses.forEach(classGroup => {
         groups.push(createStudentGroup({ students: classGroup, progCode }));
@@ -188,11 +176,33 @@ function createClasses(students: Student[]): StudentGroup[] {
     }
   });
 
+  // Handling Friday classes
+  const fridayStudents = students.filter(student => fridayProgCodes.includes(student.ProgCode!));
+  const groupedByDisciplineLevel = groupByMultipleCriteria(fridayStudents, ['APPLYING_FOR', 'LEVEL']) as Student[][];
+  groupedByDisciplineLevel.forEach(disciplineLevelGroup => {
+    let classGroups = chunkArray(disciplineLevelGroup.flat(), fridayClassSize);
+    classGroups = combineSmallGroups(classGroups, fridayClassSize);
+    classGroups.forEach(classGroup => {
+      const commonProgCode = mostCommonValue(classGroup, 'ProgCode') || "";
+      groups.push(createStudentGroup({ students: classGroup, progCode: commonProgCode }));
+    });
+  });
+
   return groups;
 }
 
 // Additional utility functions and types remain the same as in your original implementation.
 
+function groupByMultipleCriteria<T>(array: T[], criteria: (keyof T)[]): T[][] {
+  const group = array.reduce((acc, item) => {
+    const key = criteria.map(criterion => String(item[criterion])).join("-");
+    acc[key] = acc[key] || [];
+    acc[key].push(item);
+    return acc;
+  }, {} as Record<string, T[]>);
+
+  return Object.values(group);
+}
 
 
 function determineClassSizeBasedOnCriteria(level: string): number {
