@@ -120,6 +120,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     doc.text(title, titleX, titleY);
     const columns = [
       { title: "Sign#", dataKey: "meetingPoint" },
+      {title:"meetColor", dataKey:"meetColor"},
       { title: "#ofStudents", dataKey: "numberStudents" },
       { title: "Discipline", dataKey: "discipline" },
       { title: "Ability", dataKey: "Level" },
@@ -139,6 +140,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
       classId:classes.classId,
       instructor: "",
       phone:"",
+      meetColor:classes.meetColor,
 
     }));
 

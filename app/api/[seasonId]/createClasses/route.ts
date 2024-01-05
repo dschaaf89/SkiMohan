@@ -272,8 +272,7 @@ function createStudentGroup({ students, progCode }: { students: Student[], progC
   const daySlot = determineTimeSlot(progCode);
   const discipline = (commonApplyingFor === "SKI" ? "Ski" : "Board") as keyof DisciplineMeetingPoints;
 
-  const meetColor = determineMeetColor(commonApplyingFor); // Use the function to determine the meet color
-  const meetingPointDetails = determineMeetingPoint(daySlot, discipline, commonLevel,progCode);
+  const { meetingPoint, meetColor } = determineMeetingPoint(commonLevel , commonProgCode, discipline);
 
   return {
     progCode: commonProgCode,
@@ -284,7 +283,7 @@ function createStudentGroup({ students, progCode }: { students: Student[], progC
     discipline, // Shorthand notation used here
     numberStudents: students.length,
     meetColor: meetColor, // Set the color based on the discipline
-    meetingPoint: meetingPointDetails.point,
+    meetingPoint: meetingPoint,
     students
   };
 }
@@ -354,9 +353,6 @@ let meetingPoints: MeetingPointsType = {
   "Sunday Afternoon": { Ski: 1, Board: 1 },
 } as MeetingPointsType;
 
-function determineMeetColor(applyingFor: string): string {
-  return applyingFor === "SKI" ? "Red" : "Blue";
-}
 
 const maxMeetingPoint = 50; // Maximum value for a meeting point
 
@@ -367,70 +363,128 @@ function resetMeetingPoint(daySlot: keyof MeetingPointsType) {
 }
 
 // Function to determine the next available meeting point
-function determineMeetingPoint(daySlot: keyof MeetingPointsType, discipline: 'Ski' | 'Board', level: string, progCode: string): { point: number, color: string } {
-  let disciplineKey: keyof DisciplineMeetingPoints = discipline === "Ski" ? 'Ski' : 'Board';
-  let currentPoint = meetingPoints[daySlot][disciplineKey];
+// function determineMeetingPoint(
+//   daySlot: keyof MeetingPointsType,
+//   discipline: 'Ski' | 'Board',
+//   level: LevelKey,
+//   progCode: string
+// ): MeetingPointAssignment {
+//   const disciplineKey: keyof DisciplineMeetingPoints = discipline === 'Ski' ? 'Ski' : 'Board';
+//   let currentPoint = meetingPoints[daySlot][disciplineKey];
 
-  // Handling for Magic Kingdom classes
-  if (magicKingdomProgCodes.includes(progCode)) {
-    if (currentPoint > 3) { // Reset to 1 if it exceeds 3
-      currentPoint = 1;
-    } else {
-      currentPoint = (currentPoint < 3) ? currentPoint + 1 : 1;
-    }
-  } else {
-    // General handling for other classes
-    let levelRanges: { [key: string]: { start: number; end: number } } = {
-      "1/2 novice": { start: 1, end: 15 },
-      "3/4 inter": { start: 16, end: 29 },
-      "5/6 adv inter": { start: 30, end: 40 },
-      "7/8 advance": { start: 41, end: 50 },
-      "9 atac": { start: 41, end: 50 },
-    };
-
-    let range = levelRanges[level as keyof typeof levelRanges];
-    if (!range) {
-      throw new Error(`Invalid level: ${level}`);
-    }
-
-    let { start, end } = range;
-
-    // If currentPoint is outside the level's range, reset to start of the range
-    if (currentPoint < start || currentPoint > end) {
-      currentPoint = start;
-    }
-
-    // Check if the currentPoint has reached the end of the range
-    if (currentPoint === end) {
-      currentPoint = start; // Reset point to start of the range
-    } else {
-      currentPoint++; // Increment the meeting point for the next group
-    }
-  }
-
-  meetingPoints[daySlot][disciplineKey] = currentPoint; // Update the current point
-  let meetColor = "Red"; // Default color, adjust as needed
-
-  return { point: currentPoint, color: meetColor };
-}
-// let currentLowerMeetingPoint = 1; // Start from 1 for "1/2 novice" and "3/4 inter"
-// let currentUpperMeetingPoint = 30; // Start from 30 for other levels
-
-// function determineMeetingPoint(level: string | null): number {
-//   // Check if level is "1/2 novice" or "3/4 inter"
-//   if (level === "1/2 novice" || level === "3/4 inter") {
-//     if (currentLowerMeetingPoint > 29) {
-//       currentLowerMeetingPoint = 1; // Reset if it exceeds the range
-//     }
-//     return currentLowerMeetingPoint++; // Increment and return the meeting point
+//   if (magicKingdomProgCodes.includes(progCode)) {
+//     currentPoint = assignMagicKingdomMeetingPoint(currentPoint);
 //   } else {
-//     // For levels other than "1/2 novice" or "3/4 inter"
-//     if (currentUpperMeetingPoint > 50) {
-//       currentUpperMeetingPoint = 30; // Reset if it exceeds the range
-//     }
-//     return currentUpperMeetingPoint++; // Increment and return the meeting point
+//     const range = getRangeForLevel(level);
+//     currentPoint = assignRegularMeetingPoint(currentPoint, range);
 //   }
+
+//   meetingPoints[daySlot][disciplineKey] = currentPoint; // Update the current point
+//   const meetColor = determineMeetColor(discipline); // Determine color
+
+//   return { point: currentPoint, color: meetColor };
 // }
+
+// function findNextAvailablePoint(currentPoint: number, start: number, end: number, daySlot: keyof MeetingPointsType, discipline: 'Ski' | 'Board', level: string): number {
+//   let point = currentPoint;
+//   do {
+//     point = (point >= end) ? start : point + 1;
+//   } while (!isPointAvailable(point, daySlot, discipline, level));
+
+//   return point;
+// }
+// function isPointAvailable(point: number, daySlot: keyof MeetingPointsType, discipline: 'Ski' | 'Board', level: string): boolean {
+//   // Logic to check if the point has already been used in this daySlot, discipline, and level
+//   // For now, just a placeholder - replace with actual logic
+//   return true;
+// }
+
+
+
+
+// type MeetingPointAssignment = {
+//   point: number;
+//   color: string;
+// };
+
+// // Extracted Magic Kingdom handling logic
+// function assignMagicKingdomMeetingPoint(currentPoint: number): number {
+//   return currentPoint % 3 + 1;
+// }
+
+// // Extracted regular meeting point logic
+// function assignRegularMeetingPoint(currentPoint: number, range: { start: number; end: number }): number {
+//   if (currentPoint < range.start || currentPoint > range.end) {
+//     return range.start;
+//   }
+//   return currentPoint < range.end ? currentPoint + 1 : range.start;
+// }
+
+// function getRangeForLevel(level: LevelKey): { start: number; end: number } {
+//   const range = levelRanges[level];
+//   if (!range) {
+//       throw new Error(`Invalid level: ${level}`);
+//   }
+//   return range;
+// }
+
+// type LevelKey = "1/2 novice" | "3/4 inter" | "5/6 adv inter" | "7/8 advance" | "9 atac";
+
+// // Define levelRanges outside so it can be used by multiple functions if needed
+// const levelRanges: { [key in LevelKey]: { start: number; end: number } } = {
+//   "1/2 novice": { start: 4, end: 20 },
+//   "3/4 inter": { start: 21, end: 35 },
+//   "5/6 adv inter": { start: 36, end: 45 },
+//   "7/8 advance": { start: 46, end: 50 },
+//   "9 atac": { start: 46, end: 50 },
+// };
+let currentLowerMeetingPoint = 1; // Start from 1 for "1/2 novice" and "3/4 inter"
+let currentUpperMeetingPoint = 30; // Start from 30 for other levels
+let meetColor = "Red"
+
+function determineMeetingPoint(level: string | null, progCode: string, discipline: 'Ski' | 'Board'): { meetingPoint: number, meetColor: string } {
+  // Default meetColor based on discipline
+  let meetColor = determineColorBasedOnDiscipline(discipline);
+
+  if (magicKingdomProgCodes.includes(progCode)) {
+    if (currentLowerMeetingPoint > 3) {
+      currentLowerMeetingPoint = 1; // Reset if it exceeds the range
+      meetColor = 'Yellow'; // Set color to yellow when resetting for Magic Kingdom
+    }
+    return { meetingPoint: currentLowerMeetingPoint++, meetColor };
+  }
+  
+  if (level === "1/2 novice") {
+    if (currentLowerMeetingPoint > 15) {
+      currentLowerMeetingPoint = 4; // Reset if it exceeds the range
+      meetColor = 'Yellow'; // Set color to yellow when resetting for "1/2 novice"
+    }
+    return { meetingPoint: currentLowerMeetingPoint++, meetColor };
+  } else if (level === "3/4 inter") {
+    if (currentLowerMeetingPoint > 30) {
+      currentLowerMeetingPoint = 16; // Reset if it exceeds the range
+      meetColor = 'Yellow'; // Set color to yellow when resetting for "3/4 inter"
+    }
+    return { meetingPoint: currentLowerMeetingPoint++, meetColor };
+  } else {
+    if (currentUpperMeetingPoint > 50) {
+      currentUpperMeetingPoint = 31; // Reset if it exceeds the range
+      meetColor = 'Yellow'; // Set color to yellow when resetting for other levels
+    }
+    return { meetingPoint: currentUpperMeetingPoint++, meetColor };
+  }
+}
+
+function determineColorBasedOnDiscipline(discipline: 'Ski' | 'Board'): string {
+  // Assuming 'Red' for Ski and 'Blue' for Board as default colors
+  return discipline === 'Ski' ? 'Red' : 'Blue';
+}
+
+function resetMeetingPointsForNewSession() {
+  currentLowerMeetingPoint = 1;
+  currentUpperMeetingPoint = 30;
+  // You might want to also reset the meetColor if necessary
+}
 
 export async function POST(
   req: Request,
