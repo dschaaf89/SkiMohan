@@ -102,18 +102,48 @@ export async function POST(
     }
     const validHeaders = [
       "UniqueID",
-      "C_Tel",
       "NAME_FIRST",
       "NAME_LAST",
       "HOME_TEL",
+      "E_MAIL", // This should map to E_mail_main in the data object
+      "C_Tel",
       "BRTHD",
-      "E_mail_main",
       "ADDRESS",
       "CITY",
       "STATE",
       "ZIP",
-      "ApplyingFor",
+      "Employer", // You'll need to decide how to handle this, as it's not in the InstructorData type
+      "Occupation", // Same as Employer
+      "W_Tel", // Assuming this maps to a field in your data, otherwise you need to handle it
+      "CCPayment", // Assuming this maps to a field in your data, otherwise you need to handle it
+      "DateFeePaid",
+      "PSIAcertification", // This should probably map to PSIA in the data object
+      "AASIcertification", // This should probably map to AASI in the data object
+      "NumDays", // You'll need to handle this, as it's not directly in the InstructorData type
+      "Applying for", // This needs to be handled similarly to ApplyingFor in your existing code
+      "PaymentStatus", // You'll need to handle this, as it's not directly in the InstructorData type
+      "PROG_CODE", // You'll need to handle this, as it's not directly in the InstructorData type
+      // Include all Clinic headers you want to process
+      "Clinic1",
+      "Clinic2",
+      "Clinic3",
+      "Clinic4",
+      "Clinic5",
+      "Clinic6",
+      "AcceptedTerms", // Assuming this maps to disclosureForm or similar in your data
+      // Include all Schedule headers you want to process
+      "Schedule1",
+      "Schedule2",
+      "Schedule3",
+      "Schedule4",
+      "Schedule5 F",
+      "Schedule6",
+      "Schedule7 SatAM",
+      "Schedule8 SatPM",
+      "Schedule9 SunAM",
+      "Schedule10 SunPM",
       "WComment",
+      "returning" // You'll need to handle this, as it's not directly in the InstructorData type
     ];
     const applyingForMapping: Record<string, string> = {
       "1": "Ski Instructor",
@@ -133,22 +163,73 @@ export async function POST(
 
         headers.forEach((header, index) => {
           const value = instructorArray[index];
-          if (validHeaders.includes(header)) {
-            // Only process valid headers
-            if (header === "UniqueID" && value) {
-              instructorObject.UniqueID = value.toString();
-            } else if (header === "ApplyingFor") {
-              // Handle "ApplyingFor" to set "InstructorType"
-              if (value && applyingForMapping.hasOwnProperty(value)) {
-                instructorObject.InstructorType = applyingForMapping[value];
-              }
-            } else if (header === "WComment") {
-              // Map "WComment" to "COMMENTS"
-              instructorObject.COMMENTS = value === null ? "" : value.toString();
-            }else {
-              instructorObject[header] = value !== null && value !== undefined ? value.toString() : "";
-            }
+          console.log(`Header: ${header}, Value: ${value}`); // Log the header and value for debugging
+          // You might need to add additional validation or parsing logic here
+          if (header === 'UniqueID') {
+            instructorObject.UniqueID = value.toString();
+          } else if (header === 'NAME_FIRST') {
+            instructorObject.NAME_FIRST = value.toString();
+          } else if (header === 'NAME_LAST') {
+            instructorObject.NAME_LAST = value.toString();
+          } else if (header === 'HOME_TEL') {
+            instructorObject.HOME_TEL = value.toString();
+          } else if (header === 'E_MAIL' || header === 'E-mail_main') {
+            instructorObject.E_mail_main = value.toString();
+          } else if (header === 'C_TEL') {
+            instructorObject.C_TEL = value.toString();
+          } else if (header === 'BRTHD') {
+            // Parse birthdate and calculate age
+            const birthdate = new Date(value);
+            instructorObject.BRTHD = birthdate.toISOString();
+            instructorObject.AGE = calculateAge(birthdate);
+          } else if (header === 'ADDRESS') {
+            instructorObject.ADDRESS = value.toString();
+          } else if (header === 'CITY') {
+            instructorObject.CITY = value.toString();
+          } else if (header === 'STATE') {
+            instructorObject.STATE = value.toString();
+          } else if (header === 'ZIP') {
+            instructorObject.ZIP = value.toString();
+          } else if (header === 'Employer') {
+            // Map to a relevant field or add a new field if necessary
+          } else if (header === 'Occupation') {
+            // Map to a relevant field or add a new field if necessary
+          } else if (header === 'W_Tel') {
+            // Map to a relevant field or add a new field if necessary
+          } else if (header === 'CCPayment') {
+            // Map to a relevant field or add a new field if necessary
+          } else if (header === 'DateFeePaid') {
+            instructorObject.dateFeePaid = value.toString();
+          } else if (header === 'PSIAcertification') {
+            instructorObject.PSIA = value.toString();
+          } else if (header === 'AASIcertification') {
+            instructorObject.AASI = value.toString();
+          } else if (header === 'NumDays') {
+            // Map to a relevant field or add a new field if necessary
+          } else if (header === 'Applying for') {
+            const roleKey = value.toString(); // Make sure the value is a string to match the keys in your mapping object
+            const roleValue = applyingForMapping[roleKey]; // Look up the corresponding role in the mapping object
+          
+            if (roleValue) {
+              instructorObject.InstructorType = roleValue;
+            } else {
+              console.log(`Invalid role key: ${roleKey}`);
+              // Handle the case where the role key is not found in the mapping object, e.g., set a default value or skip it
+            }          } else if (header === 'PaymentStatus') {
+            // Map to a relevant field or add a new field if necessary
+          } else if (header === 'PROG_CODE') {
+            // Map to a relevant field or add a new field if necessary
+          }else if (header === 'AcceptedTerms') {
+            instructorObject.disclosureForm = value === 'Yes'; // Assuming 'Yes' means accepted
+          } else if (header.startsWith('Schedule')) {
+            // Handle Schedule fields, perhaps as an array or sub-object
+          } else if (header === 'WComment') {
+            instructorObject.COMMENTS = value === null ? "" : value.toString();
+          } else if (header === 'returning') {
+            // Map to a relevant field or add a new field if necessary
           }
+          // Add more else if blocks for other headers
+          console.log(`Current state of instructorObject after processing ${header}:`, instructorObject);
         });
         
         // Convert BRTHD to ISO string and calculate age
@@ -171,6 +252,8 @@ export async function POST(
         if (typeof instructorObject.seasonId !== 'string') {
           throw new Error('seasonId is required and must be a string');
         }
+        console.log('Mapped instructor object:', instructorObject);
+
         return instructorObject as InstructorData;
       });
 

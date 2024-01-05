@@ -2,6 +2,8 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { CellAction } from "./cell-action";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
 
 export type InstructorColumn = {
   id:string;
@@ -44,84 +46,206 @@ export const columns: ColumnDef<InstructorColumn>[] = [
   },
   {
     accessorKey: "UniqueID",
-    header: "ID",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          UniqueID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "NAME_FIRST",
-    header: "First Name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          First Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "NAME_LAST",
-    header: "Last Name",
-  },
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Last Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },,
   {
     accessorKey: "HOME_TEL",
-    header: "Home Telephone",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Phone
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "BRTHD",
-    header: "Birth Date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Birthday
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "E_mail_main",
-    header: "Main Email",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Email
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "ADDRESS",
-    header: "Address",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Address
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "CITY",
-    header: "City",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          City
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "STATE",
-    header: "State",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          State
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "ZIP",
-    header: "ZIP",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Zip
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "AGE",
-    header: "AGE",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Age
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
-  // {
-  //   accessorKey: "Employer",
-  //   header: "Employer",
-  // },
-  // {
-  //   accessorKey: "Occupation",
-  //   header: "Occupation",
-  // },
-  // {
-  //   accessorKey: "W_Tel",
-  //   header: "Work Telephone",
-  // },
-  // {
-  //   accessorKey: "CCPayment",
-  //   header: "Credit Card Payment",
-  // },
-  // {
-  //   accessorKey: "DateFeePaid",
-  //   header: "Date Fee Paid",
-  // },
-  // {
-  //   accessorKey: "PSIAcertification",
-  //   header: "PSIA Certification",
-  // },
-  // {
-  //   accessorKey: "AASIcertification",
-  //   header: "AASI Certification",
-  // },
+
+  {
+    accessorKey: "PSIA",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          PSIA
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "AASI",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          AASI
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "InstructorType",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Instructor Type
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
   // {
   //   accessorKey: "NumDays",
   //   header: "Number of Days",
   // },
-  // {
-  //   accessorKey: "ApplyingFor",
-  //   header: "Applying For",
-  // },
+
   // {
   //   accessorKey: "PaymentStatus",
   //   header: "Payment Status",
@@ -204,10 +328,20 @@ export const columns: ColumnDef<InstructorColumn>[] = [
   //   header: "Schedule 9",
   //   cell: info => info.getValue() ? "Yes" : "No",
   // },
-  // {
-  //   accessorKey: "WComment",
-  //   header: "Comment",
-  // },
+  {
+    accessorKey: "COMMENTS",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Comments
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
   // {
   //   accessorKey: "returning",
   //   header: "Returning",

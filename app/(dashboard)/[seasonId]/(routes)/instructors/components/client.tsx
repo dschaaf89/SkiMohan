@@ -95,7 +95,7 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
     </div>
    
     <Separator/>
-    <DataTable searchKey="NAME_FIRST" columns={columns} data={data}/>
+    <DataTable searchKey="NAME_LAST" columns={columns} data={data}/>
     </>
   )
 }
