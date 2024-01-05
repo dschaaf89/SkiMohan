@@ -85,7 +85,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
         </Button>
       )
     },
-  },,
+  },
   {
     accessorKey: "HOME_TEL",
     header: ({ column }) => {
@@ -122,7 +122,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          Main Email
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -170,6 +170,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
       )
     },
   },
+  
   {
     accessorKey: "ZIP",
     header: ({ column }) => {
@@ -192,13 +193,32 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Age
+          AGE
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
   },
-
+  // {
+  //   accessorKey: "Employer",
+  //   header: "Employer",
+  // },
+  // {
+  //   accessorKey: "Occupation",
+  //   header: "Occupation",
+  // },
+  // {
+  //   accessorKey: "W_Tel",
+  //   header: "Work Telephone",
+  // },
+  // {
+  //   accessorKey: "CCPayment",
+  //   header: "Credit Card Payment",
+  // },
+  // {
+  //   accessorKey: "DateFeePaid",
+  //   header: "Date Fee Paid",
+  // },
   {
     accessorKey: "PSIA",
     header: ({ column }) => {
@@ -241,11 +261,28 @@ export const columns: ColumnDef<InstructorColumn>[] = [
       )
     },
   },
+  {
+    accessorKey: "COMMENTS",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Comments
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
   // {
   //   accessorKey: "NumDays",
   //   header: "Number of Days",
   // },
-
+  // {
+  //   accessorKey: "ApplyingFor",
+  //   header: "Applying For",
+  // },
   // {
   //   accessorKey: "PaymentStatus",
   //   header: "Payment Status",
@@ -328,20 +365,10 @@ export const columns: ColumnDef<InstructorColumn>[] = [
   //   header: "Schedule 9",
   //   cell: info => info.getValue() ? "Yes" : "No",
   // },
-  {
-    accessorKey: "COMMENTS",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Comments
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-  },
+  // {
+  //   accessorKey: "WComment",
+  //   header: "Comment",
+  // },
   // {
   //   accessorKey: "returning",
   //   header: "Returning",
