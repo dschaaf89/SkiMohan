@@ -73,8 +73,17 @@ type InstructorData = {
   resume:string;
   ageRequestByStaff: Record<string, any>;
   clinics:Record<string, any>;
+  schedules?: number[];
   [key: string]: any;
 }
+type ScheduleMapping = {
+  [key: string]: number; // Index signature
+  Schedule5: number;
+  Schedule7: number;
+  Schedule8: number;
+  Schedule9: number;
+  Schedule10: number;
+};
 
 function calculateAge(birthdate: Date): number {
   const today = new Date();
@@ -136,12 +145,12 @@ export async function POST(
       "Schedule2",
       "Schedule3",
       "Schedule4",
-      "Schedule5 F",
+      "Schedule5",
       "Schedule6",
-      "Schedule7 SatAM",
-      "Schedule8 SatPM",
-      "Schedule9 SunAM",
-      "Schedule10 SunPM",
+      "Schedule7",
+      "Schedule8",
+      "Schedule9",
+      "Schedule10",
       "WComment",
       "returning" // You'll need to handle this, as it's not directly in the InstructorData type
     ];
@@ -153,6 +162,15 @@ export async function POST(
       "5": "Board Assistant",
       "6": "Ski and Board Assistant",
     };
+
+    const scheduleMapping: ScheduleMapping = {
+      Schedule5: 2,
+      Schedule7: 3,
+      Schedule8: 4,
+      Schedule9: 5,
+      Schedule10: 6,
+    };
+    
 
     const headers: string[] = body[0];
     const instructorsData: InstructorData[] = body
@@ -190,39 +208,44 @@ export async function POST(
             instructorObject.STATE = value.toString();
           } else if (header === 'ZIP') {
             instructorObject.ZIP = value.toString();
-          } else if (header === 'Employer') {
-            // Map to a relevant field or add a new field if necessary
-          } else if (header === 'Occupation') {
-            // Map to a relevant field or add a new field if necessary
-          } else if (header === 'W_Tel') {
-            // Map to a relevant field or add a new field if necessary
-          } else if (header === 'CCPayment') {
-            // Map to a relevant field or add a new field if necessary
           } else if (header === 'DateFeePaid') {
             instructorObject.dateFeePaid = value.toString();
           } else if (header === 'PSIAcertification') {
             instructorObject.PSIA = value.toString();
           } else if (header === 'AASIcertification') {
             instructorObject.AASI = value.toString();
-          } else if (header === 'NumDays') {
-            // Map to a relevant field or add a new field if necessary
           } else if (header === 'Applying for') {
             const roleKey = value.toString(); // Make sure the value is a string to match the keys in your mapping object
             const roleValue = applyingForMapping[roleKey]; // Look up the corresponding role in the mapping object
-          
             if (roleValue) {
               instructorObject.InstructorType = roleValue;
             } else {
               console.log(`Invalid role key: ${roleKey}`);
               // Handle the case where the role key is not found in the mapping object, e.g., set a default value or skip it
-            }          } else if (header === 'PaymentStatus') {
-            // Map to a relevant field or add a new field if necessary
-          } else if (header === 'PROG_CODE') {
+            } }else if (header === 'PROG_CODE') {
             // Map to a relevant field or add a new field if necessary
           }else if (header === 'AcceptedTerms') {
             instructorObject.disclosureForm = value === 'Yes'; // Assuming 'Yes' means accepted
           } else if (header.startsWith('Schedule')) {
-            // Handle Schedule fields, perhaps as an array or sub-object
+            // Initialize the schedule array if it's not already initialized
+            instructorObject.schedules = instructorObject.schedules || [];
+            
+            // Log the current header and its value
+            console.log(`Processing: Header: ${header}, Value: ${value}`);
+          
+            // Use the header to get the corresponding schedule id
+            const scheduleId = scheduleMapping[header];
+          
+            // Log the found schedule ID
+            console.log(`Found Schedule ID for ${header}: ${scheduleId}`);
+          
+            if (scheduleId && value === 'Yes') {
+              // Add the schedule id to the schedules array
+              instructorObject.schedules.push(scheduleId);
+          
+              // Log the updated schedules array
+              console.log(`Added Schedule ID ${scheduleId}. Current schedules array:`, instructorObject.schedules);
+            }
           } else if (header === 'WComment') {
             instructorObject.COMMENTS = value === null ? "" : value.toString();
           } else if (header === 'returning') {
@@ -256,35 +279,41 @@ export async function POST(
 
         return instructorObject as InstructorData;
       });
-
-    const createdInstructors = await prismadb.instructor.createMany({
-      data: instructorsData,
-      skipDuplicates: true, // Optionally skip duplicates, if your logic requires this
-    });
-
-    // Return a successful response
-    return new NextResponse(
-      JSON.stringify({
+      const transactions = instructorsData.map(instructorData => {
+        return async () => {
+          const { schedules, ...instructorInfo } = instructorData;
+          const createdInstructor = await prismadb.instructor.create({
+            data: {
+              ...instructorInfo,
+              seasonId: params.seasonId,
+              // ... other fields
+            },
+          });
+  
+          if (schedules && schedules.length > 0) {
+            await Promise.all(schedules.map(classTimeId => {
+              return prismadb.instructorClassTime.create({
+                data: {
+                  instructorId: createdInstructor.id,
+                  classTimeId,
+                },
+              });
+            }));
+          }
+  
+          return createdInstructor;
+        };
+      });
+  
+      const createdInstructors = await Promise.all(transactions.map(t => t()));
+  
+      return new NextResponse(JSON.stringify({
         message: "Instructors created successfully",
         data: createdInstructors,
-      }),
-      { status: 200 }
-    );
-  } catch (error: unknown) {
-    // Indicate that error is of type unknown
-    // Perform a type check
-    if (error instanceof Error) {
-      console.error("[MultiInstructor_POST]", error.message);
-      return new NextResponse(JSON.stringify({ error: error.message }), {
-        status: 500,
-      });
-    } else {
-      // If it's not an Error instance, handle it as a generic error
-      console.error("[MultiInstructor_POST]", "An unexpected error occurred");
-      return new NextResponse(
-        JSON.stringify({ error: "An unexpected error occurred" }),
-        { status: 500 }
-      );
+      }), { status: 200 });
+    } catch (error) {
+      // Handle errors here
+      console.error("[MultiInstructor_POST]", error);
+      return new NextResponse(JSON.stringify({ error: "An error occurred" }), { status: 500 });
     }
   }
-}

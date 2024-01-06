@@ -130,13 +130,16 @@ function combineSmallGroups(groups: Student[][], classSize: number): Student[][]
 
   return combinedGroups;
 }
+function isSaturdayOrSundayAfternoon(progCode:string) {
+  return saturdayAfternoonCodes.includes(progCode) || sundayAfternoonCodes.includes(progCode);
+}
 
 function createClasses(students: Student[]): StudentGroup[] {
   const groups: StudentGroup[] = [];
   const magicKingdomClassSize = 3; // Class size for Magic Kingdom classes
   const fridayClassSize = 8; // Class size for Friday classes
   const otherClassSize = 8; // Default class size for other classes
-
+  const afternoonClasses = 6;  // Class size for Saturday and Sunday afternoon classes
   const ageGroups = [
     { min: 6, max: 7 },
     { min: 8, max: 10 },
@@ -146,7 +149,7 @@ function createClasses(students: Student[]): StudentGroup[] {
   ];
 
   const groupedByProgCode = groupBy(students, 'ProgCode');
-
+  let classSize=8;
   Object.entries(groupedByProgCode).forEach(([progCode, progCodeGroup]) => {
     resetMeetingPoint(determineTimeSlot(progCode));
 
@@ -163,13 +166,14 @@ function createClasses(students: Student[]): StudentGroup[] {
         const ageGroupStudents = filterByAge(progCodeGroup, min, max);
         const groupedByLevel = groupBy(ageGroupStudents, 'LEVEL');
         Object.entries(groupedByLevel).forEach(([level, levelGroup]) => {
-          let classSize = determineClassSizeBasedOnCriteria(level);
+          classSize = determineClassSizeBasedOnCriteria(level,progCode);
+          console.log(classSize);
           let classes = chunkArray(levelGroup, classSize);
           allClassesForProgCode = allClassesForProgCode.concat(classes);
         });
       });
 
-      let combinedClasses = combineSmallGroups(allClassesForProgCode, otherClassSize);
+      let combinedClasses = combineSmallGroups(allClassesForProgCode, classSize);
       combinedClasses.forEach(classGroup => {
         groups.push(createStudentGroup({ students: classGroup, progCode }));
       });
@@ -187,6 +191,7 @@ function createClasses(students: Student[]): StudentGroup[] {
       groups.push(createStudentGroup({ students: classGroup, progCode: commonProgCode }));
     });
   });
+  
 
   return groups;
 }
@@ -205,10 +210,14 @@ function groupByMultipleCriteria<T>(array: T[], criteria: (keyof T)[]): T[][] {
 }
 
 
-function determineClassSizeBasedOnCriteria(level: string): number {
+function determineClassSizeBasedOnCriteria(level: string, progCode:string): number {
   // For lower levels "1/2" and "3/4", class size is 5
-  if (level.includes( "1/2 novice") || level.includes("3/4 inter")) {
-    return 5;
+  if(saturdayAfternoonCodes.includes(progCode) || sundayAfternoonCodes.includes(progCode)){
+    return 6;
+  }
+   // For lower levels "1/2" and "3/4", class size is 5
+  else if (level.includes( "1/2 novice") || level.includes("3/4 inter")) {
+    return 8;
   }
   // For all other levels, class size is 8
   return 8;

@@ -46,6 +46,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 interface StudentConnection {
   connect: Array<{ id: string }>;
 }
+interface Instructor {
+  id: string;
+  NAME_FIRST: string;
+  NAME_LAST: string;
+  // Add other properties as needed
+}
 interface InitialData {
   // ... other fields ...
   students?: StudentConnection | null;
@@ -61,7 +67,12 @@ interface StudentDetail {
   age: number;
   skillLevel: string;
 }
-
+interface InstructorType {
+  id: string;
+  NAME_FIRST: string;
+  NAME_LAST: string;
+  // ... any other properties
+}
 const formSchema = z.object({
   classId: z.number(),
   meetColor: z.string().optional(),
@@ -88,7 +99,6 @@ const createDefaultValues = (initialData: Classes | null): ClassFormValues => {
   return defaultValues; // Make sure this return statement is present
 };
 
-
 export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const params = useParams();
   const router = useRouter();
@@ -105,7 +115,14 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     resolver: zodResolver(formSchema),
     defaultValues: createDefaultValues(initialData),
   });
-  
+
+  const dayToClassTimeIdMapping: { [key: string]: number } = {
+    "Friday": 2,
+    "Saturday Morning": 3,
+    "Saturday Afternoon": 4,
+    "Sunday Morning": 5,
+    "Sunday Afternoon": 6,
+  };
 
   const onSubmit = async (data: ClassFormValues) => {
     const submissionData = {
@@ -181,6 +198,48 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const [addedStudents, setAddedStudents] = useState([]); // To store added students
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [studentDetails, setStudentDetails] = useState<StudentDetail[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [classTimeId, setClassTimeId] = useState<number | undefined>(undefined);
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  if (initialData && typeof initialData.day === 'string') {
+    const dayKey = initialData.day as keyof typeof dayToClassTimeIdMapping;
+    if (dayKey in dayToClassTimeIdMapping) {
+      const newClassTimeId = dayToClassTimeIdMapping[dayKey];
+      setClassTimeId(newClassTimeId);
+      console.log(`Setting classTimeId to: ${newClassTimeId}`); // Log the new classTimeId
+    } else {
+      console.error(`No class time ID found for day: ${initialData.day}`);
+    }
+  }
+}, [initialData]);
+useEffect(() => {
+  async function fetchInstructors(tempClassTimeId:number) {
+    console.log('Fetching instructors for classTimeId:', tempClassTimeId);
+    try {
+      if (tempClassTimeId) {
+        const seasonId = params.seasonId;
+        console.log(`Making API call to: /api/${seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`);
+
+        const response = await axios.get(
+          `/api/${seasonId}/classes/availableInstructors?classTimeId=${tempClassTimeId}`
+        );
+        console.log('Instructors response:', response.data);
+        setInstructors(response.data);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching instructors", error);
+      setLoading(false);
+    }
+  }
+
+  if (classTimeId) {
+    const tempClassTimeId = classTimeId; // Use a temporary variable
+    fetchInstructors(tempClassTimeId);
+  }
+}, [classTimeId, params.seasonId]);
   // useEffect(() => {
   //   // Explicitly assert the type of initialData.students
   //   const studentData = initialData?.students as StudentConnection | undefined;
@@ -213,16 +272,22 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
 
   useEffect(() => {
     const fetchStudentNames = async () => {
-      const studentData = initialData?.students as StudentConnection | undefined;
+      const studentData = initialData?.students as
+        | StudentConnection
+        | undefined;
       if (studentData?.connect) {
         const details = await Promise.all(
           studentData.connect.map(async ({ id }) => {
             try {
-              const response = await axios.get(`/api/${params.seasonId}/students/${id}`);
+              const response = await axios.get(
+                `/api/${params.seasonId}/students/${id}`
+              );
               const student = response.data;
               return {
                 id: student.id,
-                name: `${student.NAME_FIRST ?? ""} ${student.NAME_LAST ?? ""}`.trim(),
+                name: `${student.NAME_FIRST ?? ""} ${
+                  student.NAME_LAST ?? ""
+                }`.trim(),
                 age: student.AGE,
                 skillLevel: student.LEVEL,
               };
@@ -232,10 +297,12 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
             }
           })
         );
-        setStudentDetails(details.filter((detail) => detail !== null) as StudentDetail[]);
+        setStudentDetails(
+          details.filter((detail) => detail !== null) as StudentDetail[]
+        );
       }
     };
-  
+
     // Type assertion here
     if ((initialData?.students as StudentConnection | undefined)?.connect) {
       fetchStudentNames();
@@ -358,13 +425,19 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="" />
+                              <SelectValue placeholder="Select Instructor" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Red">Red</SelectItem>
-                            <SelectItem value="Yellow">Yellow</SelectItem>
-                            <SelectItem value="Blue">Blue</SelectItem>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {instructors.map((instructor) => (
+                              <SelectItem
+                                key={instructor.id}
+                                value={instructor.id}
+                              >
+                                {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}{" "}
+                                {/* Concatenating first and last name */}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
