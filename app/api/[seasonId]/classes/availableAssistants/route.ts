@@ -21,19 +21,19 @@ export async function GET(req: Request) {
     });
 
     const instructorIds = instructorClassTimes.map(ict => ict.instructorId);
-    const instructors = await prismadb.instructor.findMany({
+    const assistant = await prismadb.instructor.findMany({
       where: {
         id: { in: instructorIds },
         InstructorType: {
-          notIn: ["Ski Assistant", "Board Assistant", "Ski and Board Assistant"], // Exclude these roles
+          notIn: ["Ski Instructor", "Board Instructor", "Ski and Board Instructor"], // Exclude these roles
         },
       },
     });
     
     // Log the number of instructors found
-    console.log(`Number of instructors found: ${instructors.length}`);
+    console.log(`Number of Assistants found: ${assistant.length}`);
 
-    return NextResponse.json(instructors);
+    return NextResponse.json(assistant);
   } catch (error) {
     console.log('[Classes_GET]', error);
     return new NextResponse("Internal error", { status: 500 });

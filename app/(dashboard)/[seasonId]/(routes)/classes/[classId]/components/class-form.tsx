@@ -199,6 +199,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [studentDetails, setStudentDetails] = useState<StudentDetail[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [assistants, setAssistants] = useState<Instructor[]>([]);
   const [classTimeId, setClassTimeId] = useState<number | undefined>(undefined);
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -238,6 +239,33 @@ useEffect(() => {
   if (classTimeId) {
     const tempClassTimeId = classTimeId; // Use a temporary variable
     fetchInstructors(tempClassTimeId);
+  }
+}, [classTimeId, params.seasonId]);
+
+useEffect(() => {
+  async function fetchAssistants(tempClassTimeId:number) {
+    console.log('Fetching assistants for classTimeId:', tempClassTimeId);
+    try {
+      if (tempClassTimeId) {
+        const seasonId = params.seasonId;
+        console.log(`Making API call to: /api/${seasonId}/classes/availableAssistants?classTimeId=${classTimeId}`);
+
+        const response = await axios.get(
+          `/api/${seasonId}/classes/availableAssistants?classTimeId=${tempClassTimeId}`
+        );
+        console.log('Assistants response:', response.data);
+        setAssistants(response.data);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching assistants", error);
+      setLoading(false);
+    }
+  }
+
+  if (classTimeId) {
+    const tempClassTimeId = classTimeId; // Use a temporary variable
+    fetchAssistants(tempClassTimeId);
   }
 }, [classTimeId, params.seasonId]);
   // useEffect(() => {
@@ -460,7 +488,43 @@ useEffect(() => {
                     </FormItem>
                   )}
                 />
+                  {/* Assistants Name */}
+              <div className="mt-4">
+                  <FormField
+                    control={form.control}
+                    name="instructor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assistant</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Assistant" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {assistants.map((assistants) => (
+                              <SelectItem
+                                key={assistants.id}
+                                value={assistants.id}
+                              >
+                                {`${assistants.NAME_FIRST} ${assistants.NAME_LAST}`}{" "}
+                                {/* Concatenating first and last name */}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
+
+            
 
               {/* Second Column */}
               <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
