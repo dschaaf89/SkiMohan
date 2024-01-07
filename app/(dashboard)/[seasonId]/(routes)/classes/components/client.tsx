@@ -11,6 +11,7 @@ import axios from 'axios';
 import { useState } from "react";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import { Assistant } from "next/font/google";
 interface ClassClientProps {
   data: ClassColumn[];
 }
@@ -138,9 +139,10 @@ export const ClassClient: React.FC<ClassClientProps> = ({
       Level:classes.Level,
       Age: classes.Age,
       classId:classes.classId,
-      instructor: "",
-      phone:"",
+      instructorId:classes.instructorID,
+      assistantId:classes.assistantId,
       meetColor:classes.meetColor,
+      phone:classes.phone,      
 
     }));
 

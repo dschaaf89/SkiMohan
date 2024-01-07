@@ -5,8 +5,14 @@ import { authMiddleware } from "@clerk/nextjs";
 // See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your Middleware
 export default authMiddleware({
       // Include your route in the publicRoutes array
+      ignoredRoutes: [
+        "/((?!api|trpc))(_next.*|.+\.[\w]+$)",
+        "/3523ea0b-4dc2-4efb-be8d-10e1740d2f63/classes/availableAssistants",
+        // ... other routes to ignore
+      ],
       publicRoutes: [
-        "/3523ea0b-4dc2-4efb-be8d-10e1740d2f63/classes/availableInstructors"
+        "/3523ea0b-4dc2-4efb-be8d-10e1740d2f63/classes/availableInstructors",
+        "/3523ea0b-4dc2-4efb-be8d-10e1740d2f63/classes/availableAssistants",
       ]
     });
  

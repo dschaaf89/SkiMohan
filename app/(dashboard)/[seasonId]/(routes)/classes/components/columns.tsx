@@ -4,20 +4,23 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import {Button} from "@/components/ui/button"
 import { CellAction } from "./cell-action"
+import { Instructor } from "@prisma/client"
 
 export type ClassColumn = {
-  DAY:string;
-  classId : number
-  meetingPoint: number
-  meetColor: string
-  discipline: string
-  numberStudents:number
-  Level: string
-  Age:number
-  instructorID:number
-  progCode:string
-
-  
+  DAY: string;
+  classId: number;
+  meetingPoint: number;
+  meetColor: string;
+  discipline: string;
+  numberStudents: number;
+  Level: string;
+  Age: number;
+  instructorID: number;
+  progCode: string;
+  assistantId: number;
+  assistant?: string; // If this property is optional, use '?'
+  instructor?: string; // If this property is optional, use '?'
+  phone?: string; // If this property is optional, use '?'
 }
 
 
@@ -156,7 +159,7 @@ export const columns: ColumnDef<ClassColumn>[] = [
     },
   },
   {
-    accessorKey: "Instructor_NAME",
+    accessorKey: "instructor",
     header: ({ column }) => {
       return (
         <Button

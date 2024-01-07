@@ -157,6 +157,7 @@ model Instructor {
   clinics             Json?                 @map("clinics")
   classTimes          InstructorClassTime[] @relation("InstructorToClassTime")
   classes             Classes[]             @relation("InstructorToClasses")
+  classesAsAssistant  Classes[] @relation("AssistantToClasses")
 
   @@index([seasonId])
 }
@@ -197,7 +198,12 @@ model Classes {
   Age            Int? // Add this field
   instructorId   String?
   instructor     Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [id])
-
+  assistantId    String?
+  assistant      Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [id])
+  startTime    String?
+  endTime      String?
+  
   @@index([seasonId])
   @@index([instructorId])
+  @@index([assistantId]) 
 }

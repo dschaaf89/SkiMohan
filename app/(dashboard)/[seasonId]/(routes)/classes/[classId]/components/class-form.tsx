@@ -67,25 +67,28 @@ interface StudentDetail {
   age: number;
   skillLevel: string;
 }
-interface InstructorType {
-  id: string;
-  NAME_FIRST: string;
-  NAME_LAST: string;
-  // ... any other properties
-}
 const formSchema = z.object({
   classId: z.number(),
   meetColor: z.string().optional(),
   meetingPoint: z.number().optional(),
   instructor: z.string().optional(),
   instructorID: z.number().optional(),
-  skillLevel: z.string().optional(),
+  Level: z.string().optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
-  AgeGroup: z.number().optional(),
-  Day: z.string().optional(),
+  Age: z.number().optional(),
+  day: z.string().optional(),
+  assistant: z.string().optional(),
+  assistantId: z.string().optional(),
 });
-
+const timeMapping = {
+  Friday: { startTime: "7:00 PM", endTime: "9:00 PM" },
+  "Saturday Morning": { startTime: "10:30 AM", endTime: "12:30 PM" },
+  "Saturday Afternoon": { startTime: "2:00 PM", endTime: "4:00 PM" },
+  "Sunday Morning": { startTime: "10:30 AM", endTime: "12:30 PM" },
+  "Sunday Afternoon": { startTime: "2:00 PM", endTime: "4:00 PM" },
+  // Add other days and times as necessary
+};
 type ClassFormValues = z.infer<typeof formSchema>;
 
 interface ClassFormProps {
@@ -94,7 +97,7 @@ interface ClassFormProps {
 const createDefaultValues = (initialData: Classes | null): ClassFormValues => {
   const defaultValues: ClassFormValues = {
     classId: 0,
-    skillLevel: initialData?.Level ?? "",
+    Level: initialData?.Level ?? "",
   };
   return defaultValues; // Make sure this return statement is present
 };
@@ -117,7 +120,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   });
 
   const dayToClassTimeIdMapping: { [key: string]: number } = {
-    "Friday": 2,
+    Friday: 2,
     "Saturday Morning": 3,
     "Saturday Afternoon": 4,
     "Sunday Morning": 5,
@@ -127,14 +130,21 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const onSubmit = async (data: ClassFormValues) => {
     const submissionData = {
       ...data,
+      instructor: selectedInstructorId
+        ? { connect: { id: selectedInstructorId } }
+        : undefined,
+      assistant: selectedAssistantId
+        ? { connect: { id: selectedAssistantId } }
+        : undefined,
     };
-    console.log("Submitted data", data);
+    console.log("Submitting data with classId:", submissionData); // Log the data being submitted
+
     try {
       setLoading(true);
       if (initialData) {
         await axios.patch(
           `/api/${params.seasonId}/classes/${params.classId}`,
-          data
+          submissionData
         );
       } else {
         await axios.post(`/api/${params.seasonId}/classes`, submissionData);
@@ -149,33 +159,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     }
   };
 
-  // const fetchStudentNames = async () => {
-  //   const studentData = initialData?.students as StudentConnection | undefined;
-  //   const details = await Promise.all(
-  //     studentData.connect.map(async ({ id }) => {
-  //       try {
-  //         const response = await axios.get(
-  //           `/api/${params.seasonId}/students/${id}`
-  //         );
-  //         console.log("API Response:", response.data); // Log the API response
-  //         const student = response.data;
-  //         return {
-  //           id: student.id,
-  //           name: `${student.NAME_FIRST ?? ""} ${
-  //             student.NAME_LAST ?? ""
-  //           }`.trim(),
-  //           age: student.AGE, // Ensure this matches the API response
-  //           skillLevel: student.LEVEL, // Ensure this matches the API response
-  //         };
-  //       } catch (error) {
-  //         console.error("Error fetching student data", error);
-  //         return null;
-  //       }
-  //     })
-  //   );
-  //   console.log("Details:", details); // Log the processed details
-  //   setStudentDetails(details.filter((detail) => detail !== null));
-  // };
+  
 
   const onDelete = async () => {
     try {
@@ -201,102 +185,75 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [assistants, setAssistants] = useState<Instructor[]>([]);
   const [classTimeId, setClassTimeId] = useState<number | undefined>(undefined);
+  const [selectedInstructorId, setSelectedInstructorId] = useState<
+    string | null | undefined
+  >();
+  const [selectedAssistantId, setSelectedAssistantId] = useState<
+    string | null | undefined
+  >();
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
-useEffect(() => {
-  if (initialData && typeof initialData.day === 'string') {
-    const dayKey = initialData.day as keyof typeof dayToClassTimeIdMapping;
-    if (dayKey in dayToClassTimeIdMapping) {
-      const newClassTimeId = dayToClassTimeIdMapping[dayKey];
-      setClassTimeId(newClassTimeId);
-      console.log(`Setting classTimeId to: ${newClassTimeId}`); // Log the new classTimeId
-    } else {
-      console.error(`No class time ID found for day: ${initialData.day}`);
-    }
-  }
-}, [initialData]);
-useEffect(() => {
-  async function fetchInstructors(tempClassTimeId:number) {
-    console.log('Fetching instructors for classTimeId:', tempClassTimeId);
-    try {
-      if (tempClassTimeId) {
-        const seasonId = params.seasonId;
-        console.log(`Making API call to: /api/${seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`);
-
-        const response = await axios.get(
-          `/api/${seasonId}/classes/availableInstructors?classTimeId=${tempClassTimeId}`
-        );
-        console.log('Instructors response:', response.data);
-        setInstructors(response.data);
-        setLoading(false);
+  useEffect(() => {
+    async function fetchData() {
+      if (!classTimeId) {
+        console.error("Class time ID is not available.");
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching instructors", error);
-      setLoading(false);
-    }
-  }
-
-  if (classTimeId) {
-    const tempClassTimeId = classTimeId; // Use a temporary variable
-    fetchInstructors(tempClassTimeId);
-  }
-}, [classTimeId, params.seasonId]);
-
-useEffect(() => {
-  async function fetchAssistants(tempClassTimeId:number) {
-    console.log('Fetching assistants for classTimeId:', tempClassTimeId);
-    try {
-      if (tempClassTimeId) {
-        const seasonId = params.seasonId;
-        console.log(`Making API call to: /api/${seasonId}/classes/availableAssistants?classTimeId=${classTimeId}`);
-
-        const response = await axios.get(
-          `/api/${seasonId}/classes/availableAssistants?classTimeId=${tempClassTimeId}`
+  
+      // Fetch Instructors
+      try {
+        const responseInstructors = await axios.get(
+          `/api/${params.seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`
         );
-        console.log('Assistants response:', response.data);
-        setAssistants(response.data);
-        setLoading(false);
+        setInstructors(responseInstructors.data);
+      } catch (error) {
+        console.error("Error fetching instructors", error);
+        setInstructors([]);
       }
-    } catch (error) {
-      console.error("Error fetching assistants", error);
-      setLoading(false);
+  
+      // Fetch Assistants
+      try {
+        const responseAssistants = await axios.get(
+          `/api/${params.seasonId}/classes/availableAssistants?classTimeId=${classTimeId}`
+        );
+        setAssistants(responseAssistants.data);
+      } catch (error) {
+        console.error("Error fetching assistants", error);
+        setAssistants([]);
+      }
     }
-  }
+  
+    fetchData();
+  }, [classTimeId, params.seasonId]);
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...form.getValues(),
+        classId: initialData.classId,
+        meetColor: initialData.meetColor!,
+        meetingPoint: initialData.meetingPoint!,
+        day: initialData.day,
+        Age: initialData.Age!,
+        Level: initialData.Level!,
+      });
+  
+      if (instructors.some(instructor => instructor.id === initialData.instructorId)) {
+        setSelectedInstructorId(initialData.instructorId);
+      }
+      if (assistants.some(assistant => assistant.id === initialData.assistantId)) {
+        setSelectedAssistantId(initialData.assistantId);
+      }
+    }
+  }, [initialData, instructors, assistants, form]);
 
-  if (classTimeId) {
-    const tempClassTimeId = classTimeId; // Use a temporary variable
-    fetchAssistants(tempClassTimeId);
-  }
-}, [classTimeId, params.seasonId]);
-  // useEffect(() => {
-  //   // Explicitly assert the type of initialData.students
-  //   const studentData = initialData?.students as StudentConnection | undefined;
-
-  //   if (studentData?.connect) {
-  //     const fetchStudentNames = async () => {
-  //       const names = await Promise.all(
-  //         studentData.connect.map(async ({ id }: { id: string }) => {
-  //           try {
-  //             const response = await axios.get(
-  //               `/api/${params.seasonId}/students/${id}`
-  //             );
-  //             const student = response.data;
-  //             console.log(student);
-  //             // Handle potential null values in student.NAME_FIRST and student.NAME_LAST
-  //             return `${student.NAME_FIRST ?? ""} ${
-  //               student.NAME_LAST ?? ""
-  //             }`.trim();
-  //           } catch (error) {
-  //             console.error("Error fetching student data", error);
-  //             return "";
-  //           }
-  //         })
-  //       );
-  //       setStudentNames(names.filter((name) => name !== ""));
-  //     };
-  //     fetchStudentNames();
-  //   }
-  // }, [initialData]);
+  useEffect(() => {
+    if (initialData && typeof initialData.day === "string") {
+      const dayKey = initialData.day as keyof typeof dayToClassTimeIdMapping;
+      if (dayKey in dayToClassTimeIdMapping) {
+        const newClassTimeId = dayToClassTimeIdMapping[dayKey];
+        setClassTimeId(newClassTimeId);
+      }
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const fetchStudentNames = async () => {
@@ -337,50 +294,22 @@ useEffect(() => {
     }
   }, [initialData, params.seasonId]);
 
-  // Function to handle adding a student
-  // const handleAddStudent = (student) => {
-  //   if (addedStudents.some((s) => s.UniqueId === student.UniqueId)) {
-  //     toast.error('This student is already added to a class.');
-  //     return;
-  //   }
-  //   setAddedStudents((prevStudents) => [...prevStudents, student]);
-  //   setStudentSearch('');
-  // };
-
-  // // Function to handle removing a student
-  // const handleRemoveStudent = (studentId) => {
-  //   setAddedStudents((prevStudents) => prevStudents.filter((s) => s.id !== studentId));
-  // };
-
-  // // Function to handle student search
-  // const handleStudentSearch = async (searchTerm) => {
-  //   // Simulate an API call to search for students by name or UniqueId
-  //   const matchingStudents = allStudents.filter((student) =>
-  //     student.name.includes(searchTerm) || student.UniqueId.includes(searchTerm)
-  //   );
-  //   setSearchResults(matchingStudents);
-  // };
-
+  
   useEffect(() => {
-    // This block of code will run when the component mounts,
-    // and whenever the dependencies (initialData or form) change.
-    console.log("initialData:", initialData); // Check the structure and values
-    if (initialData) {
-      // If initialData is provided, it means we're editing an existing class,
-      // and we need to populate the form fields with this data.
-
-      form.reset({
-        classId: initialData.classId,
-        meetColor: initialData.meetColor!,
-        meetingPoint: initialData.meetingPoint!,
-        Day: initialData.day,
-        AgeGroup: initialData.Age!,
-        skillLevel: initialData.Level!,
-
-        // ... include mappings for other fields present in initialData
-      });
+    // Check if initialData is available and the 'day' field is a string
+    if (initialData && typeof initialData.day === "string") {
+      const dayKey = initialData.day as keyof typeof timeMapping;
+      if (dayKey in timeMapping) {
+        // Find the corresponding time mapping for the selected day
+        const times = timeMapping[dayKey];
+        // Set the start and end times in the form
+        form.setValue("startTime", times.startTime);
+        form.setValue("endTime", times.endTime);
+      }
     }
   }, [initialData, form]);
+
+
   return (
     <>
       <AlertModal
@@ -448,8 +377,11 @@ useEffect(() => {
                       <FormItem>
                         <FormLabel>Instructor</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          onValueChange={(value) => {
+                            setSelectedInstructorId(value);
+                            form.setValue("instructor", value);
+                          }}
+                          value={selectedInstructorId || ""} // Handle an empty string as a valid value
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -462,7 +394,8 @@ useEffect(() => {
                                 key={instructor.id}
                                 value={instructor.id}
                               >
-                                {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}{" "}
+                                
+                                {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}{" "} 
                                 {/* Concatenating first and last name */}
                               </SelectItem>
                             ))}
@@ -473,23 +406,8 @@ useEffect(() => {
                     )}
                   />
                 </div>
-
-                {/* Instructor ID */}
-                <FormField
-                  control={form.control}
-                  name="instructorID"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instructor ID:</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                  {/* Assistants Name */}
-              <div className="mt-4">
+                {/* Assistants Name */}
+                <div className="mt-4">
                   <FormField
                     control={form.control}
                     name="instructor"
@@ -497,8 +415,11 @@ useEffect(() => {
                       <FormItem>
                         <FormLabel>Assistant</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          onValueChange={(value) => {
+                            setSelectedAssistantId(value);
+                            form.setValue("assistant", value);
+                          }}
+                          value={selectedAssistantId || ""} // Handle an empty string as a valid value
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -523,8 +444,6 @@ useEffect(() => {
                   />
                 </div>
               </div>
-
-            
 
               {/* Second Column */}
               <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
@@ -565,7 +484,7 @@ useEffect(() => {
               <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
                 <FormField
                   control={form.control}
-                  name="skillLevel"
+                  name="Level"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Skill Level</FormLabel>
@@ -594,7 +513,7 @@ useEffect(() => {
                 />
                 <FormField
                   control={form.control}
-                  name="AgeGroup"
+                  name="Age"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Age Group</FormLabel>
@@ -607,7 +526,7 @@ useEffect(() => {
                 />
                 <FormField
                   control={form.control}
-                  name="Day"
+                  name="day"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Day</FormLabel>
@@ -618,6 +537,7 @@ useEffect(() => {
                     </FormItem>
                   )}
                 />
+                {/* Start Time */}
                 <FormField
                   control={form.control}
                   name="startTime"
@@ -631,6 +551,8 @@ useEffect(() => {
                     </FormItem>
                   )}
                 />
+
+                {/* End Time */}
                 <FormField
                   control={form.control}
                   name="endTime"
