@@ -15,44 +15,43 @@ import { useState } from "react";
 interface StudentClientProps {
   data: StudentColumn[];
 }
-declare module 'jspdf' {
+declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
   }
 }
 interface ProgCodeTimeSlots {
-  [progCode: string]: 'Morning' | 'Afternoon';
+  [progCode: string]: "Morning" | "Afternoon";
 }
 
 const saturdayProgCodeTimeSlots: ProgCodeTimeSlots = {
   // Saturday Morning Program Codes
-  'G710-B-LO': 'Morning',
-  'G710-S-LO': 'Morning',
-  'G715-S-LO': 'Morning',
+  "G710-B-LO": "Morning",
+  "G710-S-LO": "Morning",
+  "G715-S-LO": "Morning",
 
   // Saturday Afternoon Program Codes
-  'G720-B-LO': 'Afternoon',
-  'G720-S-LO': 'Afternoon',
-  'G725-S-LO': 'Afternoon',
+  "G720-B-LO": "Afternoon",
+  "G720-S-LO": "Afternoon",
+  "G725-S-LO": "Afternoon",
 };
 
 const sundayProgCodeTimeSlots: ProgCodeTimeSlots = {
   // Saturday Morning Program Codes
-  'G110-B-LO': 'Morning',
-  'G110-S-LO': 'Morning',
-  'G115-S-LO': 'Morning',
+  "G110-B-LO": "Morning",
+  "G110-S-LO": "Morning",
+  "G115-S-LO": "Morning",
 
   // Saturday Afternoon Program Codes
-  'G120-B-LO': 'Afternoon',
-  'G120-S-LO': 'Afternoon',
-  'G125-S-LO': 'Afternoon',
+  "G120-B-LO": "Afternoon",
+  "G120-S-LO": "Afternoon",
+  "G125-S-LO": "Afternoon",
 };
 const progCodeTimeSlots: ProgCodeTimeSlots = {
   ...saturdayProgCodeTimeSlots,
   ...sundayProgCodeTimeSlots,
   //
-} 
-
+};
 
 export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
   const params = useParams();
@@ -119,34 +118,68 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
   const handleDayChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = event.target.value;
     setSelectedDay(selected);
-  
+
     let filtered;
     if (selected.includes("Saturday") || selected.includes("Sunday")) {
       // Saturday and Sunday with morning and afternoon sessions
       const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
-      filtered = data.filter(item => 
-        progCodeTimeSlots[item.ProgCode] === timeSlot && item.DAY === selected.split(" ")[0]);
+      filtered = data.filter(
+        (item) =>
+          progCodeTimeSlots[item.ProgCode] === timeSlot &&
+          item.DAY === selected.split(" ")[0]
+      );
     } else {
       // Other days with only one time slot
-      filtered = data.filter(item => item.DAY === selected);
+      filtered = data.filter((item) => item.DAY === selected);
     }
-  
+
     setFilteredData(filtered);
   };
+  async function generateStudentPDFs(students: StudentColumn[]): Promise<void> {
+    try {
+      console.log("data sent to pdf",students);
+      const filteredStudents = students.filter(student => student.APPLYING_FOR !== "transportation");
+      console.log("data sent to pdf", filteredStudents);
+      const response = await fetch( `/api/${params.seasonId}/students/studentCard`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(filteredStudents),
+      });
 
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "students.pdf";
+      document.body.appendChild(a);
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error("Error generating PDFs:", error);
+    }
+  }
   const handleExportToPDF = async () => {
-  
-    const exportData = filteredData.filter(student => student.APPLYING_FOR !== "Transportation")  .sort((a, b) => a.AGE! - b.AGE!);
+    const exportData = filteredData
+      .filter((student) => student.APPLYING_FOR !== "Transportation")
+      .sort((a, b) => a.NAME_LAST.localeCompare(b.NAME_LAST)); // Using localeCompare for case-insensitive sorting
     const doc = new jsPDF({
-      orientation: "landscape",
+      orientation: "portrait",
     });
     const title = "List of All Students by Session"; // Your title
     const titleX = 15; // X coordinate for the title, adjust as needed
-    const titleY = 10; // 
+    const titleY = 10; //
     doc.setFontSize(18); // Set font size
     doc.text(title, titleX, titleY);
     const columns = [
-      { title: "Day", dataKey: "DAY" },
       { title: "Last", dataKey: "NAME_LAST" },
       { title: "First", dataKey: "NAME_FIRST" },
       { title: "Sign#", dataKey: "meetingPoint" },
@@ -158,7 +191,6 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       { title: "Instructor", dataKey: "instructor" },
     ];
     const rows = exportData.map((student) => ({
-      DAY: student.DAY,
       NAME_LAST: student.NAME_LAST,
       NAME_FIRST: student.NAME_FIRST,
       classID: student.classID,
@@ -168,11 +200,12 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       meetingPoint: student.meetingPoint,
       phone: student.HOME_TEL,
       instructor: "",
-
     }));
 
     doc.autoTable({ columns: columns, body: rows });
-    const fileName = selectedDay ? `${selectedDay.replace(" ", "_")}_Students.pdf` : "All_Students.pdf";
+    const fileName = selectedDay
+      ? `${selectedDay.replace(" ", "_")}_Students.pdf`
+      : "All_Students.pdf";
     doc.save(fileName);
   };
 
@@ -184,6 +217,13 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
           description="manage students for the season website"
         />
         <div className="flex items-center">
+          <Button
+            className="mr-4"
+            onClick={() => generateStudentPDFs(filteredData)}
+          >
+            <Plus className="mr-4 b-4 w-4" />
+            Export Student cards
+          </Button>
           <Button className="mr-2" onClick={handleExportToPDF}>
             <Plus className="mr-4 b-4 w-4" />
             Export Students
@@ -212,7 +252,9 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
         </div>
       </div>
 
-      <select value={selectedDay ?? ''} onChange={handleDayChange}
+      <select
+        value={selectedDay ?? ""}
+        onChange={handleDayChange}
         className="block w-40 p-2 border rounded-lg mt-4"
       >
         <option value="">Select Day</option>

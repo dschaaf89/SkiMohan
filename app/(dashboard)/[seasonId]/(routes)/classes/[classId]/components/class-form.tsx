@@ -50,7 +50,8 @@ interface Instructor {
   id: string;
   NAME_FIRST: string;
   NAME_LAST: string;
-  // Add other properties as needed
+  HOME_TEL:string;
+  C_TEL:string;  // Add other properties as needed
 }
 interface InitialData {
   // ... other fields ...
@@ -128,6 +129,9 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   };
 
   const onSubmit = async (data: ClassFormValues) => {
+    console.log("Selected Instructor Name:", selectedInstructorName);
+    console.log("Selected Instructor Phone:", selectedInstructorPhone);
+    // Include instructor name and phone in the submission data
     const submissionData = {
       ...data,
       instructor: selectedInstructorId
@@ -136,8 +140,10 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
       assistant: selectedAssistantId
         ? { connect: { id: selectedAssistantId } }
         : undefined,
+      instructorName: selectedInstructorName,
+      instructorPhone: selectedInstructorPhone,
     };
-    console.log("Submitting data with classId:", submissionData); // Log the data being submitted
+    console.log("Submitting data with classId:", submissionData);
 
     try {
       setLoading(true);
@@ -158,8 +164,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
       setLoading(false);
     }
   };
-
-  
 
   const onDelete = async () => {
     try {
@@ -191,25 +195,30 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const [selectedAssistantId, setSelectedAssistantId] = useState<
     string | null | undefined
   >();
-
+  const [selectedInstructorName, setSelectedInstructorName] = useState("");
+  const [selectedInstructorPhone, setSelectedInstructorPhone] = useState("");
+  const [selectedAssistantName, setSelectedAssistantName] = useState("");
+  const [selectedAssistantPhone, setSelectedAssitantPhone] = useState("");
   useEffect(() => {
     async function fetchData() {
       if (!classTimeId) {
         console.error("Class time ID is not available.");
         return;
       }
-  
+
       // Fetch Instructors
       try {
         const responseInstructors = await axios.get(
           `/api/${params.seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`
         );
+        console.log("Fetched instructors:", responseInstructors.data); // This line logs the fetched instructor data
+
         setInstructors(responseInstructors.data);
       } catch (error) {
         console.error("Error fetching instructors", error);
         setInstructors([]);
       }
-  
+
       // Fetch Assistants
       try {
         const responseAssistants = await axios.get(
@@ -221,7 +230,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
         setAssistants([]);
       }
     }
-  
+
     fetchData();
   }, [classTimeId, params.seasonId]);
   useEffect(() => {
@@ -235,11 +244,17 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
         Age: initialData.Age!,
         Level: initialData.Level!,
       });
-  
-      if (instructors.some(instructor => instructor.id === initialData.instructorId)) {
+
+      if (
+        instructors.some(
+          (instructor) => instructor.id === initialData.instructorId
+        )
+      ) {
         setSelectedInstructorId(initialData.instructorId);
       }
-      if (assistants.some(assistant => assistant.id === initialData.assistantId)) {
+      if (
+        assistants.some((assistant) => assistant.id === initialData.assistantId)
+      ) {
         setSelectedAssistantId(initialData.assistantId);
       }
     }
@@ -294,7 +309,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     }
   }, [initialData, params.seasonId]);
 
-  
   useEffect(() => {
     // Check if initialData is available and the 'day' field is a string
     if (initialData && typeof initialData.day === "string") {
@@ -308,6 +322,40 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
       }
     }
   }, [initialData, form]);
+
+  const handleInstructorChange = (value: string) => {
+    console.log("Selected Instructor ID:", value);
+    setSelectedInstructorId(value);
+    form.setValue("instructor", value);
+
+    // Find the selected instructor and set name and phone
+    const instructor = instructors.find(i => i.id === value);
+    if (instructor) {
+        const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
+        const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
+        setSelectedInstructorName(fullName);
+        setSelectedInstructorPhone(phone);
+
+        console.log(`Selected Instructor Name: ${fullName}`);
+        console.log(`Selected Instructor Phone: ${phone}`);
+    }
+};
+  const handleAssistantChange = (value: string) => {
+    setSelectedAssistantId(value);
+    form.setValue("assistant", value);
+
+    // Find the selected instructor and set name and phone
+    const instructor = instructors.find(i => i.id === value);
+    if (instructor) {
+        const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
+        const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
+        setSelectedAssistantName(fullName);
+        setSelectedAssitantPhone(phone);
+
+        console.log(`Selected Instructor Name: ${fullName}`);
+        console.log(`Selected Instructor Phone: ${phone}`);
+    }
+  };
 
 
   return (
@@ -377,11 +425,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                       <FormItem>
                         <FormLabel>Instructor</FormLabel>
                         <Select
-                          onValueChange={(value) => {
-                            setSelectedInstructorId(value);
-                            form.setValue("instructor", value);
-                          }}
-                          value={selectedInstructorId || ""} // Handle an empty string as a valid value
+                          onValueChange={handleInstructorChange}
+                          value={selectedInstructorId || ""}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -394,8 +439,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                                 key={instructor.id}
                                 value={instructor.id}
                               >
-                                
-                                {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}{" "} 
+                                {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}{" "}
                                 {/* Concatenating first and last name */}
                               </SelectItem>
                             ))}
@@ -415,11 +459,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                       <FormItem>
                         <FormLabel>Assistant</FormLabel>
                         <Select
-                          onValueChange={(value) => {
-                            setSelectedAssistantId(value);
-                            form.setValue("assistant", value);
-                          }}
-                          value={selectedAssistantId || ""} // Handle an empty string as a valid value
+                          onValueChange={handleAssistantChange}
+                          value={selectedAssistantId || ""}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -461,12 +502,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     </FormItem>
                   )}
                 />
-                <input
-                  type="text"
-                  value={studentSearch}
-                  onChange={(e) => setStudentSearch(e.target.value)}
-                  placeholder="Search by name or UniqueId"
-                />
+                
 
                 <h3>Student Names</h3>
                 {/* {console.log(studentNames)} */}

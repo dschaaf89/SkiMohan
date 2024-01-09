@@ -25,6 +25,8 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
     instructorID: Number(item.instructorId),
     progCode:item.progCode || "",
     assistantId:Number(item.assistantId),
+    instructorName:item.instructorName||"",
+    instructorPhone:item.instructorPhone || ""
 
     }
   ));

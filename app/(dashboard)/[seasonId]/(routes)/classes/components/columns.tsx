@@ -4,7 +4,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import {Button} from "@/components/ui/button"
 import { CellAction } from "./cell-action"
-import { Instructor } from "@prisma/client"
 
 export type ClassColumn = {
   DAY: string;
@@ -20,7 +19,9 @@ export type ClassColumn = {
   assistantId: number;
   assistant?: string; // If this property is optional, use '?'
   instructor?: string; // If this property is optional, use '?'
-  phone?: string; // If this property is optional, use '?'
+  phone?: string; 
+  instructorName?:string;
+  instructorPhone?:string;// If this property is optional, use '?'
 }
 
 
@@ -159,7 +160,7 @@ export const columns: ColumnDef<ClassColumn>[] = [
     },
   },
   {
-    accessorKey: "instructor",
+    accessorKey: "instructorName",
     header: ({ column }) => {
       return (
         <Button
@@ -173,7 +174,7 @@ export const columns: ColumnDef<ClassColumn>[] = [
     },
   },
   {
-    accessorKey: "phone",
+    accessorKey: "instructorPhone",
     header: ({ column }) => {
       return (
         <Button

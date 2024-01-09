@@ -1,0 +1,48 @@
+
+  body {
+    font-family: Arial, sans-serif;
+
+  }
+  .card-container {
+    border: 2px solid black;
+    padding: 10px;
+    margin: 10px;
+    height: 700px;
+    width: 450px;
+ 
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 24px;
+  }
+  .header .star {
+    font-size: 28px;
+    color: black;
+  }
+  .info-section {
+    margin-bottom: 10px;
+  
+  }
+  .info-section p {
+    text-align:center;
+  }
+  .info-section label {
+    font-weight: bold;
+  }
+  .info-section span {
+    text-decoration: underline;
+  }
+  .notes-section {
+    margin-top: 20px;
+  }
+  .signature {
+    text-align: center;
+    margin-top: 30px;
+  }
+  .signature img {
+    width: 80px;
+    height: auto;
+  }

@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useState } from "react";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import { Assistant } from "next/font/google";
+import html2canvas from 'html2canvas';
 interface ClassClientProps {
   data: ClassColumn[];
 }
@@ -127,8 +127,8 @@ export const ClassClient: React.FC<ClassClientProps> = ({
       { title: "Ability", dataKey: "Level" },
       { title: "Age", dataKey: "Age" },
       { title: "ClassId", dataKey: "classId" },
-      { title: "Instructor", dataKey: "instructor" },
-      { title: "Phone", dataKey: "phone" },
+      { title: "Instructor", dataKey: "instructorName" },
+      { title: "Phone", dataKey: "instructorPhone" },
     
     ];
     const rows = exportData.map((classes) => ({
@@ -142,7 +142,8 @@ export const ClassClient: React.FC<ClassClientProps> = ({
       instructorId:classes.instructorID,
       assistantId:classes.assistantId,
       meetColor:classes.meetColor,
-      phone:classes.phone,      
+      instructorPhone:classes.instructorPhone,  
+      instructorName:classes.instructorName,    
 
     }));
 
@@ -150,6 +151,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     const fileName = selectedDay ? `${selectedDay.replace(" ", "_")}_classes.pdf` : "All_Classes.pdf";
     doc.save(fileName);
   };
+
 
   return(
     <>
@@ -170,6 +172,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
           </Button>
     <Button onClick={handleCreateClasses} >Create Classes</Button>
     
+
     <select value={selectedDay ?? ''} onChange={handleDayChange}
         className="block w-40 p-2 border rounded-lg mt-4"
       >

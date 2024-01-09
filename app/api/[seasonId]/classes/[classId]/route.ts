@@ -74,7 +74,7 @@ export async function PATCH(
     const body = await req.json();
     console.log("Received body:", body); // Log the entire body
     console.log("Params:", params); // Log the params
-    const { classId:classId,instructorId, assistantId, ...updateData } = body;
+    const { classId:classId,instructorId, assistantId, instructorName, instructorPhone, ...updateData } = body;
     
     console.log("Body classId:", classId); // Log classId from body
     console.log("Params classId:", params.classId); // Log classId from params
@@ -89,7 +89,10 @@ export async function PATCH(
       },
       data: {
         ...updateData, // Spread the body to update fields
-        //seasonId: params.seasonId, // Assuming you still want to set this explicitly
+        instructorId: instructorId,
+        assistantId: assistantId,
+        instructorName: instructorName,
+        instructorPhone: instructorPhone
       }
     });
     return NextResponse.json(updatedClass);

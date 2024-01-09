@@ -77,7 +77,7 @@ model Student {
   createAt      DateTime @default(now())
   updateAt      DateTime @updatedAt
   classID       Int?     @map("classID")
-  meetingPoint Int?     @map("meetingPoint")
+  meetingPoint  Int?     @map("meetingPoint")
 
   @@index([classID])
   @@index([seasonId])
@@ -157,7 +157,7 @@ model Instructor {
   clinics             Json?                 @map("clinics")
   classTimes          InstructorClassTime[] @relation("InstructorToClassTime")
   classes             Classes[]             @relation("InstructorToClasses")
-  classesAsAssistant  Classes[] @relation("AssistantToClasses")
+  classesAsAssistant  Classes[]             @relation("AssistantToClasses")
 
   @@index([seasonId])
 }
@@ -184,26 +184,28 @@ model InstructorClassTime {
 }
 
 model Classes {
-  season         Season      @relation("SeasonToClasses", fields: [seasonId], references: [id])
-  seasonId       String
-  classId        Int         @id @default(autoincrement())
-  meetColor      String?     @map("meetColor")
-  meetingPoint   Int?        @map("meetingPoint")
-  students       Json        @map("students")
-  day            String      @map("day")
-  progCode       String      @map("progCode")
-  discipline     String // Add this field
-  numberStudents Int
-  Level          String?
-  Age            Int? // Add this field
-  instructorId   String?
-  instructor     Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [id])
-  assistantId    String?
-  assistant      Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [id])
-  startTime    String?
-  endTime      String?
-  
+  season          Season      @relation("SeasonToClasses", fields: [seasonId], references: [id])
+  seasonId        String
+  classId         Int         @id @default(autoincrement())
+  meetColor       String?     @map("meetColor")
+  meetingPoint    Int?        @map("meetingPoint")
+  students        Json        @map("students")
+  day             String      @map("day")
+  progCode        String      @map("progCode")
+  discipline      String // Add this field
+  numberStudents  Int
+  Level           String?
+  Age             Int? // Add this field
+  instructorId    String?
+  instructor      Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [id])
+  assistantId     String?
+  assistant       Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [id])
+  startTime       String?
+  endTime         String?
+  instructorName  String?
+  instructorPhone String?
+
   @@index([seasonId])
   @@index([instructorId])
-  @@index([assistantId]) 
+  @@index([assistantId])
 }
