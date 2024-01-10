@@ -214,7 +214,7 @@ export async function POST(
             instructorObject.PSIA = value.toString();
           } else if (header === 'AASIcertification') {
             instructorObject.AASI = value.toString();
-          } else if (header === 'Applying for') {
+          } else if (header === 'Applying_for') {
             const roleKey = value.toString(); // Make sure the value is a string to match the keys in your mapping object
             const roleValue = applyingForMapping[roleKey]; // Look up the corresponding role in the mapping object
             if (roleValue) {

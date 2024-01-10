@@ -1,3 +1,12 @@
+// datasource db {
+//   provider     = "mysql"
+//   url          = env("DATABASE_URL")
+//   relationMode = "prisma"
+// }
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
 datasource db {
   provider     = "mysql"
   url          = env("DATABASE_URL")
@@ -7,7 +16,6 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
-
 model Season {
   id          String       @id @default(uuid())
   name        String

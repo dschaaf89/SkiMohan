@@ -123,6 +123,7 @@ const formSchema = z.object({
   DAY: z.string().optional(),
   StartTime: z.string().optional(),
   EndTime: z.string().optional(),
+  classID: z.number().optional(),
   //updateAt:z.date().optional(),
 });
 
@@ -174,6 +175,7 @@ const createDefaultValues = (
     DAY: "",
     StartTime: "",
     EndTime: "",
+    classID: 0,
     //updateAt:new Date(),
   };
 
@@ -273,6 +275,9 @@ const createDefaultValues = (
             case "AGE_GROUP":
               defaultValues.AGE_GROUP = (initialData[key] as number) || 0;
               break;
+            case "classID":
+              defaultValues.classID = (initialData[key] as number) || 0;
+              break;
             default:
               if (initialData[key] !== null && initialData[key] !== undefined) {
                 defaultValues[key] = initialData[key];
@@ -335,20 +340,21 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   }, [initialData]);
 
   const onSubmit = async (data: StudentFormValues) => {
+    const classIdNumber = data.classID || 0;
     const submissionData = {
       ...data,
+      classID: classIdNumber,
       ProgCode: selectedProgram?.code || "",
       StartTime: selectedProgram?.startTime || "",
       EndTime: selectedProgram?.endTime || "",
     };
-    console.log("Submitted data", data);
+    console.log("Submission Data:", submissionData); // Log to see the data being submitted
+
     try {
       setLoading(true);
       if (initialData) {
-        await axios.patch(
-          `/api/${params.seasonId}/students/${params.studentId}`,
-          data
-        );
+        await axios.patch(`/api/${params.seasonId}/students/${params.studentId}`, submissionData);
+        
       } else {
         await axios.post(`/api/${params.seasonId}/students`, submissionData);
       }
@@ -1055,6 +1061,21 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                       {...field}
                       readOnly
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="classID"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ClassID</FormLabel>
+                  <FormControl>
+                    <Input 
+                    placeholder="classID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

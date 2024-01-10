@@ -84,7 +84,7 @@ export async function PATCH(
       GENDER, 
       DAY,
       StartTime,
-      EndTime,      } = body;
+      EndTime,classID     } = body;
     
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -142,7 +142,8 @@ export async function PATCH(
         GENDER,
         DAY,
         StartTime,
-        EndTime,      
+        EndTime,  
+        classID,    
         seasonId: params.seasonId,
       }
     });
