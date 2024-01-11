@@ -114,7 +114,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     const doc = new jsPDF({
       orientation: "landscape",
     });
-    const title = "List of All Classes by Session"; // Your title
+    const title = selectedDay ? `List of Classes for ${selectedDay}` : "List of All Classes";
     const titleX = 15; // X coordinate for the title, adjust as needed
     const titleY = 10; // 
     doc.setFontSize(18); // Set font size
