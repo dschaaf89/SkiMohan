@@ -68,6 +68,8 @@ interface StudentDetail {
   age: number;
   skillLevel: string;
   APPLYING_FOR:string;
+  E_mail_main:string;
+  
   
 }
 const formSchema = z.object({
@@ -293,6 +295,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                 age: student.AGE,
                 skillLevel: student.LEVEL,
                 APPLYING_FOR:student.APPLYING_FOR,
+                E_mail_main:student.E_mail_main,
               };
             } catch (error) {
               console.error("Error fetching student data", error);
@@ -512,8 +515,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                 <ul>
                   {studentDetails.map((student, index) => (
                     <li key={index}>
-                      Name: {student.name}, Age: {student.age}, Skill Level:{" "}
-                      {student.skillLevel},{student.APPLYING_FOR},Student ID: {student.id}
+                      Name: {student.name}, Email: {student.E_mail_main}
                     </li>
                   ))}
                 </ul>

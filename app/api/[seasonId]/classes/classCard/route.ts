@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     });
     console.log("Updated Classes Object:", classes);
     const browser = await puppeteer.launch({
-      headless: true, // Run in headless mode
+      headless: "new", // Run in headless mode
       
     });
     const page = await browser.newPage();

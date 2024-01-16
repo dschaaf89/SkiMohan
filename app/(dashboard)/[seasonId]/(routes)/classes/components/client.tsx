@@ -205,7 +205,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
             <Plus className="mr-4 b-4 w-4" />
             Export classes
           </Button>
-    <Button onClick={handleCreateClasses} >Create Classes</Button>
+    {/* <Button onClick={handleCreateClasses} >Create Classes</Button> */}
     
 
     <select value={selectedDay ?? ''} onChange={handleDayChange}
