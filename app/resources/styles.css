@@ -1,4 +1,4 @@
-
+/* 
   body {
     font-family: Arial, sans-serif;
 
@@ -45,4 +45,132 @@
   .signature img {
     width: 80px;
     height: auto;
+  } */
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; /* No extra space around the body */
+    font-size: 12px; /* Smaller base font size */
   }
+  
+  .card-container {
+    box-sizing: border-box;
+    padding: 10px;
+    margin: 5px auto; /* Adjust the top and bottom margin as needed */
+    width: calc(100% - 20px); /* Adjust width if necessary, considering the margin */
+    height:calc(100%-30px); /* Adjust if you want a fixed height, otherwise let content dictate height */
+    min-height: calc(100%-50px); /* Adjust the minimum height as needed */
+    page-break-inside: avoid; /* Avoid page breaks inside the container */
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 10px; /* Reduced margin */
+  }
+  
+  .header h1 {
+    font-size: 24px;
+  }
+  
+  .header .star {
+    font-size: 28px;
+    color: black;
+  }
+  
+  .info-section,
+  .notes-section {
+    margin-bottom: 5px; /* Reduced margin */
+  }
+  
+  .info-section p {
+    text-align: center;
+  }
+  
+  .info-section label {
+    font-weight: bold;
+  }
+  .name{
+    font-size: 20px;
+  }
+  
+  .info-section span {
+    text-decoration: underline;
+  }
+  
+ 
+  .signature {
+    text-align: center;
+    margin-top: 30px;
+  }
+  
+  .signature img {
+    width: 80px;
+    height: auto;
+  }
+  
+
+  /* Ensure that the notes section has lines */
+  .notes-section p {
+    border-bottom: 1px solid #000;
+    margin-bottom: 10px; /* Space out the lines */
+  }
+  
+  info-section label input[type="checkbox"] {
+    transform: scale(1); /* Makes the checkboxes slightly smaller */
+    margin-right:10px; /* Reduced space between the checkbox and the label text */
+  }
+  .notes-section label {
+    font-weight: bold;
+  }
+
+  .name-id-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
+  }
+  
+  .name {
+    font-size: 30px; /* Large font size for the name */
+    flex-grow: 2; /* Allows the name to take up more space */
+  }
+  
+  .student-id {
+    font-size: 16px; /* Smaller font size for the student ID */
+    flex-grow: 1; /* Allows the ID to take up less space */
+    text-align: right;
+  }
+  .meet-section{
+    text-align: center;
+    margin-bottom: 5;
+  }
+  .contact-section { /* Adjust the space below the contact section */
+    line-height: 1.5;
+  }
+  .contact-section label{ /* Adjust the space below the contact section */
+    font-weight:200;
+  }
+  .outfit-helmet-section {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
+  
+  .outfit-description,
+  .helmet-hat {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  
+  .outfit-description label,
+  .helmet-hat label {
+    margin-right: 5px;
+  }
+  .meet-color, .meeting-point{
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .meet-section label{
+    font-weight: bold;
+  }
+  

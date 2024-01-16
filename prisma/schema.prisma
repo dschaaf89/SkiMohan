@@ -85,6 +85,7 @@ model Student {
   createAt      DateTime @default(now())
   updateAt      DateTime @updatedAt
   classID       Int?     @map("classID")
+  meetColor     String?  @map("meetColor")
   meetingPoint  Int?     @map("meetingPoint")
 
   @@index([classID])

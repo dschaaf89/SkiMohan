@@ -47,6 +47,7 @@ export type StudentColumn = {
   EndTime: string;
   classID: number | null;
   meetingPoint: number | null;
+  meetColor:string | null;
   //updateAt:string | Date;
 }
 

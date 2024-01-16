@@ -151,7 +151,38 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     const fileName = selectedDay ? `${selectedDay.replace(" ", "_")}_classes.pdf` : "All_Classes.pdf";
     doc.save(fileName);
   };
+  async function generatePayCardPDFs(classes: ClassColumn[]): Promise<void> {
+    try {
+      console.log("data sent to pdf",classes);
+   
+      console.log("data sent to pdf", classes);
+      const response = await fetch( `/api/${params.seasonId}/classes/classCard`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(classes),
+      });
 
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "students.pdf";
+      document.body.appendChild(a);
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error("Error generating PDFs:", error);
+    }
+  }
 
   return(
     <>
@@ -162,6 +193,10 @@ export const ClassClient: React.FC<ClassClientProps> = ({
         />
     </div>
     <div className="flex items-center">
+    <Button
+            className="mr-4"
+            onClick={() => generatePayCardPDFs(filteredData)}
+          >Export Pay Slips</Button>
     <Button className="mr-4" onClick={() => router.push(`/${params.seasonId}/classes/new`)}>
         <Plus className=" m-2 b-4 w-4"/>
         Add New
@@ -170,7 +205,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({
             <Plus className="mr-4 b-4 w-4" />
             Export classes
           </Button>
-    {/* <Button onClick={handleCreateClasses} >Create Classes</Button> */}
+    <Button onClick={handleCreateClasses} >Create Classes</Button>
     
 
     <select value={selectedDay ?? ''} onChange={handleDayChange}

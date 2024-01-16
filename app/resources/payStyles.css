@@ -1,0 +1,220 @@
+.page {
+  padding: 2cm;
+  margin: 0 auto; /* Center the page horizontally */
+  page-break-after: always; /* Ensure each class card is on a new page */
+  box-shadow: none;
+  border: none;
+  width: 21.59cm; /* Explicitly set the width for print */
+  height: 27.94cm; /* Explicitly set the height for print */
+  overflow: hidden;
+}
+
+.sub-page {
+  position: relative;
+  height: auto; /* Let the content dictate the height */
+}
+
+.class-card, .class-card-page {
+  border: 1px solid black;
+  padding: 10px;
+  page-break-after: always; /* Ensure each class card is followed by a page break */
+  page-break-inside: avoid; /* Avoid breaking inside a class card */
+  margin-bottom: 20px; /* Space between cards */
+}
+.class-info-container {
+  display: flex;
+  align-items: center; /* This centers the items vertically */
+  justify-content: flex-start; /* Aligns items to the start of the container */
+}
+
+.class-info-box {
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  justify-content: center; /* Center children vertically */
+  align-items: center; /* Center children horizontally */
+  border: 1px solid black;
+  padding: 20px;
+  font-size: 16px;
+  margin-right: 20px;
+}
+
+.class-number {
+  font-size: 4em;
+  font-weight: bold;
+  margin: 0; /* Removes any default margin */
+}
+
+.meet-color {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0; /* Removes any default margin */
+}
+
+.class-day-time, .class-id {
+  font-size: 16px;
+  font-weight: bold;
+  display: inline-block; /* Center the text */
+  margin: 0 1em; /* Adjust space around the element */
+}
+
+.class-id {
+float:right; 
+padding: 5px 10px;
+border: none; 
+}
+
+.student-list {
+list-style-type: none;
+padding: 0;
+margin: 0;
+}
+
+.student-list li {
+border-top: 1px solid black;
+padding: 5px;
+}
+
+.copy {
+text-align: center;
+font-weight: bold;
+font-size: 14px;
+margin-top: 10px;
+}
+
+/* Hide elements that should not be printed */
+.element-to-hide-on-print {
+display: none;
+}
+
+@media print {
+
+
+/* Ensures no page breaks inside class cards */
+.class-card, .class-card-page {
+page-break-inside: avoid;
+}
+}
+
+.time-details {
+  font-size: 16px;
+  margin-top: 10px;
+  margin-left: 15%; /* Add margin to create space between time-details and meetPoint/meetColor */
+}
+
+.class-day, .class-time {
+  display: block; /* Each time detail on its own line */
+  font-size: 1.5em; /* Slightly larger than normal text, adjust as needed */
+  font-weight: bold;
+}
+.class-id-right {
+  font-size: 30px; /* Adjust the font size as needed */
+  font-weight: bold;
+  text-align: right; /* Align text to the right */
+  margin-top: 20px;
+  margin-left: 15%; /* Add space between time-details and class-id */
+}
+
+.instructor-details {
+  /* Other styles here */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: flex-start; /* Align items to the start (left) of the container */
+  font-size: 20px; /* Set the font size to 30px */
+  width: 50%;
+  
+}
+
+.name-container {
+  /* Other styles here */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: flex-start; /* Align items to the start (left) of the container */
+}
+
+.instructor-details .instructor,
+.instructor-details .assistant {
+  font-weight: bold; /* Make the text bold */
+}
+
+.level-age {
+  display: flex;
+  flex-direction: column; /* Arrange Level and Age vertically */
+  align-items: center; /* Center Level and Age horizontally */
+  margin-top: 5px; /* Adjust the margin as needed */
+}
+
+.signature-box {
+  margin-top: 10%;
+  border: 1px solid black; /* Border style and color */
+  padding: 10px; /* Padding inside the box */
+  width: 50%; /* Adjust the width as needed */
+  height: 25px; /* Adjust the height as needed */
+  /* Add any other styling properties as desired */
+}
+
+.level{
+  font-weight: bold;
+}
+.age-group {
+  font-weight: bold; /* Make Level and Age text bold */
+}
+/* CSS */
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.top-half-content {
+  height: 50%; /* This will take up half of the .page height */
+}
+
+
+.copy {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.class-info-container {
+  display: flex;
+  justify-content: space-between; /* Adjust as needed */
+  align-items: flex-start; /* Adjust as needed */
+}
+.student-list-container {
+  /* Adjust margin or padding as needed */
+  margin-left: 10%;
+  width: 50%; /* Adjust the width of the student list column */
+}
+
+.student-list {
+  list-style-type: decimal; /* For ordered list numbers */
+}
+.student-list li {
+  border-top: none;
+  padding: 5px;
+  list-style-position: inside; /* Ensure the list numbers are aligned with the content */
+}
+
+.student-instructor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Create two equal columns, adjust as needed */
+  grid-gap: 20px; /* Add space between columns */
+  margin-top: 20px;
+}
+.bottom-half-content {
+  
+  height: 50%;
+  page-break-before: avoid; /* Avoid page breaks before this element */
+  page-break-after: avoid; /* Avoid page breaks after this element */
+}
+.turn-in label {
+  
+  display: inline-block; /* This will place the label and checkbox on the same line */
+  margin-right: 10px;
+  margin-top: 10px; /* This adds some space between the individual checkbox groups */
+}
+.class-info-container{
+  margin-top: 20px;
+}

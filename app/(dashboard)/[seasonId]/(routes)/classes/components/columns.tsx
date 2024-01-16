@@ -4,7 +4,12 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import {Button} from "@/components/ui/button"
 import { CellAction } from "./cell-action"
-
+export type StudentDetails = {
+  id: string;
+  NAME_FIRST?: string; // Optional
+  NAME_LAST?: string;  // Optional
+  // include other student fields if necessary
+};
 export type ClassColumn = {
   DAY: string;
   classId: number;
@@ -21,7 +26,10 @@ export type ClassColumn = {
   instructor?: string; // If this property is optional, use '?'
   phone?: string; 
   instructorName?:string;
-  instructorPhone?:string;// If this property is optional, use '?'
+  instructorPhone?:string;
+  startTime?:string;
+  endTime?:string;
+  students: StudentDetails[];
 }
 
 

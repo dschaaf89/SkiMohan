@@ -138,7 +138,7 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
   async function generateStudentPDFs(students: StudentColumn[]): Promise<void> {
     try {
       console.log("data sent to pdf",students);
-      const filteredStudents = students.filter(student => student.APPLYING_FOR !== "transportation");
+      const filteredStudents = students.filter(student => student.APPLYING_FOR !== "Transportation");
       console.log("data sent to pdf", filteredStudents);
       const response = await fetch( `/api/${params.seasonId}/students/studentCard`, {
         method: "POST",

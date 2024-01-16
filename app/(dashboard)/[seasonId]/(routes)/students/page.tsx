@@ -60,6 +60,7 @@ const StudentPage = async ({
   EndTime: item.EndTime || "",
   classID: item.classID||0, // Assign null if undefined
   meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
+  meetColor: item.meetColor ||null,
   updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
 }
   
