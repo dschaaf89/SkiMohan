@@ -270,9 +270,11 @@ const createDefaultValues = (
                 initialData[key] != null
                   ? (initialData[key] as string)
                   : "Registered";
+                  break;
             case "BRTHD":
               // case"updateAt":
-              defaultValues[key] = (initialData[key] as Date) || new Date();
+              defaultValues[key] = initialData[key] ? new Date(initialData[key]) : new Date();
+
               break;
             case "AGE":
               defaultValues.AGE = calculateAge(initialData.BRTHD);
