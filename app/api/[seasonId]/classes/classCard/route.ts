@@ -104,6 +104,7 @@ export async function POST(req: Request) {
               <span class="meet-color">${classItem.meetColor}</span>
             </div>
             <div class="time-details">
+              <span class="week"> Week 6 </span>
               <span class="class-day">${classItem.DAY}</span>
               <span class="class-time">${classItem.startTime} - ${classItem.endTime}</span>
               <div class="level-age">
@@ -119,15 +120,16 @@ export async function POST(req: Request) {
             <div class="instructor-details">
               <span class="instructor">Instructor: ${classItem.instructorName}</span>
               <span class="assistant">Assistant: ${classItem.assistantName ? classItem.assistantName : " "}</span>
+              <div class="signature-box">
+                time-card signiture
+               </div>
             </div>
 
             <div class="student-list-container">
             <ol class="student-list">${studentListHtml}</ol>
           </div>
           </div>
-          <div class="signature-box">
-            <p>Instructor Time card signature</p>
-          </div>
+          
           <div class="turn-in">
   <label for="radioReturned">
     <input type="checkbox" id="radioReturned" name="checklist">

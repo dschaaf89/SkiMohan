@@ -5,6 +5,36 @@ import { CellAction } from "./cell-action";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 
+type ClassType = {
+  classId: number;
+  meetingPoint: number;
+  meetColor: string;
+  day: string;
+  progCode: string;
+  discipline: string;
+  numberStudents: number;
+  Level: string;
+  Age: number;
+  startTime: string;
+  endTime: string;
+  instructorName: string;
+  instructorPhone: string;
+  // ... other class properties
+};
+type InstructorClassTime = {
+  classTimeId: number;
+  instructorId: string;
+  classTime: ClassTime;
+  // ... other properties
+};
+type ClassTime = {
+  id: number; // assuming there's an ID
+  day: string;
+  startTime: string;
+  endTime: string;
+  // ... other properties
+};
+
 export type InstructorColumn = {
   id:string;
   UniqueID: string;
@@ -35,6 +65,8 @@ export type InstructorColumn = {
   clinicInstructor:boolean;
   Supervisor:boolean;
   classTimeIds:number[] | null;
+  classes?: ClassType[];
+  instructorClassTimes?: InstructorClassTime[];
 }
 
 

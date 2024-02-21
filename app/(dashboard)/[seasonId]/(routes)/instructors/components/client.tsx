@@ -9,12 +9,72 @@ import { Separator } from "@/components/ui/separator"
 import { InstructorColumn, columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import axios from 'axios';
+import { useState } from "react";
+import { jsPDF } from 'jspdf';
+import "jspdf-autotable";
 
 interface InstuctorClientProps {
   data: InstructorColumn[];
 }
+type ClassTime = {
+  day: string;
+  startTime: string;
+  // Add any other necessary properties for class time
+};
 
+type InstructorClassTime = {
+  classTime: ClassTime;
+  // Add any other necessary properties for instructor class time
+};
 
+type ExportDataItem = {
+  instructorName: string;
+  classId: string | number;
+  instructorType:string;
+  meetingPoint: string | number;
+  meetColor: string;
+  DAY: string;
+  // ...other fields
+};
+
+interface CellData {
+  column: {
+    dataKey: string;
+  };
+  cell: {
+    section: string;
+    x: number;
+    y: number;
+    height: number;
+    text: string[];
+  };
+}
+
+interface WillDrawCellData {
+  column: {
+    dataKey: string;
+  };
+  cell: {
+    section: string;
+  };
+}
+
+interface DidParseCellData {
+  cell: {
+    raw: any; // The raw value of the cell
+    section: string; // 'head', 'body', or 'foot'
+    x: number; // The x position of the cell
+    y: number; // The y position of the cell
+    height: number; // The height of the cell
+    text: string[]; // The text content of the cell
+  };
+  column: {
+    dataKey: string;
+  };
+  row: {
+    index: number; // The index of the row
+  };
+}
 
 
 
@@ -23,7 +83,34 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
 }) => {
   const params = useParams();
   const router = useRouter();
+  const [selectedDay, setSelectedDay] = useState<string | null>(null); // State for the selected day
+  const [filteredData, setFilteredData] = useState<InstructorColumn[]>(data); // State for filtered data
   const seasonId = params.seasonId;
+
+
+  const handleDayChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedDay = event.target.value;
+  setSelectedDay(selectedDay);
+
+  try {
+    // Send POST request to your API endpoint
+    const response = await axios.post(`/api/${params.seasonId}/instructors/instructorClasses`, {
+      selectedDay: selectedDay,
+    });
+
+    if (!response.data) {
+      throw new Error('Failed to fetch data');
+    }
+
+    // Process the data as needed
+    setFilteredData(response.data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+  }
+
+
+
   const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
@@ -73,14 +160,172 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
     }
   };
 
+  const handleExportStaffCheckinToPDF = async () => {
+    console.log('Export Staff Check-in to PDF called');
+  
+    if (!filteredData || filteredData.length === 0) {
+      console.error('No data available to export.');
+      return;
+    }
+  
+    const exportData: ExportDataItem[] = [];
+    filteredData.forEach(instructor => {
+      let classesForSelectedDay = [];
+  
+      if (selectedDay === 'Saturday' || selectedDay === 'Sunday') {
+        // Include all classes for Saturday or Sunday
+        classesForSelectedDay = instructor.classes?.filter(classItem => classItem.day.includes(selectedDay)) || [];
+      } else {
+        // For other days, match the exact day
+        classesForSelectedDay = instructor.classes?.filter(classItem => classItem.day === selectedDay) || [];
+      }
+  
+      if (classesForSelectedDay.length > 0) {
+        classesForSelectedDay.forEach(classItem => {
+          exportData.push({
+            instructorName: instructor.NAME_LAST+" "+ instructor.NAME_FIRST,
+            instructorType:instructor.InstructorType,
+            classId: classItem.classId,
+            meetingPoint: classItem.meetingPoint,
+            meetColor: classItem.meetColor,
+            DAY: classItem.startTime,
+            // ...other fields
+          });
+        });
+      } else {
+        console.log(`Instructor Class Times for ${instructor.NAME_FIRST} ${instructor.NAME_LAST}:`, instructor.instructorClassTimes);
+        // Instructor has no class assigned for the selected day
+        const sessionSignUps = instructor.instructorClassTimes?.filter(ict => {
+          // Debugging log for each classTime
+          console.log(`Class Time for ${ict.classTime.day}:`, ict.classTime);
+          return selectedDay ? ict.classTime.day.includes(selectedDay) : false;
+        }) || [];
+      
+        console.log(`Session Sign Ups for ${selectedDay}:`, sessionSignUps);
+      
+        const sessionDescriptions = sessionSignUps.map(ict => {
+          // Determine if the session is in the morning or afternoon based on start time
+          const session = ict.classTime.startTime.includes('AM') ? 'Morning' : 'Afternoon';
+          return `${selectedDay} ${session}`;
+        });
+      
+        const dayDescription = sessionDescriptions.length > 0 ? sessionDescriptions.join(' & ') : `${selectedDay} -`;
+      
+        exportData.push({
+          instructorName: instructor.NAME_LAST+" "+ instructor.NAME_FIRST,
+          classId: '-',
+          instructorType: instructor.InstructorType,
+          meetingPoint: '-',
+          meetColor: '-',
+          DAY: dayDescription, // This will now say "Saturday Morning", "Saturday Afternoon", or both
+          // ...other fields
+        });
+      }
+    });
+  
+    // Sort the data by instructor name
+    exportData.sort((a, b) => {
+      // First, sort by instructor name
+      const nameCompare = a.instructorName.localeCompare(b.instructorName);
+      if (nameCompare !== 0) {
+        return nameCompare;
+      }
+    
+      // If names are the same, then sort by start time
+      // Convert start times to a comparable format (24-hour format)
+      const getComparableTime = (timeString:string) => {
+        const [time, modifier] = timeString.split(' ');
+        let [hours, minutes] = time.split(':').map(Number);
+        if (modifier === 'PM' && hours !== 12) {
+          hours += 12;
+        }
+        if (modifier === 'AM' && hours === 12) {
+          hours = 0;
+        }
+        return hours * 60 + minutes; // convert to minutes for easy comparison
+      };
+    
+      const aTime = getComparableTime(a.DAY);
+      const bTime = getComparableTime(b.DAY);
+    
+      return aTime - bTime;
+    });
+  
+  
+    // Initialize jsPDF
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: 'pt',
+      format: 'letter'
+    });
+  
+    // Define the header title and subheader information
+    const headerTitle = "Check-In Sheet for " + selectedDay + " Week 6";
+    doc.setFontSize(16);
+    doc.text(headerTitle, 14, 22);
+    doc.setFontSize(12);
+  
+    // Define the columns for the autoTable
+    const columns = [
+      { title: "", dataKey: "checkbox" },
+      { title: "Instructor Name", dataKey: "instructorName" },
+      { title: "Class ID", dataKey: "classId" },
+      { title: "Instructor Type", dataKey: "instructorType" },
+      { title: "Sign#", dataKey: "meetingPoint" },
+      { title: "Sign Color", dataKey: "meetColor" },
+      { title: "DAY/Session", dataKey: "DAY" },
+      // ... other columns as needed
+    ];
+  
+    // Map the exportData to rows for the autoTable
+    const rows = exportData.map((instructor) => ({
+      checkbox: '', // Placeholder for the checkbox
+      instructorName: instructor.instructorName,
+      classId: instructor.classId,
+      instructorType:instructor.instructorType,
+      meetingPoint: instructor.meetingPoint,
+      meetColor: instructor.meetColor,
+      DAY: instructor.DAY,
+      // ... other data mappings
+    }));
+  
+    // Generate the autoTable
+    doc.autoTable({ columns: columns, body: rows,
+      didParseCell: function (data: CellData) {
+        if (data.cell.section === 'body' && data.column.dataKey === 'checkbox') {
+          const midPointY = data.cell.y + (data.cell.height / 2);
+          const checkBoxX = data.cell.x + 2;
+          const checkBoxY = midPointY - 3;
+          doc.rect(checkBoxX, checkBoxY, 6, 6);
+          data.cell.text = [];
+        }
+      },
+      willDrawCell: function (data: CellData) {
+        if (data.column.dataKey === 'checkbox' && data.cell.section === 'body') {
+          return false;
+        }
+      }
+    });
+  
+    // Save the generated PDF
+    const fileName = `Check-In_Sheet_for_${selectedDay!.replace(/\s+/g, '_')}.pdf`;
+    doc.save(fileName);
+  };
+
   return(
     <>
+    
     <div className=" flex items-center justify-between">
       <Heading
       title = {`Instructors (${data.length})`}
       description="Manage instructors"
       />
+      
         <div className="flex items-center">
+        <Button className="mr-4" onClick={handleExportStaffCheckinToPDF}>
+          <Plus className="mr-4 b-4 w-4" />
+          Export staffCheckIn
+        </Button>
         <Button onClick={() => document.getElementById('fileInput')!.click()} className="mr-4">
         <input type="file" id="fileInput" style={{ display: 'none' }} onChange={handleFileInputChange} accept=".xlsx, .xls" />
         <Plus className=" mr-2 b-4 w-4"/>
@@ -91,10 +336,26 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
         <Plus className=" m-2 b-4 w-4"/>
         Add New
       </Button>
+
+      
       </div>
     </div>
    
     <Separator/>
+    <select
+          value={selectedDay ?? ""}
+          onChange={handleDayChange}
+          className="block w-40 p-2 border rounded-lg mt-4"
+        >
+          <option value="">Select Day</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
     <DataTable searchKey="NAME_LAST" columns={columns} data={data}/>
     </>
   )

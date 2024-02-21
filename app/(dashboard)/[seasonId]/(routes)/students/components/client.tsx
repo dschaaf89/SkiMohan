@@ -138,7 +138,10 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
   async function generateStudentPDFs(students: StudentColumn[]): Promise<void> {
     try {
       console.log("data sent to pdf",students);
-      const filteredStudents = students.filter(student => student.APPLYING_FOR !== "Transportation");
+      const filteredStudents = students.filter(student => 
+        student.status !== "Unregistered" &&  
+        student.APPLYING_FOR !== "Transportation"
+      );
       console.log("data sent to pdf", filteredStudents);
       const response = await fetch( `/api/${params.seasonId}/students/studentCard`, {
         method: "POST",
@@ -169,40 +172,47 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
   }
   const handleExportToPDF = async () => {
     const exportData = filteredData
-      .filter((student) => student.APPLYING_FOR !== "Transportation")
-      .sort((a, b) => a.NAME_LAST.localeCompare(b.NAME_LAST)); // Using localeCompare for case-insensitive sorting
-    const doc = new jsPDF({
+      .filter((student) => student.APPLYING_FOR !== "Transportation" && student.status !== "Unregistered")
+        .sort((a, b) => a.NAME_LAST.trim().toUpperCase().localeCompare(b.NAME_LAST.trim().toUpperCase()));
+      const doc = new jsPDF({
       orientation: "portrait",
     });
-    const title = "List of All Students by Session"; // Your title
-    const titleX = 15; // X coordinate for the title, adjust as needed
-    const titleY = 10; //
-    doc.setFontSize(18); // Set font size
+    const title = "List of All Students"; // Your title
+    const titleX = 12; // X coordinate for the title, adjust as needed
+    const titleY = 8; //
+    doc.setFontSize(10); // Set font size
     doc.text(title, titleX, titleY);
     const columns = [
       { title: "Last", dataKey: "NAME_LAST" },
       { title: "First", dataKey: "NAME_FIRST" },
+      { title: "Day", dataKey: "Day" },
+      { title: "Begin", dataKey: "StartTime" },
+      { title: "Color", dataKey: "meetColor" },
       { title: "Sign#", dataKey: "meetingPoint" },
-      { title: "Emergency", dataKey: "phone" },
-      { title: "Age", dataKey: "AGE" },
       { title: "Discipline", dataKey: "Applying_For" },
       { title: "Ability", dataKey: "level" },
-      { title: "Class_ID", dataKey: "classID" },
-      { title: "Instructor", dataKey: "instructor" },
+      { title: "Program", dataKey: "ProgCode" },
+      { title: "Age", dataKey: "AGE" },
+      // { title: "Registered For", dataKey: "APPLYING_FOR" },
+      { title: "Emergency", dataKey: "phone" },
     ];
     const rows = exportData.map((student) => ({
       NAME_LAST: student.NAME_LAST,
       NAME_FIRST: student.NAME_FIRST,
-      classID: student.classID,
-      AGE: student.AGE,
+      Day: student.DAY,
+      StartTime: student.StartTime,
+      meetColor: student.meetColor,
+      meetingPoint: student.meetingPoint,
       Applying_For: student.APPLYING_FOR,
       level: student.LEVEL,
-      meetingPoint: student.meetingPoint,
+      ProgCode: student.ProgCode,
+      AGE: student.AGE,
+      //APPLYING_FOR: student.APPLYING_FOR, // Note: This appears to be a duplicate of the "Applying_For" field
       phone: student.HOME_TEL,
-      instructor: "",
     }));
+    
 
-    doc.autoTable({ columns: columns, body: rows });
+    doc.autoTable({ columns: columns, body: rows,styles: { fontSize: 8 } });
     const fileName = selectedDay
       ? `${selectedDay.replace(" ", "_")}_Students.pdf`
       : "All_Students.pdf";

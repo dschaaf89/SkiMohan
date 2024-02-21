@@ -1,57 +1,60 @@
-"use client"
+"use client";
 
-import { Plus } from "lucide-react"
+import { Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"
-import { Heading } from "@/components/ui/heading"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button";
+import { Heading } from "@/components/ui/heading";
+import { Separator } from "@/components/ui/separator";
 import { ClassColumn, columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
-import axios from 'axios';
+import axios from "axios";
 import { useState } from "react";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import html2canvas from 'html2canvas';
+import html2canvas from "html2canvas";
 interface ClassClientProps {
   data: ClassColumn[];
 }
 
 interface ProgCodeTimeSlots {
-  [progCode: string]: 'Morning' | 'Afternoon';
+  [progCode: string]: "Morning" | "Afternoon";
 }
+type ColorOrder = {
+  [key: string]: number;
+};
+
+
 
 const saturdayProgCodeTimeSlots: ProgCodeTimeSlots = {
   // Saturday Morning Program Codes
-  'G710-B-LO': 'Morning',
-  'G710-S-LO': 'Morning',
-  'G715-S-LO': 'Morning',
+  "G710-B-LO": "Morning",
+  "G710-S-LO": "Morning",
+  "G715-S-LO": "Morning",
 
   // Saturday Afternoon Program Codes
-  'G720-B-LO': 'Afternoon',
-  'G720-S-LO': 'Afternoon',
-  'G725-S-LO': 'Afternoon',
+  "G720-B-LO": "Afternoon",
+  "G720-S-LO": "Afternoon",
+  "G725-S-LO": "Afternoon",
 };
 
 const sundayProgCodeTimeSlots: ProgCodeTimeSlots = {
   // Saturday Morning Program Codes
-  'G110-B-LO': 'Morning',
-  'G110-S-LO': 'Morning',
-  'G115-S-LO': 'Morning',
+  "G110-B-LO": "Morning",
+  "G110-S-LO": "Morning",
+  "G115-S-LO": "Morning",
 
   // Saturday Afternoon Program Codes
-  'G120-B-LO': 'Afternoon',
-  'G120-S-LO': 'Afternoon',
-  'G125-S-LO': 'Afternoon',
+  "G120-B-LO": "Afternoon",
+  "G120-S-LO": "Afternoon",
+  "G125-S-LO": "Afternoon",
 };
 const progCodeTimeSlots: ProgCodeTimeSlots = {
   ...saturdayProgCodeTimeSlots,
   ...sundayProgCodeTimeSlots,
   //
-} 
+};
 
-export const ClassClient: React.FC<ClassClientProps> = ({
-  data
-}) => {
+export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
   const params = useParams();
   const router = useRouter();
   const seasonId = params.seasonId;
@@ -61,11 +64,13 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     console.log("Create Classes button clicked. Preparing to create classes.");
 
     try {
-      const response = await axios.post(`/api/${params.seasonId}/createClasses`);
+      const response = await axios.post(
+        `/api/${params.seasonId}/createClasses`
+      );
       console.log("Classes created successfully:", response.data);
       // You can also update the UI based on the response here
     } catch (error) {
-      console.error('Error creating classes:', error);
+      console.error("Error creating classes:", error);
       // Handle errors, such as displaying a notification to the user
     }
   };
@@ -74,54 +79,67 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     setSelectedDay(selected);
 
     // Filter data based on the selected day (which now includes the time of day)
-    const filtered = data.filter(item => item.DAY === selected);
+    const filtered = data.filter((item) => item.DAY === selected);
 
     setFilteredData(filtered);
-};
+  };
   // const handleDayChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
   //   const selected = event.target.value;
   //   setSelectedDay(selected);
-  
+
   //   let filtered: ClassColumn[] = []; // Explicitly declare 'filtered' as an array of ClassColumn
-  
+
   //   if (selected.includes("Saturday") || selected.includes("Sunday")) {
   //     const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
-  //     filtered = data.filter(item => 
+  //     filtered = data.filter(item =>
   //       progCodeTimeSlots[item.progCode] === timeSlot && item.DAY === selected.split(" ")[0]);
   //   } else {
   //     filtered = data.filter(item => item.DAY === selected);
   //   }
-  
+
   //   setFilteredData(filtered);
   // };
-
+  
   const handleExportToPDF = async () => {
     // Filter based on the selected day
     const exportData = [...filteredData]; // Create a copy of filteredData
     console.log(exportData);
     // Sort the data
     exportData.sort((a, b) => {
-      if (a.meetingPoint !== b.meetingPoint) {
-          return a.meetingPoint - b.meetingPoint;
+      // Custom order for meetColor, with "MK" having the highest priority
+      const colorOrder: ColorOrder = { "MK": 1, "Red": 2, "Yellow": 2, "Blue": 3 };
+      
+      // Assign a high value for colors not found in the colorOrder object
+      const defaultColorOrderValue = 999;
+    
+      // Get the order value for both colors, defaulting if the color is not found
+      const colorRankA = colorOrder[a.meetColor] || defaultColorOrderValue;
+      const colorRankB = colorOrder[b.meetColor] || defaultColorOrderValue;
+    
+      // Compare by color first
+      if (colorRankA !== colorRankB) {
+        return colorRankA - colorRankB;
       }
-      // Secondary sort by AGE if meetingPoint is the same
-      return a.Age - b.Age;
-  });
-
+    
+      // If colors are the same, then sort by meetingPoint
+      return a.meetingPoint - b.meetingPoint;
+    });
     console.log("Selected Day for Export:", selectedDay);
     console.log("Data to be Exported:", exportData);
 
     const doc = new jsPDF({
       orientation: "landscape",
     });
-    const title = selectedDay ? `List of Classes for ${selectedDay}` : "List of All Classes";
+    const title = selectedDay
+      ? `List of Classes for ${selectedDay}`
+      : "List of All Classes";
     const titleX = 15; // X coordinate for the title, adjust as needed
-    const titleY = 10; // 
+    const titleY = 10; //
     doc.setFontSize(18); // Set font size
     doc.text(title, titleX, titleY);
     const columns = [
       { title: "Sign#", dataKey: "meetingPoint" },
-      {title:"meetColor", dataKey:"meetColor"},
+      { title: "meetColor", dataKey: "meetColor" },
       { title: "#ofStudents", dataKey: "numberStudents" },
       { title: "Discipline", dataKey: "discipline" },
       { title: "Ability", dataKey: "Level" },
@@ -129,40 +147,43 @@ export const ClassClient: React.FC<ClassClientProps> = ({
       { title: "ClassId", dataKey: "classId" },
       { title: "Instructor", dataKey: "instructorName" },
       { title: "Phone", dataKey: "instructorPhone" },
-    
+     
     ];
     const rows = exportData.map((classes) => ({
-   
       meetingPoint: classes.meetingPoint,
       numberStudents: classes.numberStudents,
-      discipline:classes.discipline,
-      Level:classes.Level,
+      discipline: classes.discipline,
+      Level: classes.Level,
       Age: classes.Age,
-      classId:classes.classId,
-      instructorId:classes.instructorID,
-      assistantId:classes.assistantId,
-      meetColor:classes.meetColor,
-      instructorPhone:classes.instructorPhone,  
-      instructorName:classes.instructorName,    
-
+      classId: classes.classId,
+      instructorId: classes.instructorID,
+      assistantId: classes.assistantId,
+      meetColor: classes.meetColor,
+      instructorPhone: classes.instructorPhone,
+      instructorName: classes.instructorName,
     }));
 
     doc.autoTable({ columns: columns, body: rows });
-    const fileName = selectedDay ? `${selectedDay.replace(" ", "_")}_classes.pdf` : "All_Classes.pdf";
+    const fileName = selectedDay
+      ? `${selectedDay.replace(" ", "_")}_classes.pdf`
+      : "All_Classes.pdf";
     doc.save(fileName);
   };
   async function generatePayCardPDFs(classes: ClassColumn[]): Promise<void> {
     try {
-      console.log("data sent to pdf",classes);
-   
       console.log("data sent to pdf", classes);
-      const response = await fetch( `/api/${params.seasonId}/classes/classCard`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(classes),
-      });
+
+      console.log("data sent to pdf", classes);
+      const response = await fetch(
+        `/api/${params.seasonId}/classes/classCard`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(classes),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);
@@ -184,47 +205,57 @@ export const ClassClient: React.FC<ClassClientProps> = ({
     }
   }
 
-  return(
+  
+
+
+  return (
     <>
-    <div className=" flex items-center justify-between">
-    <Heading
+      <div className=" flex items-center justify-between">
+        <Heading
           title={`Classes (${filteredData.length})`}
           description="manage Classes for the season website"
         />
-    </div>
-    <div className="flex items-center">
-    <Button
-            className="mr-4"
-            onClick={() => generatePayCardPDFs(filteredData)}
-          >Export Pay Slips</Button>
-    <Button className="mr-4" onClick={() => router.push(`/${params.seasonId}/classes/new`)}>
-        <Plus className=" m-2 b-4 w-4"/>
-        Add New
-      </Button>
-      <Button className="mr-4" onClick={handleExportToPDF}>
-            <Plus className="mr-4 b-4 w-4" />
-            Export classes
-          </Button>
-    {/* <Button onClick={handleCreateClasses} >Create Classes</Button> */}
-    
-
-    <select value={selectedDay ?? ''} onChange={handleDayChange}
-        className="block w-40 p-2 border rounded-lg mt-4"
-      >
-        <option value="">Select Day</option>
-        <option value="Monday">Monday</option>
-        <option value="Tuesday">Tuesday</option>
-        <option value="Wednesday">Wednesday</option>
-        <option value="Thursday">Thursday</option>
-        <option value="Friday">Friday</option>
-        <option value="Saturday Morning">Saturday Morning</option>
-        <option value="Saturday Afternoon">Saturday Afternoon</option>
-        <option value="Sunday Morning">Sunday Morning</option>
-        <option value="Sunday Afternoon">Sunday Afternoon</option>
-      </select>
       </div>
-    <Separator/>
-    <DataTable searchKey="classId" columns={columns} data={filteredData}/>
+      <div className="flex items-center">
+        <Button
+          className="mr-4"
+          onClick={() => generatePayCardPDFs(filteredData)}
+        >
+          Export Pay Slips
+        </Button>
+        <Button
+          className="mr-4"
+          onClick={() => router.push(`/${params.seasonId}/classes/new`)}
+        >
+          <Plus className=" m-2 b-4 w-4" />
+          Add New
+        </Button>
+        <Button className="mr-4" onClick={handleExportToPDF}>
+          <Plus className="mr-4 b-4 w-4" />
+          Export classes
+        </Button>
+       
+        {/* <Button onClick={handleCreateClasses} >Create Classes</Button> */}
+
+        <select
+          value={selectedDay ?? ""}
+          onChange={handleDayChange}
+          className="block w-40 p-2 border rounded-lg mt-4"
+        >
+          <option value="">Select Day</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday Morning">Saturday Morning</option>
+          <option value="Saturday Afternoon">Saturday Afternoon</option>
+          <option value="Sunday Morning">Sunday Morning</option>
+          <option value="Sunday Afternoon">Sunday Afternoon</option>
+        </select>
+      </div>
+      <Separator />
+      <DataTable searchKey="classId" columns={columns} data={filteredData} />
     </>
-  )
-}
+  );
+};

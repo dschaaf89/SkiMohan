@@ -144,13 +144,16 @@ page-break-inside: avoid;
 }
 
 .signature-box {
-  margin-top: 10%;
+  margin-top: 25%;
   border: 1px solid black; /* Border style and color */
   padding: 10px; /* Padding inside the box */
-  width: 50%; /* Adjust the width as needed */
+  width: 150%; /* Adjust the width as needed */
   height: 25px; /* Adjust the height as needed */
+  font-size: small;
+  
   /* Add any other styling properties as desired */
 }
+
 
 .level{
   font-weight: bold;

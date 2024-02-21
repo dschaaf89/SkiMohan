@@ -16,6 +16,7 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
 model Season {
   id          String       @id @default(uuid())
   name        String
@@ -87,6 +88,7 @@ model Student {
   classID       Int?     @map("classID")
   meetColor     String?  @map("meetColor")
   meetingPoint  Int?     @map("meetingPoint")
+  status         String   @map("status")@default("Registered")
 
   @@index([classID])
   @@index([seasonId])

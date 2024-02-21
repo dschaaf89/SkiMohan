@@ -4,7 +4,7 @@ import * as z from "zod";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext, } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { CalendarIcon, Trash } from "lucide-react";
 import { Student } from "@prisma/client";
@@ -124,6 +124,7 @@ const formSchema = z.object({
   StartTime: z.string().optional(),
   EndTime: z.string().optional(),
   classID: z.number().optional(),
+  status: z.string().optional(),
   //updateAt:z.date().optional(),
 });
 
@@ -176,6 +177,7 @@ const createDefaultValues = (
     StartTime: "",
     EndTime: "",
     classID: 0,
+    status: "",
     //updateAt:new Date(),
   };
 
@@ -244,6 +246,7 @@ const createDefaultValues = (
               defaultValues[key] =
                 initialData[key] !== null ? (initialData[key] as string) : "";
               break;
+
             // case "ProgCode":
             //   // Use the ProgCode from initialProgram if available, otherwise fall back to initialData
             //   defaultValues[key] = initialProgram
@@ -262,6 +265,11 @@ const createDefaultValues = (
             //     ? initialProgram.endTime
             //     : (initialData[key] as string) || "";
             //   break;
+            case "status":
+              defaultValues[key] =
+                initialData[key] != null
+                  ? (initialData[key] as string)
+                  : "Registered";
             case "BRTHD":
               // case"updateAt":
               defaultValues[key] = (initialData[key] as Date) || new Date();
@@ -311,7 +319,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   const [selectedProgram, setSelectedProgram] = useState<ProgramDetails | null>(
     null
   );
-
+ 
   const title = initialData ? "Edit Student" : "Create Student";
   const description = initialData ? "Edit a Student." : "Add a new Student";
   const toastMessage = initialData ? "Student updated." : "Student created.";
@@ -347,14 +355,17 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
       ProgCode: selectedProgram?.code || "",
       StartTime: selectedProgram?.startTime || "",
       EndTime: selectedProgram?.endTime || "",
+      
     };
     console.log("Submission Data:", submissionData); // Log to see the data being submitted
 
     try {
       setLoading(true);
       if (initialData) {
-        await axios.patch(`/api/${params.seasonId}/students/${params.studentId}`, submissionData);
-        
+        await axios.patch(
+          `/api/${params.seasonId}/students/${params.studentId}`,
+          submissionData
+        );
       } else {
         await axios.post(`/api/${params.seasonId}/students`, submissionData);
       }
@@ -395,6 +406,12 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
       setLoading(false);
       setOpen(false);
     }
+  };
+
+
+  const handleStatusChange = (value: string) => {
+    console.log("Status changed to:", value);
+    // Assuming `field.onChange` is your method to update the form state
   };
 
   const handleBirthdateChange = (
@@ -595,7 +612,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
             />
             <FormField
               control={form.control}
-              name="Email_student"
+              name="E_mail_main"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
@@ -1069,13 +1086,50 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
 
             <FormField
               control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                       value={field.value} 
+                       onValueChange={(value) => {
+                        field.onChange(value);
+                        console.log(value);
+                      }}
+                      className="flex flex-col"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="Registered" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Registered
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="Unregistered" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Unregistered
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="classID"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>ClassID</FormLabel>
                   <FormControl>
-                    <Input 
-                    placeholder="classID" {...field} />
+                    <Input placeholder="classID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

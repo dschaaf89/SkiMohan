@@ -62,6 +62,7 @@ const StudentPage = async ({
   meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
   meetColor: item.meetColor ||null,
   updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
+  status:item.status,
 }
   
 

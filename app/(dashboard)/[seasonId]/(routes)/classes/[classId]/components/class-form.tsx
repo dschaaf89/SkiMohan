@@ -160,7 +160,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
         await axios.post(`/api/${params.seasonId}/classes`, submissionData);
       }
       router.refresh();
-      router.push(`/${params.seasonId}/classes`);
+      //router.push(`/${params.seasonId}/classes`);
       toast.success(toastMessage);
     } catch (error: any) {
       toast.error("Something went wrong.");
@@ -515,7 +515,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                 <ul>
                   {studentDetails.map((student, index) => (
                     <li key={index}>
-                      Name: {student.name}, Email: {student.E_mail_main}
+                      Name: {student.name}, AGE: {student.age},Level:{student.skillLevel}
+                      id: {student.id}
                     </li>
                   ))}
                 </ul>
