@@ -292,20 +292,15 @@ export async function POST(req: Request) {
   }
   
   // Create a Response object for the PDF
-  return new Response(pdfBuffer, {
+  return new NextResponse(pdfBuffer, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="students.pdf"`,
     },
   });
-} catch (error: unknown) {
-  if (error instanceof Error) {
-    // Now TypeScript knows that 'error' is an 'Error' object, so you can access its properties like 'message'
-    console.error(error.message);
-  } else {
-    // If it's not an 'Error' object, you can decide how to handle it
-    console.error("An unknown error occurred");
-  }
+} catch (error) {
+      console.error("Error generating PDF:", error);
+      return new NextResponse("Internal Server Error", { status: 500 });
 }
 }
