@@ -260,7 +260,7 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
     });
   
     // Define the header title and subheader information
-    const headerTitle = "Check-In Sheet for " + selectedDay + " Week 6";
+    const headerTitle = "Check-In Sheet for " + selectedDay + " Week 7";
     doc.setFontSize(16);
     doc.text(headerTitle, 14, 22);
     doc.setFontSize(12);

@@ -1,13 +1,20 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  images:{
-    domains: ["res.cloudinary.com"]
+  images: {
+    domains: ["res.cloudinary.com"],
   },
   eslint: {
-    // Warning: This will disable ESLint checks during production builds.
-    // It's not recommended as it may allow serious issues to go unnoticed.
     ignoreDuringBuilds: true,
+  },
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Ignore .js.map files
+    config.module.rules.push({
+      test: /\.js\.map$/,
+      loader: 'ignore-loader'
+    });
+
+    // Important: return the modified config
+    return config; 
   },
 }
 
-module.exports = nextConfig
+module.exports = nextConfig;

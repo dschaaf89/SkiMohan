@@ -104,7 +104,7 @@ export async function POST(req: Request) {
               <span class="meet-color">${classItem.meetColor}</span>
             </div>
             <div class="time-details">
-              <span class="week"> Week 6 </span>
+              <span class="week"> Week 7 </span>
               <span class="class-day">${classItem.DAY}</span>
               <span class="class-time">${classItem.startTime} - ${classItem.endTime}</span>
               <div class="level-age">
