@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import * as puppeteer from "puppeteer";
+//import * as puppeteer from "puppeteer";
 import chromium from 'chrome-aws-lambda';
 import fs from "fs";
 import path from "path";
@@ -20,6 +20,7 @@ interface Student {
 }
 
 export async function POST(req: Request) {
+  let browser = null;
   try {
     let topMargin: string = "0.0in";
     const body = await req.json();
@@ -29,14 +30,14 @@ export async function POST(req: Request) {
       return new NextResponse("Payload is not an array");
     }
     console.log("req body :", students);
-    const browser = await chromium.puppeteer.launch({
-      args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
+    browser = await chromium.puppeteer.launch({
+      args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
-    
+
     const page = await browser.newPage();
 
     const cssFilePath = path.join(
