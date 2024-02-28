@@ -29,7 +29,8 @@ export async function POST(req: Request) {
     if (!Array.isArray(students)) {
       return new NextResponse("Payload is not an array");
     }
-    console.log("req body :", students);
+    //console.log("req body :", students);
+    console.log(await chromium.executablePath);
     browser = await chromium.puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
