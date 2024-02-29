@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       
     });
     const page = await browser.newPage();
-    console.log(page);
+
     const cssFilePath = path.join(
       process.cwd(),
       "app",
