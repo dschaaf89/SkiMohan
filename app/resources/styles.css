@@ -108,11 +108,14 @@
   }
   
 
-  /* Ensure that the notes section has lines */
-  .notes-section p {
-    border-bottom: 1px solid #000;
-    margin-bottom: 10px; /* Space out the lines */
-  }
+/* Ensure that the notes section has lines */
+.notes-section p {
+  border-bottom: 1px solid #000;
+  margin-bottom: 5px; /* Reduced from 10px to bring lines closer together */
+  line-height: 1.4; /* Ensure line height is sufficient to prevent overlap */
+  padding-bottom: 2px; /* Add padding to ensure the text does not touch the line below */
+}
+
   
   info-section label input[type="checkbox"] {
     transform: scale(1); /* Makes the checkboxes slightly smaller */
