@@ -31,33 +31,16 @@ export async function POST(req: Request) {
       return new NextResponse("Payload is not an array");
     }
     console.log("req body :", students);
-     // Fetch the Chromium file from GitHub CDN
-     const chromiumURL = "https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar";
-     const chromiumResponse = await fetch(chromiumURL);
-     const chromiumArrayBuffer = await chromiumResponse.arrayBuffer();
-     // Convert the ArrayBuffer to a Buffer (Node.js environment only)
-     const chromiumBuffer = Buffer.from(chromiumArrayBuffer);
-     // Write the Chromium tar file to disk
-     const chromiumPath = "/tmp/chromium-pack.tar";
-     fs.writeFileSync(chromiumPath, chromiumBuffer);
- 
-     // Extract the Chromium tar file
-     const extractPath = "/tmp/chromium";
-     await tar.extract({
-       file: chromiumPath,
-       cwd: extractPath,
-     });
- 
-     // Get the path to the Chromium executable binary
-     const executablePath = path.join(extractPath, "chrome");
- 
-    const browser = await puppeteer.launch({
-      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: chromiumPath, // Use the downloaded Chromium file
-      headless: true, // Assigning a boolean value to the headless property
-      ignoreHTTPSErrors: true // Removed the extra comma at the end
-    });
+        // Initialize Puppeteer with the Chromium executable path
+        const browser = await puppeteer.launch({
+          args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+          defaultViewport: chromium.defaultViewport,
+          executablePath: await chromium.executablePath(
+            "https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar"
+          ),
+          headless: true,
+          ignoreHTTPSErrors: true,
+        });
 
     const page = await browser.newPage();
 
