@@ -3,6 +3,8 @@ import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min"; // Use chromium-min
 import fs from "fs";
 import path from "path";
+import * as tar from "tar"; // Import the tar module
+
 
 // Define the type for the expected request body
 interface Student {
@@ -32,10 +34,23 @@ export async function POST(req: Request) {
      // Fetch the Chromium file from GitHub CDN
      const chromiumURL = "https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar";
      const chromiumResponse = await fetch(chromiumURL);
-     const chromiumBuffer = await chromiumResponse.arrayBuffer();
-
-    // Write the Chromium file to a temporary directory
-    const chromiumPath = "/tmp/chromium-pack.tar";
+     const chromiumArrayBuffer = await chromiumResponse.arrayBuffer();
+     // Convert the ArrayBuffer to a Buffer (Node.js environment only)
+     const chromiumBuffer = Buffer.from(chromiumArrayBuffer);
+     // Write the Chromium tar file to disk
+     const chromiumPath = "/tmp/chromium-pack.tar";
+     fs.writeFileSync(chromiumPath, chromiumBuffer);
+ 
+     // Extract the Chromium tar file
+     const extractPath = "/tmp/chromium";
+     await tar.extract({
+       file: chromiumPath,
+       cwd: extractPath,
+     });
+ 
+     // Get the path to the Chromium executable binary
+     const executablePath = path.join(extractPath, "chrome");
+ 
     const browser = await puppeteer.launch({
       args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
       defaultViewport: chromium.defaultViewport,
