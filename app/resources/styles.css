@@ -1,51 +1,3 @@
-/* 
-  body {
-    font-family: Arial, sans-serif;
-
-  }
-  .card-container {
-    border: 2px solid black;
-    padding: 10px;
-    margin: 10px;
-    height: 700px;
-    width: 450px;
- 
-  }
-  .header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .header h1 {
-    font-size: 24px;
-  }
-  .header .star {
-    font-size: 28px;
-    color: black;
-  }
-  .info-section {
-    margin-bottom: 10px;
-  
-  }
-  .info-section p {
-    text-align:center;
-  }
-  .info-section label {
-    font-weight: bold;
-  }
-  .info-section span {
-    text-decoration: underline;
-  }
-  .notes-section {
-    margin-top: 20px;
-  }
-  .signature {
-    text-align: center;
-    margin-top: 30px;
-  }
-  .signature img {
-    width: 80px;
-    height: auto;
-  } */
   body {
     font-family: Arial, sans-serif;
     margin: 0; /* No extra space around the body */
@@ -110,7 +62,6 @@
 
 /* Ensure that the notes section has lines */
 .notes-section p {
-  border-bottom: 1px solid #000;
   margin-bottom: 5px; /* Reduced from 10px to bring lines closer together */
   line-height: 1.4; /* Ensure line height is sufficient to prevent overlap */
   padding-bottom: 2px; /* Add padding to ensure the text does not touch the line below */
