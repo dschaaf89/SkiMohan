@@ -12,15 +12,27 @@ const nextConfig = {
       use: 'ignore-loader',
     });
 
-    // Add this to alias 'electron' to false, effectively ignoring it
+    // Add a rule for .ttf files
+    config.module.rules.push({
+      test: /\.ttf$/,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: 100000,
+          },
+        },
+      ],
+    });
+
+    // Alias for electron to prevent errors
     if (!config.resolve.alias) {
       config.resolve.alias = {};
     }
     config.resolve.alias.electron = false;
 
-    // Important: return the modified config
-    return config;
+    return config; 
   },
-};
+}
 
 module.exports = nextConfig;
