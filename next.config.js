@@ -9,12 +9,18 @@ const nextConfig = {
     // Ignore .js.map files
     config.module.rules.push({
       test: /\.js\.map$/,
-      loader: 'ignore-loader'
+      use: 'ignore-loader',
     });
 
+    // Add this to alias 'electron' to false, effectively ignoring it
+    if (!config.resolve.alias) {
+      config.resolve.alias = {};
+    }
+    config.resolve.alias.electron = false;
+
     // Important: return the modified config
-    return config; 
+    return config;
   },
-}
+};
 
 module.exports = nextConfig;

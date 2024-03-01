@@ -302,7 +302,7 @@ export async function POST(req: Request) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": "attachment; filename=students.pdf",
+        "Content-Disposition": "attachment; filename=studentCards.pdf",
       },
     });
   } catch ( error ) {
