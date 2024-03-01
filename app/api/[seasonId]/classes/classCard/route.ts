@@ -203,7 +203,7 @@ export async function POST(req: Request) {
     );
 
     const pdfBuffer = await page.pdf({
-      format: "LETTER",
+      format: "letter",
       printBackground: true, // Optionally, include background graphics
       margin: { top: "0", right: "0", bottom: "0", left: "0" }, // Margin based on index
       scale: 1, // Scale factor (1 is the default)
