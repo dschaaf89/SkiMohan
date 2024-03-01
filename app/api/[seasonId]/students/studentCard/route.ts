@@ -167,7 +167,7 @@
 // }
 
 import { NextResponse } from "next/server";
-import { chromium } from 'playwright'; // Importing Playwright's Chromium browser
+import playwright from 'playwright-aws-lambda';
 import fs from "fs";
 import path from "path";
 
@@ -198,9 +198,8 @@ export async function POST(req: Request) {
 
 
 
-    browser = await chromium.launch({
-      headless: true, // Set to false if you need to see the browser for debugging
-    });
+      // Launching a browser with playwright-aws-lambda
+      browser = await playwright.launchChromium();
     const page = await browser.newPage();
 
     const cssFilePath = path.join(process.cwd(), "app", "resources", "styles.css");
@@ -288,7 +287,7 @@ export async function POST(req: Request) {
       await page.setContent(`<html><head><style>${cssContent}</style></head><body>${combinedHtmlContent}</body></html>`, {
         waitUntil: "networkidle"
       });
-      
+
     const pdfBuffer = await page.pdf({
       width: "4in",
       height: "6in",
