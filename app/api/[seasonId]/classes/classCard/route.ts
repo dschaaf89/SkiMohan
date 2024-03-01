@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from '@prisma/client';
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium-min"; // Use chromium-min
 import fs from "fs";
 import path from "path";
 const prismadb = new PrismaClient();
@@ -75,8 +76,13 @@ export async function POST(req: Request) {
     });
     console.log("Updated Classes Object:", classes);
     const browser = await puppeteer.launch({
-      headless: true, // Run in headless mode
-      
+      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(
+        "https://github.com/Sparticuz/chromium/releases/download/v122.0.0/chromium-v122.0.0-pack.tar"
+      ),
+      headless: true,
+      ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();
 
