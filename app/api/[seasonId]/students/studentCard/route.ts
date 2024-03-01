@@ -31,12 +31,14 @@ export async function POST(req: Request) {
     console.log("req body :", students);
    
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true, // or "chrome-headless-shell"
-      ignoreHTTPSErrors: true,
+      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(
+        `https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar`
+      ),
+      headless: true, // Assigning a boolean value to the headless property
+      ignoreHTTPSErrors: true // Removed the extra comma at the end
     });
-    
 
     const page = await browser.newPage();
 
