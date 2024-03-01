@@ -167,8 +167,7 @@
 // }
 
 import { NextResponse } from "next/server";
-import chromium from 'chrome-aws-lambda';
-import puppeteer from 'puppeteer-core';
+import { chromium } from 'playwright'; // Importing Playwright's Chromium browser
 import fs from "fs";
 import path from "path";
 
@@ -197,22 +196,11 @@ export async function POST(req: Request) {
       return new NextResponse("Payload is not an array");
     }
 
-    const options = process.env.AWS_REGION ? {
-      args: chromium.args,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
-    } : {
-      args: [],
-      executablePath: process.platform === 'win32'
-        ? 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
-        : process.platform === 'linux'
-          ? '/usr/bin/google-chrome'
-          : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      headless: true,
-    };
 
-    browser = await puppeteer.launch(options);
+
+    browser = await chromium.launch({
+      headless: true, // Set to false if you need to see the browser for debugging
+    });
     const page = await browser.newPage();
 
     const cssFilePath = path.join(process.cwd(), "app", "resources", "styles.css");
@@ -297,8 +285,10 @@ export async function POST(req: Request) {
       })
       .join("");
 
-    await page.setContent(`<html><head><style>${cssContent}</style></head><body>${combinedHtmlContent}</body></html>`, { waitUntil: "networkidle0" });
-
+      await page.setContent(`<html><head><style>${cssContent}</style></head><body>${combinedHtmlContent}</body></html>`, {
+        waitUntil: "networkidle"
+      });
+      
     const pdfBuffer = await page.pdf({
       width: "4in",
       height: "6in",
