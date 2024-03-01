@@ -12,7 +12,7 @@ const nextConfig = {
       use: 'ignore-loader',
     });
 
-    // Add a rule for .ttf files
+    // Add a rule for .ttf files (if you added this previously)
     config.module.rules.push({
       test: /\.ttf$/,
       use: [
@@ -23,6 +23,12 @@ const nextConfig = {
           },
         },
       ],
+    });
+
+    // Add a rule for handling HTML files
+    config.module.rules.push({
+      test: /\.html$/,
+      use: 'html-loader',
     });
 
     // Alias for electron to prevent errors
