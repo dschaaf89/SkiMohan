@@ -167,7 +167,7 @@
 // }
 
 import { NextResponse } from "next/server";
-import playwright from 'playwright-aws-lambda';
+import pdf from 'html-pdf';
 import fs from "fs";
 import path from "path";
 
@@ -195,12 +195,6 @@ export async function POST(req: Request) {
     if (!Array.isArray(students)) {
       return new NextResponse("Payload is not an array");
     }
-
-
-
-      // Launching a browser with playwright-aws-lambda
-      browser = await playwright.launchChromium();
-    const page = await browser.newPage();
 
     const cssFilePath = path.join(process.cwd(), "app", "resources", "styles.css");
     const cssContent = fs.readFileSync(cssFilePath, "utf8");
@@ -284,19 +278,29 @@ export async function POST(req: Request) {
       })
       .join("");
 
-      await page.setContent(`<html><head><style>${cssContent}</style></head><body>${combinedHtmlContent}</body></html>`, {
-        waitUntil: "networkidle"
+      let html = `<html><head><style>${cssContent}</style></head><body>${combinedHtmlContent}</body></html>`
+
+      let options = {
+        height: "6in",   // Specify the height
+        width: "4in",    // Specify the width
+        base: "file://" + process.cwd() + "/", // Use for loading relative assets
+        printBackground: true,
+        border: {
+          top: "0in",
+          right: "0in",
+          bottom: "0in",
+          left: "0in"
+        },
+      };
+  
+      const createPdf = async (html: string, options: pdf.CreateOptions) => new Promise<Buffer>((resolve, reject) => {
+        pdf.create(html, options).toBuffer((err: Error | null, buffer: Buffer) => {
+          if (err) reject(err);
+          else resolve(buffer);
+        });
       });
-
-    const pdfBuffer = await page.pdf({
-      width: "4in",
-      height: "6in",
-      printBackground: true,
-      margin: { top: "0.0in", right: "0", bottom: "0", left: "0" },
-      scale: 1,
-    });
-
-    await browser.close();
+      // Generate the PDF
+      const pdfBuffer = await createPdf(html, options);
 
     return new NextResponse(pdfBuffer, {
       status: 200,
@@ -307,9 +311,7 @@ export async function POST(req: Request) {
     });
   } catch ( error ) {
     console.error("Error generating PDF:", error);
-    if (browser) {
-      await browser.close();
-    }
+   
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
