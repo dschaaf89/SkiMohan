@@ -29,13 +29,17 @@ export async function POST(req: Request) {
       return new NextResponse("Payload is not an array");
     }
     console.log("req body :", students);
-   
+     // Fetch the Chromium file from GitHub CDN
+     const chromiumURL = "https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar";
+     const chromiumResponse = await fetch(chromiumURL);
+     const chromiumBuffer = await chromiumResponse.arrayBuffer();
+
+    // Write the Chromium file to a temporary directory
+    const chromiumPath = "/tmp/chromium-pack.tar";
     const browser = await puppeteer.launch({
       args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(
-        `https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar`
-      ),
+      executablePath: chromiumPath, // Use the downloaded Chromium file
       headless: true, // Assigning a boolean value to the headless property
       ignoreHTTPSErrors: true // Removed the extra comma at the end
     });
