@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: { billboardId: string } }
 ) {
   try {
+    
     if (!params.billboardId) {
       return new NextResponse("Billboard id is required", { status: 400 });
     }

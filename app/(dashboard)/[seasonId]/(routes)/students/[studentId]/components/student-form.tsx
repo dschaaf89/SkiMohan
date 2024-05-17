@@ -350,24 +350,34 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   }, [initialData]);
 
   const onSubmit = async (data: StudentFormValues) => {
-    const classIdNumber = data.classID || 0;
+    // Ensure that classID is a string. If it's undefined, use a default value or handle accordingly.
+    const classIdValue = data.classID?.toString() ?? "0";
+
+    // Parse the string to an integer
+    const classIdNumber = parseInt(classIdValue, 10);
+
+    // Now check if classIdNumber is NaN and handle it, or proceed if it's a valid number
+    if (isNaN(classIdNumber)) {
+        console.error("Invalid classID");
+        // Handle the NaN case, maybe set an error message or use a default value
+        return;
+    }
+
     const submissionData = {
       ...data,
       classID: classIdNumber,
       ProgCode: selectedProgram?.code || "",
       StartTime: selectedProgram?.startTime || "",
       EndTime: selectedProgram?.endTime || "",
-      
     };
-    console.log("Submission Data:", submissionData); // Log to see the data being submitted
+
+    // Log to see the data being submitted
+    console.log("Submission Data:", submissionData);
 
     try {
       setLoading(true);
       if (initialData) {
-        await axios.patch(
-          `/api/${params.seasonId}/students/${params.studentId}`,
-          submissionData
-        );
+        await axios.patch(`/api/${params.seasonId}/students/${params.studentId}`, submissionData);
       } else {
         await axios.post(`/api/${params.seasonId}/students`, submissionData);
       }
@@ -379,8 +389,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
     } finally {
       setLoading(false);
     }
-  };
-
+};
   const handleDayChange = (selectedDay: string) => {
     setSelectedDay(selectedDay);
 
@@ -1117,6 +1126,14 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                           Unregistered
                         </FormLabel>
                       </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="waitlist" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Waitlist
+                        </FormLabel>
+                      </FormItem>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -1131,7 +1148,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 <FormItem>
                   <FormLabel>ClassID</FormLabel>
                   <FormControl>
-                    <Input placeholder="classID" {...field} />
+                    <Input type='number'placeholder="classID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

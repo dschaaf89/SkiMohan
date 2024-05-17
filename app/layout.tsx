@@ -6,6 +6,7 @@ import { ModalProvider } from '@/providers/modal-provider'
 import { ToastProvider } from '@/providers/toast-providers'
 
 import './globals.css'
+import Footer from '@/components/footer'
 
 
 
@@ -31,6 +32,7 @@ export default function RootLayout({
         <ModalProvider />
         {children}
         </body>
+        {/* <Footer/> */}
     </html>
     </ClerkProvider>
   )

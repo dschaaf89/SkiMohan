@@ -12,6 +12,7 @@ import axios from "axios";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { useState } from "react";
+import { ApiList } from "@/components/ui/api-list";
 interface StudentClientProps {
   data: StudentColumn[];
 }
@@ -259,6 +260,7 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
             <Plus className=" m-2 b-4 w-4" />
             Add New
           </Button>
+         
         </div>
       </div>
 
@@ -281,6 +283,8 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
 
       <Separator />
       <DataTable searchKey="NAME_LAST" columns={columns} data={filteredData} />
+      <Separator />
+      <ApiList entityName="students" entityIdName="studentId" />
     </>
   );
 };

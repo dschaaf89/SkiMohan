@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { CalendarIcon, Trash } from "lucide-react";
-import { Classes } from "@prisma/client";
+import { Classes, Student } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 import React, { MouseEvent } from "react";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,9 @@ import "react-calendar/dist/Calendar.css";
 import { cn } from "@/lib/utils";
 import { differenceInYears } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
+import { X } from "lucide-react";
+import { SearchBar } from "../../components/search-bar/searchbar";
+import { SearchResultsList } from "../../components/search-bar/searchResultList";
 interface StudentConnection {
   connect: Array<{ id: string }>;
 }
@@ -50,8 +52,8 @@ interface Instructor {
   id: string;
   NAME_FIRST: string;
   NAME_LAST: string;
-  HOME_TEL:string;
-  C_TEL:string;  // Add other properties as needed
+  HOME_TEL: string;
+  C_TEL: string; // Add other properties as needed
 }
 interface InitialData {
   // ... other fields ...
@@ -67,10 +69,8 @@ interface StudentDetail {
   name: string;
   age: number;
   skillLevel: string;
-  APPLYING_FOR:string;
-  E_mail_main:string;
-  
-  
+  APPLYING_FOR: string;
+  E_mail_main: string;
 }
 const formSchema = z.object({
   classId: z.number(),
@@ -186,7 +186,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     }
   };
   const [studentSearch, setStudentSearch] = useState("");
-  const [searchResults, setSearchResults] = useState([]); // To store search results
+  const [searchResults, setSearchResults] = useState<Student[]>([]);
+  // To store search results
   const [addedStudents, setAddedStudents] = useState([]); // To store added students
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [studentDetails, setStudentDetails] = useState<StudentDetail[]>([]);
@@ -203,6 +204,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const [selectedInstructorPhone, setSelectedInstructorPhone] = useState("");
   const [selectedAssistantName, setSelectedAssistantName] = useState("");
   const [selectedAssistantPhone, setSelectedAssitantPhone] = useState("");
+  const [studentsToAdd, setStudentsToAdd] = useState<string[]>([]);
+  const [studentsToRemove, setStudentsToRemove] = useState<string[]>([]);
   useEffect(() => {
     async function fetchData() {
       if (!classTimeId) {
@@ -294,8 +297,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                 }`.trim(),
                 age: student.AGE,
                 skillLevel: student.LEVEL,
-                APPLYING_FOR:student.APPLYING_FOR,
-                E_mail_main:student.E_mail_main,
+                APPLYING_FOR: student.APPLYING_FOR,
+                E_mail_main: student.E_mail_main,
               };
             } catch (error) {
               console.error("Error fetching student data", error);
@@ -314,6 +317,28 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
       fetchStudentNames();
     }
   }, [initialData, params.seasonId]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      // Fetch the student list (consider doing this once and storing the result if it doesn't change often)
+      const response = await axios.get(`/api/${params.seasonId}/students/findStudnet`);
+      const allStudents = response.data;
+
+      // Filter students based on the search query
+      const filteredStudents = allStudents.filter((student:Student) =>
+        student.NAME_LAST.toLowerCase().includes(studentSearch.toLowerCase())
+      );
+
+      setSearchResults(filteredStudents);
+    };
+
+    if (studentSearch.length > 1) {
+      // Maybe trigger the search after at least 2 characters have been typed
+      fetchStudents();
+    } else {
+      setSearchResults([]); // Clear search results if the search query is cleared
+    }
+  }, [params.seasonId,studentSearch]);
 
   useEffect(() => {
     // Check if initialData is available and the 'day' field is a string
@@ -335,32 +360,47 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     form.setValue("instructor", value);
 
     // Find the selected instructor and set name and phone
-    const instructor = instructors.find(i => i.id === value);
+    const instructor = instructors.find((i) => i.id === value);
     if (instructor) {
-        const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
-        const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
-        setSelectedInstructorName(fullName);
-        setSelectedInstructorPhone(phone);
+      const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
+      const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
+      setSelectedInstructorName(fullName);
+      setSelectedInstructorPhone(phone);
 
-        console.log(`Selected Instructor Name: ${fullName}`);
-        console.log(`Selected Instructor Phone: ${phone}`);
+      console.log(`Selected Instructor Name: ${fullName}`);
+      console.log(`Selected Instructor Phone: ${phone}`);
     }
-};
+  };
   const handleAssistantChange = (value: string) => {
     setSelectedAssistantId(value);
     form.setValue("assistant", value);
 
     // Find the selected instructor and set name and phone
-    const instructor = instructors.find(i => i.id === value);
+    const instructor = instructors.find((i) => i.id === value);
     if (instructor) {
-        const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
-        const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
-        setSelectedAssistantName(fullName);
-        setSelectedAssitantPhone(phone);
+      const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
+      const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
+      setSelectedAssistantName(fullName);
+      setSelectedAssitantPhone(phone);
 
-        console.log(`Selected Instructor Name: ${fullName}`);
-        console.log(`Selected Instructor Phone: ${phone}`);
+      console.log(`Selected Instructor Name: ${fullName}`);
+      console.log(`Selected Instructor Phone: ${phone}`);
     }
+  };
+  const handleRemoveStudent = (studentId: string) => {
+    setStudentDetails((prev) =>
+      prev.filter((student) => student.id !== studentId)
+    );
+    setStudentsToRemove((prev) => [...prev, studentId]);
+  };
+  const handleAddStudent = (student: Student) => {
+    console.log("Selected student:", student);
+    // Add your logic here, for example, adding the student to a selected list
+  };
+
+
+  const handleSelectStudent = (student: Student) => {
+    // Handle the selection logic, e.g., adding the student to a selected list
   };
 
 
@@ -508,15 +548,24 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     </FormItem>
                   )}
                 />
-                
+                <div className="relative">                 
+                </div>
 
                 <h3>Student Names</h3>
                 {/* {console.log(studentNames)} */}
                 <ul>
                   {studentDetails.map((student, index) => (
                     <li key={index}>
-                      Name: {student.name}, AGE: {student.age},Level:{student.skillLevel}
-                      id: {student.id}
+                      Name: {student.name}
+                      <button
+                        onClick={() => handleRemoveStudent(student.id)}
+                        aria-label="Remove student"
+                        style={{ color: "red" }} // Inline styling for red color
+                        className="p-1" // Add padding, adjust as needed
+                      >
+                        <X className="w-6 h-6 hover:scale-110 transition-transform" />{" "}
+                        {/* Adjust size as needed */}
+                      </button>
                     </li>
                   ))}
                 </ul>

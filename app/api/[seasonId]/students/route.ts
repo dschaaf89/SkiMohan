@@ -129,7 +129,7 @@ export async function POST(
   
     return NextResponse.json(student);
   } catch (error) {
-    console.log('[BILLBOARDS_POST]', error);
+    console.log('[Students_POST]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
 };

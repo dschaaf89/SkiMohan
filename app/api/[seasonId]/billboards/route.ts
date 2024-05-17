@@ -2,7 +2,23 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 
 import prismadb from '@/lib/prismadb';
- 
+import { c } from 'tar';
+
+const setCORSHeaders = (response: NextResponse) => {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+};
+
+export async function OPTIONS() {
+  const response = new NextResponse(null, {
+    status: 204,
+  });
+  setCORSHeaders(response);
+  return response;
+}
+
 export async function POST(
   req: Request,
   { params }: { params: { seasonId: string } }
@@ -55,25 +71,30 @@ export async function POST(
     return new NextResponse("Internal error", { status: 500 });
   }
 };
-
 export async function GET(
   req: Request,
   { params }: { params: { seasonId: string } }
 ) {
   try {
     if (!params.seasonId) {
-      return new NextResponse("Store id is required", { status: 400 });
+      const response = new NextResponse("Store id is required", { status: 400 });
+      setCORSHeaders(response);
+      return response;
     }
 
     const billboards = await prismadb.billboard.findMany({
       where: {
-        seasonId: params.seasonId
-      }
+        seasonId: params.seasonId,
+      },
     });
-  
-    return NextResponse.json(billboards);
+
+    const response = NextResponse.json(billboards);
+    setCORSHeaders(response);
+    return response;
   } catch (error) {
     console.log('[BILLBOARDS_GET]', error);
-    return new NextResponse("Internal error", { status: 500 });
+    const response = new NextResponse("Internal error", { status: 500 });
+    setCORSHeaders(response);
+    return response;
   }
 };

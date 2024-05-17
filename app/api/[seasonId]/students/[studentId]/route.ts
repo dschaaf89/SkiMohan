@@ -2,9 +2,51 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 
 import prismadb from "@/lib/prismadb";
-interface Student {
-  id: string;
-  // include other properties that your student objects have
+type Student = {
+  id:string;
+  UniqueID: string;
+  NAME_FIRST: string;
+  NAME_LAST: string;
+  HOME_TEL: string;
+  ADDRESS: string;
+  CITY: string;
+  STATE: string;
+  ZIP: string;
+  student_tel: string;
+  Email_student: string | null;// Adjust nullability if needed
+  BRTHD: string | Date; // Adjust based on the actual type
+  AGE: number; // Adjust nullability if needed
+  GradeLevel:  string | null;
+  APPLYING_FOR:  string | null;
+  LEVEL:  string | null;
+  Approach:  string | null;
+  E_mail_main:  string | null;
+  E_NAME:  string | null;
+  E_TEL:  string | null;
+  CCPayment:  string | null;
+  ProgCode:  string | null;
+  BUDDY:  string | null;
+  WComment:  string | null;
+  DateFeePaid:  string | null;
+  PaymentStatus:  string | null;
+  AcceptedTerms:  string | null;
+  AppType: number | null; // Adjust nullability if needed
+  Employer:  string | null;
+  C_TEL:  string | null;
+  Occupation:  string | null;
+  W_TEL:  string | null;
+  AGE_GROUP: number | null; // Optional field
+  AGRESSIVENESS: string | null;
+  GENDER: string | null;
+  FeeComment:string | null;
+  DAY:string | null;
+  StartTime: string | null;
+  EndTime: string | null;
+  classID: number | null;
+  meetingPoint: number | null;
+  meetColor:string | null;
+  status:string;
+  // include other properties as needed
 }
 export async function GET(
   req: Request,
@@ -158,108 +200,58 @@ export async function DELETE(
 //   }
 // };
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { studentId: string, seasonId: string } }
-) {
+// export async function PATCH(
+//   req: Request,
+//   { params }: { params: { studentId: string, seasonId: string } }
+// ) {
+ 
+//   try {
+    
+//     const { userId } = await auth(); // Implement actual authentication
+//     if (!userId) {
+//       return new Response(JSON.stringify({ error: "Unauthenticated" }), { status: 403 });
+//     }
+
+//     const body = await req.json();
+//     console.log(`Updating student with ID: ${params.studentId}`, body);
+
+//     // Update student information including status
+//     const updatedStudent = await prismadb.student.update({
+//       where: { id: params.studentId },
+//       data: {
+//         ...body, // Spread all updateable fields including 'status'
+//         seasonId: params.seasonId // Ensure seasonId is maintained or updated appropriately
+//       }
+//     });
+//     console.log(`Student updated:`, updatedStudent);
+
+//     return new Response(JSON.stringify({ message: "Student updated successfully", student: updatedStudent }), { status: 200 });
+//   } catch (error) {
+//     console.error('[Student_PATCH] Error:', error);
+//     return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
+//   }
+// }
+
+export async function PATCH(req: Request, { params }: { params: { studentId: string, seasonId: string } }) {
   try {
-    const { userId } = await auth(); // Implement actual authentication
-    console.log(`Authenticating user: ${userId}`);
-    if (!userId) {
-      console.log(`Unauthenticated access attempt.`);
-      return new Response(JSON.stringify({ error: "Unauthenticated" }), { status: 403 });
-    }
-
+   
     const body = await req.json();
-    const { status, ...updateData } = body;
-    console.log(`Updating student with ID: ${params.studentId}`, updateData);
+    console.log(`Updating student with ID: ${params.studentId}`, body);
 
-    // First, update the student's record
+    // Update student information including status
     const updatedStudent = await prismadb.student.update({
       where: { id: params.studentId },
-      data: updateData,
+      data: {
+        ...body, // Spread all updateable fields
+        seasonId: params.seasonId // Ensure seasonId is maintained or updated appropriately
+      }
     });
     console.log(`Student updated:`, updatedStudent);
 
-    // If marked as 'Unregistered', proceed to update class information
-    if (status === 'Unregistered') {
-      console.log(`Processing unregistration for student ID: ${params.studentId}`);
-      // Find the class using classID from the student
-      const student = await prismadb.student.findUnique({
-        where: { id: params.studentId },
-        select: { classID: true },
-      });
-
-      console.log(`Retrieved classID for student:`, student!.classID);
-
-      if (student && student.classID) {
-        const classInfo = await prismadb.classes.findUnique({
-          where: { classId: student.classID },
-        });
-
-        console.log(`Retrieved class information:`, classInfo);
-
-        if (classInfo && typeof classInfo.students === 'string') {
-          // Assuming classInfo.students is actually a relational structure in your database
-          // and not just a string that needs to be parsed. The disconnect operation would look like this:
-        
-          const studentIdToRemove = params.studentId; // The ID of the student to disconnect
-        
-          // Proceed to update the class with the student removed
-          const updatedClass = await prismadb.classes.update({
-            where: { classId: student.classID }, // Ensure you're targeting the correct class
-            data: {
-              students: {
-                disconnect: [{ id: studentIdToRemove }], // Disconnecting the specific student
-              },
-              // Assuming you need to manually adjust the number of students
-              // This might not be necessary if your ORM/database automatically handles this based on the relations
-              numberStudents: { decrement: 1 } // Optional: Adjust this based on your specific needs
-            },
-          });
-          console.log(`Class updated with the student disconnected:`, updatedClass);
-        }
-//find the studentID, remove from the JSON students array then make sure the object has all the other values. try using the splice method. removeDocument(doc){
-//    this.documents.forEach( (item, index) => {
-//     if(item === doc) this.documents.splice(index,1);
-//   });
-// }
-// if (classInfo && typeof classInfo.students === 'string') {
-//   // Parse the JSON string to get an array of student IDs
-//   const studentsArray = JSON.parse(classInfo.students);
-
-//   // Log the student array before removal
-//   console.log(`Students array before removal:`, studentsArray);
-
-//   // Find the index of the student ID to remove
-//   const indexToRemove = studentsArray.findIndex((id: string) => id === params.studentId);
-  
-//   // If the student ID is found, remove it from the array
-//   if (indexToRemove !== -1) {
-//     studentsArray.splice(indexToRemove, 1); // Remove the student ID from the array
-//     console.log(`Student ID ${params.studentId} removed from the array.`);
-//   }
-
-//   // Log the student array after removal
-//   console.log(`Students array after removal:`, studentsArray);
-// //
-
-//   // Proceed to update the class with the modified students array
-//   const updatedClass = await prismadb.classes.update({
-//     where: { classId: student.classID },
-//     data: {
-//       students: JSON.stringify(studentsArray), // Convert the array back to a JSON string
-//       numberStudents: studentsArray.length, // Update the number of students
-//     },
-//   });
-//   console.log(`Class updated with the student removed:`, updatedClass);
-// }
-      }
-    }
-
-    return new Response(JSON.stringify({ message: "Student updated successfully" }), { status: 200 });
+    return new Response(JSON.stringify({ message: "Student updated successfully", student: updatedStudent }), { status: 200 });
   } catch (error) {
     console.error('[Student_PATCH] Error:', error);
     return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
   }
 }
+

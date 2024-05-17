@@ -2,8 +2,8 @@ import { format } from "date-fns";
 
 import prismadb from "@/lib/prismadb";
 
-import { StudentColumn } from "./components/columns"
 import { StudentClient } from "./components/client";
+import { StudentColumn } from "./components/columns"
 
 
 

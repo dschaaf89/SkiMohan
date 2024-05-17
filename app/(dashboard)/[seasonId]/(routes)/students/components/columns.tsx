@@ -49,7 +49,7 @@ export type StudentColumn = {
   meetingPoint: number | null;
   meetColor:string | null;
   status:string;
-  //updateAt:string | Date;
+  updateAt:string | Date;
 }
 
 

@@ -35,16 +35,46 @@ export function MainNav({
       active: pathname===`${params.seasonId}/classes`
     },
     {
-      href:`/${params.seasonId}/waitlists`,
-      label:'Waitlists',
-      active: pathname===`${params.seasonId}/waitlists`
+      href:`/${params.seasonId}/volunteers`,
+      label:'Volunteers',
+      active: pathname===`${params.seasonId}/volunteers`
+    },
+    {
+      href:`/${params.seasonId}/waitlist`,
+      label:'Waitlist',
+      active: pathname===`${params.seasonId}/waitlist`
+    },
+    {
+      href:`/${params.seasonId}/coordinatorPortal`,
+      label:'Coordinator Portal',
+      active: pathname===`${params.seasonId}/coordinatorPortal`
     },
     {
       href:`/${params.seasonId}/billboards`,
       label:'Billboards',
       active: pathname===`${params.seasonId}/billboards`
     },
-
+    {
+      href:`/${params.seasonId}/programs`,
+      label:'Programs',
+      active: pathname===`${params.seasonId}/programs`
+    },
+    {
+      href:`/${params.seasonId}/types`,
+      label:'Type',
+      active: pathname===`${params.seasonId}/types`
+    },
+    {
+      href:`/${params.seasonId}/products`,
+      label:'Products',
+      active: pathname===`${params.seasonId}/products`
+    },
+    {
+      href:`/${params.seasonId}/orders`,
+      label:'Orders',
+      active: pathname===`${params.seasonId}/orders`
+    },
+    
     {
       href:`/${params.seasonId}/settings`,
       label:'Settings',
