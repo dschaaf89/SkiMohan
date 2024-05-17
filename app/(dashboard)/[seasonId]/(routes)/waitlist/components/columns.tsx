@@ -1,14 +1,10 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
+import { StudentColumn } from "../../students/components/columns"; // Import the StudentColumn type
 
-export type WaitlistColumn = {
-  id: string;
-  NAME_FIRST: string;
-  NAME_LAST: string;
-  HOME_TEL: string;
-  E_mail_main: string;
-  ProgCode:string; // Assuming this is the correct field name for the main email
+export type WaitlistColumn = StudentColumn & {
+  // You can add additional properties specific to waitlist students here if needed
 };
 
 export const columns: ColumnDef<WaitlistColumn>[] = [

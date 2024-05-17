@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -274,7 +275,9 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
       {/* Header displaying the selected program */}
       {selectedProgram && (
         <div className="text-center mt-4">
-          <h1 className="text-4xl font-semibold">{programs.find(p => p.value === selectedProgram).label} Coordinator's Portal</h1>
+          <h1 className="text-4xl font-semibold">
+  {programs.find(p => p.value === selectedProgram)?.label ?? 'Default Label'} Coordinator's Portal
+</h1> 
         </div>
       )}
       <Select onValueChange={handleProgramChange}>
