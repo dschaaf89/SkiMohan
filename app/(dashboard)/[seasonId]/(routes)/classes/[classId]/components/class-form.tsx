@@ -48,6 +48,7 @@ import { SearchResultsList } from "../../components/search-bar/searchResultList"
 interface StudentConnection {
   connect: Array<{ id: string }>;
 }
+
 interface Instructor {
   id: string;
   NAME_FIRST: string;
@@ -55,15 +56,12 @@ interface Instructor {
   HOME_TEL: string;
   C_TEL: string; // Add other properties as needed
 }
+
 interface InitialData {
   // ... other fields ...
   students?: StudentConnection | null;
 }
 
-// interface Student {
-//   id: string;
-//   // other properties
-// }
 interface StudentDetail {
   id: string;
   name: string;
@@ -275,26 +273,21 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
         setClassTimeId(newClassTimeId);
       }
     }
-  }, [initialData]);
+  }, [initialData, dayToClassTimeIdMapping]);
+
 
   useEffect(() => {
     const fetchStudentNames = async () => {
-      const studentData = initialData?.students as
-        | StudentConnection
-        | undefined;
+      const studentData = initialData?.students as unknown as StudentConnection | undefined;
       if (studentData?.connect) {
         const details = await Promise.all(
           studentData.connect.map(async ({ id }) => {
             try {
-              const response = await axios.get(
-                `/api/${params.seasonId}/students/${id}`
-              );
+              const response = await axios.get(`/api/${params.seasonId}/students/${id}`);
               const student = response.data;
               return {
                 id: student.id,
-                name: `${student.NAME_FIRST ?? ""} ${
-                  student.NAME_LAST ?? ""
-                }`.trim(),
+                name: `${student.NAME_FIRST ?? ""} ${student.NAME_LAST ?? ""}`.trim(),
                 age: student.AGE,
                 skillLevel: student.LEVEL,
                 APPLYING_FOR: student.APPLYING_FOR,
@@ -306,18 +299,14 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
             }
           })
         );
-        setStudentDetails(
-          details.filter((detail) => detail !== null) as StudentDetail[]
-        );
+        setStudentDetails(details.filter((detail) => detail !== null) as StudentDetail[]);
       }
     };
-
-    // Type assertion here
-    if ((initialData?.students as StudentConnection | undefined)?.connect) {
+  
+    if ((initialData?.students as unknown as StudentConnection | undefined)?.connect) {
       fetchStudentNames();
     }
   }, [initialData, params.seasonId]);
-
   useEffect(() => {
     const fetchStudents = async () => {
       // Fetch the student list (consider doing this once and storing the result if it doesn't change often)
