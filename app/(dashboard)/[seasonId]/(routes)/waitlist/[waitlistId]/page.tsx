@@ -1,5 +1,5 @@
 import prismadb from "@/lib/prismadb";
-import { StudentForm } from "./components/student-form";
+import { StudentForm } from "../../students/[studentId]/components/student-form";
 
 
 const StudentPage = async ({
