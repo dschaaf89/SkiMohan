@@ -1,15 +1,24 @@
-// File: routes/volunteers.ts
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import prisma from '@/lib/prismadb'; // Ensure you have set up your Prisma client correctly
 
-export async function POST(
-  req: Request,
-  { params }: { params: { seasonId: string } }
-) {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*', // Change '*' to your domain if needed
+  'Access-Control-Allow-Methods': 'GET,OPTIONS,PATCH,DELETE,POST,PUT',
+  'Access-Control-Allow-Headers': 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders });
+}
+
+export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
   try {
     const { userId } = auth(); // Ensure authentication is set up to extract userId
-    const body = await req.json();
+
+    const body = await req.json(); // Parse the JSON body
+
+    console.log("Parsed Request Body:", body); // Log the parsed body
 
     const {
       firstName,
@@ -48,13 +57,15 @@ export async function POST(
     } = body;
 
     // Authentication and Authorization checks
-    if (!userId) {
-      return new NextResponse("Unauthenticated", { status: 403 });
-    }
+    // if (!userId) {
+    //   console.error("Unauthenticated request");
+    //   return new NextResponse("Unauthenticated", { status: 403, headers: corsHeaders });
+    // }
 
     // Validation of required fields
-    if (!firstName || !lastName || !birthDate || !mobilePhone || !Address || !city || !state || !zipCode || !email ) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    if (!firstName || !lastName || !birthDate || !mobilePhone || !Address || !city || !state || !zipCode || !email) {
+      console.error("Missing required fields");
+      return new NextResponse("Missing required fields", { status: 400, headers: corsHeaders });
     }
 
     // Optional: Validate that the season exists and user has rights to add volunteers
@@ -62,10 +73,12 @@ export async function POST(
       where: { id: params.seasonId },
     });
     if (!season) {
-      return new NextResponse("Season not found", { status: 404 });
+      console.error("Season not found");
+      return new NextResponse("Season not found", { status: 404, headers: corsHeaders });
     }
 
     // Create the volunteer in the database
+    console.log("Creating volunteer in the database...");
     const newVolunteer = await prisma.volunteer.create({
       data: {
         firstName,
@@ -104,10 +117,11 @@ export async function POST(
         seasonId: params.seasonId,
       },
     });
+    console.log("Volunteer created:", newVolunteer);
 
-    return new NextResponse(JSON.stringify(newVolunteer), { status: 201 });
+    return new NextResponse(JSON.stringify(newVolunteer), { status: 201, headers: corsHeaders });
   } catch (error) {
     console.error('[POST Volunteer Error]', error);
-    return new NextResponse("Internal server error", { status: 500 });
+    return new NextResponse("Internal server error", { status: 500, headers: corsHeaders });
   }
 }
