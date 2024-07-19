@@ -283,6 +283,8 @@ model Order {
   season     Season      @relation("SeasonToOrder", fields: [seasonId], references: [id])
   orderItems OrderItem[] // Relation to OrderItem model
   isPaid     Boolean     @default(false)
+  Name_First String      @default("")
+  Name_Last  String      @default("")
   phone      String      @default("")
   address    String      @default("")
   createdAt  DateTime    @default(now())
