@@ -12,7 +12,7 @@ export async function POST(
 
     const body = await req.json();
 
-    const { name, price, programId, typeId, images, isFeatured, isArchived } = body;
+    const { name, price, programId, typeId, quantity, isFeatured, isArchived } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -22,10 +22,7 @@ export async function POST(
       return new NextResponse("Name is required", { status: 400 });
     }
 
-    if (!images || !images.length) {
-      return new NextResponse("Images are required", { status: 400 });
-    }
-
+ 
     if (!price) {
       return new NextResponse("Price is required", { status: 400 });
     }
@@ -53,15 +50,11 @@ export async function POST(
         programId,
         typeId,
         seasonId: params.seasonId,
-        images: {
-          createMany: {
-            data: [
-              ...images.map((image: { url: string }) => image),
-            ],
-          },
-        },
+        quantity, // Add the quantity field here
+        // Removed the images relation since images are no longer directly associated with Product
       },
     });
+    
   
     return NextResponse.json(product);
   } catch (error) {
@@ -75,13 +68,13 @@ export async function GET(
   { params }: { params: { seasonId: string } },
 ) {
   try {
-    const { searchParams } = new URL(req.url)
+    const { searchParams } = new URL(req.url);
     const programId = searchParams.get('programId') || undefined;
     const typeId = searchParams.get('typeId') || undefined;
     const isFeatured = searchParams.get('isFeatured');
 
     if (!params.seasonId) {
-      return new NextResponse("Store id is required", { status: 400 });
+      return new NextResponse("Season id is required", { status: 400 });
     }
 
     const products = await prismadb.product.findMany({
@@ -93,8 +86,11 @@ export async function GET(
         isArchived: false,
       },
       include: {
-        images: true,
-        program: true,
+        program: {
+          select: {
+            imageUrl: true, // Select the imageUrl from the Program
+          },
+        },
         type: true,
       },
       orderBy: {

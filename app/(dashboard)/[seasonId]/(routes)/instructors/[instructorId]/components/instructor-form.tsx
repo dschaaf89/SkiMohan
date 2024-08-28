@@ -55,10 +55,17 @@ import { cn } from "@/lib/utils";
 import { differenceInYears } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Console } from "console";
 
 type InstructorWithClassTimeIds = Instructor & {
   classTimeIds?: number[];
+  clinics?: string[]; // or whatever type clinics should be
 };
+
+interface Clinic {
+  id: string; // or `number` if the IDs are numbers
+  name: string;
+}
 
 const ageRequest = [
   {
@@ -205,7 +212,7 @@ const calculateAge = (birthdate: Date | null): number => {
   return differenceInYears(new Date(), birthdate);
 };
 const formSchema = z.object({
-  UniqueID: z.string(),
+  UniqueID: z.number().optional(),
   NAME_FIRST: z.string(),
   NAME_LAST: z.string(),
   HOME_TEL: z.string(),
@@ -230,7 +237,7 @@ const formSchema = z.object({
   ParentAuth: z.boolean().optional(),
   OverNightLodge: z.boolean().optional(),
   ageRequestByStaff: z.array(z.string()).optional(),
-  clinics:z.array(z.string()).optional(),
+  clinics: z.array(z.string()).optional(),
   clinicInstructor: z.boolean().optional(),
   Supervisor: z.boolean().optional(),
   skiLevel: z.string().optional(),
@@ -246,7 +253,6 @@ const formSchema = z.object({
   instructorCom: z.string().optional(),
   priority: z.string().optional(),
   dateAssigned: z.string().optional(),
-  assignmentConfirmed: z.string().optional(),
   classSignedUp: z.string().optional(),
   classAssigned: z.string().optional(),
   permSub: z.boolean().optional(),
@@ -255,24 +261,24 @@ const formSchema = z.object({
   updateAt: z.date(),
   dateTimes: z.string().optional(),
   classTimeIds: z.array(z.number()).optional(),
-  employeeNumber: z.string().optional(),    
-  payRate: z.string().optional(),            
-  deductions: z.string().optional(),         
-  payCheckNo: z.string().optional(),         
-  payCheckDate: z.string().optional(),       
-  payAdvance: z.string().optional(),         
-  payComment: z.string().optional(),        
-  ssn : z.string().optional(),               
-  payType: z.string().optional(),           
-  dateFeePaid: z.string().optional(),         
-  disclosureForm : z.boolean().optional(),    
-  i9Form   : z.boolean().optional(),          
-  w4Recieved   : z.boolean().optional(),      
-  WSPRecieved : z.boolean().optional(),      
-  testRecieved  : z.boolean().optional(),     
-  idRecieved : z.boolean().optional(),       
-  schoolPermission : z.boolean().optional(), 
-  WSPDate:  z.string().optional(),            
+  employeeNumber: z.string().optional(),
+  payRate: z.string().optional(),
+  deductions: z.string().optional(),
+  payCheckNo: z.string().optional(),
+  payCheckDate: z.string().optional(),
+  payAdvance: z.string().optional(),
+  payComment: z.string().optional(),
+  ssn: z.string().optional(),
+  payType: z.string().optional(),
+  dateFeePaid: z.string().optional(),
+  disclosureForm: z.boolean().optional(),
+  i9Form: z.boolean().optional(),
+  w4Recieved: z.boolean().optional(),
+  WSPRecieved: z.boolean().optional(),
+  testRecieved: z.boolean().optional(),
+  idRecieved: z.boolean().optional(),
+  schoolPermission: z.boolean().optional(),
+  WSPDate: z.string().optional(),
 });
 interface InstructorClassTime {
   instructorId: string;
@@ -287,12 +293,12 @@ interface ClassTime {
 interface InstructorFormProps {
   initialData: InstructorWithClassTimeIds | null;
 }
+
 const createDefaultValues = (
   initialData: InstructorWithClassTimeIds | null
 ): InstructorFormValues => {
-  //console.log("Initial Data received in createDefaultValues:", initialData);
   const defaultValues: InstructorFormValues = {
-    UniqueID: "",
+    UniqueID: 0,
     NAME_FIRST: "",
     NAME_LAST: "",
     HOME_TEL: "",
@@ -317,7 +323,7 @@ const createDefaultValues = (
     ParentAuth: false,
     OverNightLodge: false,
     ageRequestByStaff: [],
-    clinics:[],
+    clinics: [],
     clinicInstructor: false,
     Supervisor: false,
     skiLevel: "",
@@ -335,143 +341,43 @@ const createDefaultValues = (
     permSub: false,
     back2Back: false,
     dateAssigned: "",
-    assignmentConfirmed: "",
     classSignedUp: "0",
     classAssigned: "0",
     classPerWeek: "0",
     updateAt: new Date(),
     classTimeIds: [],
-    employeeNumber: "0",  
-    payRate:  "0",           
-    deductions: "0",       
-    payCheckNo:  "0",        
-    payCheckDate: "0",      
-    payAdvance:  "0",       
-    payComment:  "0",      
-    ssn :  "",             
-    payType: "",           
-    dateFeePaid: "",           
-    disclosureForm : false,    
-    i9Form   : false,          
-    w4Recieved   :false,      
-    WSPRecieved :false,      
-    testRecieved  :false,     
-    idRecieved : false,       
-    schoolPermission :false, 
+    employeeNumber: "0",
+    payRate: "0",
+    deductions: "0",
+    payCheckNo: "0",
+    payCheckDate: "0",
+    payAdvance: "0",
+    payComment: "0",
+    ssn: "",
+    payType: "",
+    dateFeePaid: "",
+    disclosureForm: false,
+    i9Form: false,
+    w4Recieved: false,
+    WSPRecieved: false,
+    testRecieved: false,
+    idRecieved: false,
+    schoolPermission: false,
     WSPDate: "",
   };
 
   if (initialData) {
-    //console.log("Initial Data:", initialData);
-    (Object.keys(defaultValues) as Array<keyof InstructorFormValues>).forEach(
-      (key) => {
-        if (
-          key in initialData &&
-          initialData[key] !== null &&
-          initialData[key] !== undefined &&
-          (typeof initialData[key] !== "string" ||
-            (initialData[key] as string).trim() !== "")
-        ) {
-          switch (key) {
-            case "AGE":
-              defaultValues[key] = initialData[key] as number;
-              break;
-            case "NAME_FIRST":
-            case "NAME_LAST":
-            case "HOME_TEL":
-            case "E_mail_main":
-            case "C_TEL":
-            case "ADDRESS":
-            case "CITY":
-            case "STATE":
-            case "ZIP":
-            case "UniqueID":
-            case "PSIA":
-            case "STATUS":
-            case "InstructorType":
-            case "dateConfirmed":
-            case "COMMENTS":
-            case "dateReg":
-            case "prevYear":
-            case "AASI":
-            case "testScore":
-            case "skiLevel":
-            case "boardLevel":
-            case "boardMaxAge":
-            case "boardMinAge":
-            case "skiMaxAge":
-            case "skiMinAge":
-            case "instructorCom":
-            case "spouseName":
-            case "noteToInstructor":
-            case "resume":
-            case "priority":
-            case "dateAssigned":
-            case "assignmentConfirmed":
-            case "classAssigned":
-            case "classSignedUp":
-            case "classPerWeek":
-            case "ssn":
-            case "dateFeePaid":
-            case "employeeNumber":
-            case "deductions":
-            case "WSPDate":
-            case "payComment":
-            case "payCheckDate":
-            case "payAdvance":
-            case "payCheckNo":
-            case "payRate":
-            case "payType":
-            case "dateTimes": 
-              defaultValues[key] = initialData[key] as string;
-              break;
-            case "BRTHD":
-            case "updateAt":
-              defaultValues[key] = new Date(
-                initialData[key] as unknown as string
-              );
-              break;
-            case "Supervisor":
-            case "OverNightLodge":
-            case "emailCommunication":
-            case "ParentAuth":
-            case "clinicInstructor":
-            case "married":
-            case "back2Back":
-            case "permSub":
-            case "WSPRecieved":
-            case "disclosureForm":
-            case "i9Form":
-            case "idRecieved":
-            case "schoolPermission":
-            case "testRecieved":
-            case "w4Recieved":
-              defaultValues[key] = initialData[key] as boolean;
-              break;
-            case "ageRequestByStaff":
-            case "clinics":
-              defaultValues[key] = initialData[key] as string[];
-              break;
-            case "classTimeIds":
-              console.log(
-                "classTimeIds in initialData:",
-                initialData.classTimeIds
-              );
-              if (
-                "classTimeIds" in initialData &&
-                initialData.classTimeIds !== null
-              ) {
-                defaultValues[key] = initialData[key] as number[];
-              }
-              break;
-            default:
-              break;
-          }
-        }
+    Object.keys(defaultValues).forEach((key) => {
+      const typedKey = key as keyof InstructorFormValues;
+      const initialDataValue = initialData[typedKey];
+
+      if (initialDataValue !== null && initialDataValue !== undefined) {
+        // TypeScript should infer that defaultValues[typedKey] is the correct type
+        (defaultValues[typedKey] as typeof initialDataValue) = initialDataValue;
       }
-    );
+    });
   }
-  // console.log("Default Values:", defaultValues); // Check the final defaultValues
+
   return defaultValues;
 };
 
@@ -495,6 +401,18 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
   const [instructorClassTimes, setInstructorClassTimes] = useState<
     InstructorClassTime[]
   >([]);
+  const [selectedClinics, setSelectedClinics] = useState<string[]>([]);
+
+  const handleClinicChange = (clinicId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedClinics((prev) => [...prev, clinicId]);
+    } else {
+      setSelectedClinics((prev) => prev.filter((id) => id !== clinicId));
+    }
+  };
+
+  const [selectedClassTimes, setSelectedClassTimes] = useState<number[]>([]);
+  const [clinics, setClinics] = useState<Clinic[]>([]);
 
   const title = initialData ? "Edit Instructor" : "Create  Instructor";
   const description = initialData
@@ -506,18 +424,74 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
   const action = initialData ? "Save changes" : "Create";
 
   const form = useForm<InstructorFormValues>({
-    resolver: zodResolver(formSchema),
+    //resolver: zodResolver(formSchema),
     defaultValues: createDefaultValues(initialData),
   });
 
+  // Fetch all clinics
   useEffect(() => {
-    fetch(
-      `/api/${params.seasonId}/instructors/${params.instructorId}/InstructorClassTimes`
-    )
-      .then((response) => response.json())
-      .then((data) => setInstructorClassTimes(data))
-      .catch((error) => console.error("Error fetching class times:", error));
-  }, [params.seasonId, params.instructorId]);
+    const fetchAllClinics = async () => {
+      try {
+        const clinicsResponse = await axios.get(`/api/${seasonId}/clinics`);
+        console.log("Clinic Response", clinicsResponse);
+        setClinics(clinicsResponse.data);
+      } catch (error) {
+        console.error("Error fetching all clinics", error);
+      }
+    };
+
+    fetchAllClinics();
+  }, [seasonId]);
+
+  useEffect(() => {
+    const fetchInstructorClinics = async () => {
+      try {
+        const instructorClinicsResponse = await axios.get(
+          `/api/${seasonId}/instructors/${instructorId}/instructorClinic`
+        );
+
+        // Extract clinic IDs from the response
+        const selectedClinicIds = instructorClinicsResponse.data.map(
+          (instructorClinic) => instructorClinic.clinic.id
+        );
+
+        // Set the clinics field in the form with these IDs
+        form.setValue("clinics", selectedClinicIds, {
+          shouldValidate: false,
+          shouldDirty: true,
+        });
+      } catch (error) {
+        console.error("Error fetching instructor clinics", error);
+      }
+    };
+
+    fetchInstructorClinics();
+  }, [instructorId, seasonId]);
+
+  useEffect(() => {
+    const fetchInstructorClassTimes = async () => {
+      try {
+        const response = await axios.get(
+          `/api/${params.seasonId}/instructors/${params.instructorId}/InstructorClassTimes`
+        );
+
+        const data = response.data;
+        console.log("ClassTimes marked:", data);
+
+        // Ensure all classTimeIds are numbers
+        const selectedClassTimeIds = data.map((item: any) =>
+          Number(item.classTimeId)
+        );
+
+        // Set the selectedClassTimes state with these IDs
+        setSelectedClassTimes(selectedClassTimeIds);
+      } catch (error) {
+        console.error("Error fetching instructor class times:", error);
+      }
+    };
+
+    fetchInstructorClassTimes();
+  }, [instructorId, seasonId]);
 
   useEffect(() => {
     fetch("/api/classTimes")
@@ -539,32 +513,33 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
   };
 
   const onSubmit = async (data: InstructorFormValues) => {
-    console.log("Data before submission:", data);
     try {
       setLoading(true);
 
-      // Modify or prepare the data to be sent
       const updatedData = {
         ...data,
-        classTimeIds: instructorClassTimes.map((ct) => ct.classTimeId),
+        UniqueID: data.UniqueID ? Number(data.UniqueID) : undefined,
+        clinics: selectedClinics.map((clinic) => Number(clinic)), // Ensure they are numbers
+        classTimeIds: selectedClassTimes, // Ensure these are being passed correctly
       };
-      console.log("Submit handler called with payload:", updatedData);
+
+      console.log("Updated Data on submit:", updatedData); // Debugging line
 
       if (initialData) {
         // Update existing instructor
         await axios.patch(
-          `/api/${params.seasonId}/instructors/${params.instructorId}`,
+          `/api/${seasonId}/instructors/${instructorId}`,
           updatedData
         );
       } else {
         // Create new instructor
-        await axios.post(`/api/${params.seasonId}/instructors`, updatedData);
+        await axios.post(`/api/${seasonId}/instructors`, updatedData);
       }
 
       navigationRouter.refresh();
-      navigationRouter.push(`/${params.seasonId}/instructors`);
+      navigationRouter.push(`/${seasonId}/instructors`);
       toast.success(toastMessage);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error in form submission:", error);
       toast.error("Something went wrong.");
     } finally {
@@ -657,9 +632,14 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
               name="UniqueID"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>RegNum</FormLabel>
+                  <FormLabel>ID</FormLabel>
                   <FormControl>
-                    <Input disabled={loading} placeholder="RegNum" {...field} />
+                    <Input
+                      disabled={loading}
+                      placeholder="ID"
+                      {...field}
+                      type="number"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1484,16 +1464,20 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                               >
                                 <Checkbox
                                   id={`class-time-${classTime.id}`}
-                                  checked={instructorClassTimes.some(
-                                    (ic) =>
-                                      ic.classTimeId === Number(classTime.id)
+                                  checked={selectedClassTimes.includes(
+                                    parseInt(classTime.id)
                                   )}
                                   onCheckedChange={(checked) => {
-                                    // Ensure 'checked' is a boolean before passing it to the handler
-                                    if (typeof checked === "boolean") {
-                                      handleCheckboxChange(
+                                    if (checked) {
+                                      setSelectedClassTimes((prev) => [
+                                        ...prev,
                                         Number(classTime.id),
-                                        checked
+                                      ]);
+                                    } else {
+                                      setSelectedClassTimes((prev) =>
+                                        prev.filter(
+                                          (id) => id !== Number(classTime.id)
+                                        )
                                       );
                                     }
                                   }}
@@ -1594,7 +1578,11 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                                 disabled={loading}
                                 placeholder=""
                                 {...field}
-                                value={field.value ? field.value.toISOString().substring(0, 10) : ''}
+                                value={
+                                  field.value
+                                    ? field.value.toISOString().substring(0, 10)
+                                    : ""
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -1607,23 +1595,6 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Date Assigned</FormLabel>
-                            <FormControl>
-                              <Input
-                                disabled={loading}
-                                placeholder=""
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="assignmentConfirmed"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Assignment Confirmed</FormLabel>
                             <FormControl>
                               <Input
                                 disabled={loading}
@@ -2063,65 +2034,56 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
               </Card>
             </TabsContent>
             <TabsContent value="clinics">
-            <FormField
+              <FormField
+                control={form.control}
+                name="clinics"
+                render={() => (
+                  <FormItem className="flex flex-col space-y-4">
+                    {clinics.map((clinic) => (
+                      <FormField
+                        key={clinic.id}
                         control={form.control}
                         name="clinics"
-                        render={() => (
-                          <FormItem>
-                            <div className="mb-4">
-                              <FormLabel className="text-base">
-                                Clinics
+                        render={({ field }) => {
+                          const selectedClinics = field.value || [];
+                          return (
+                            <FormItem
+                              key={clinic.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={selectedClinics.includes(clinic.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newSelectedClinics = checked
+                                      ? [...selectedClinics, clinic.id]
+                                      : selectedClinics.filter(
+                                          (id) => id !== clinic.id
+                                        );
+
+                                    setSelectedClinics(newSelectedClinics);
+                                    form.setValue(
+                                      "clinics",
+                                      newSelectedClinics
+                                    ); // Ensure the form value is also updated
+                                    console.log(
+                                      "Updated Clinics:",
+                                      newSelectedClinics
+                                    );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {clinic.name}
                               </FormLabel>
-                            </div>
-                            {clinics.map((item) => (
-                              <FormField
-                                key={item.id}
-                                control={form.control}
-                                name="clinics"
-                                render={({ field }) => {
-                                  return (
-                                    <FormItem
-                                      key={item.id}
-                                      className="flex flex-row items-start space-x-3 space-y-0"
-                                    >
-                                      <FormControl>
-                                        <Checkbox
-                                          checked={field.value?.includes(
-                                            item.id
-                                          )}
-                                          onCheckedChange={(checked) => {
-                                            const currentValue =
-                                              field.value || [];
-                                            if (checked) {
-                                              // Add item.id to the array
-                                              field.onChange([
-                                                ...currentValue,
-                                                item.id,
-                                              ]);
-                                            } else {
-                                              // Remove item.id from the array
-                                              field.onChange(
-                                                currentValue.filter(
-                                                  (value: string) =>
-                                                    value !== item.id
-                                                )
-                                              );
-                                            }
-                                          }}
-                                        />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">
-                                        {item.label}
-                                      </FormLabel>
-                                    </FormItem>
-                                  );
-                                }}
-                              />
-                            ))}
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                            </FormItem>
+                          );
+                        }}
                       />
+                    ))}
+                  </FormItem>
+                )}
+              />
             </TabsContent>
           </Tabs>
           <Button disabled={loading} className="ml-auto" type="submit">

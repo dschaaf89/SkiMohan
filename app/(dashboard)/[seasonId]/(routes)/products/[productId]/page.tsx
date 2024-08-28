@@ -12,7 +12,8 @@ const ProductPage = async ({
       id: params.productId,
     },
     include: {
-      images: true,
+      program: true, // Include program to access the program image if needed
+      type: true,
     }
   });
 
@@ -28,14 +29,13 @@ const ProductPage = async ({
     },
   });
 
-
   return ( 
     <div className="flex-col">
       <div className="flex-1 space-y-4 p-8 pt-6">
         <ProductForm 
           programs={programs} 
           types={types}
-          initialData={product}
+          initialData={product} // Pass the product data, which now includes quantity and other necessary fields
         />
       </div>
     </div>

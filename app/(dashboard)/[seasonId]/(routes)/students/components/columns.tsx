@@ -6,8 +6,8 @@ import {Button} from "@/components/ui/button"
 import { CellAction } from "./cell-action"
 
 export type StudentColumn = {
-  id:string;
-  UniqueID: string;
+ 
+  UniqueID: number;
   NAME_FIRST: string;
   NAME_LAST: string;
   HOME_TEL: string;

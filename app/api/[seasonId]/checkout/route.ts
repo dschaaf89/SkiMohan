@@ -9,82 +9,99 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
-}
+export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
+  const { items } = await req.json();
 
-export async function POST(
-  req: Request,
-  { params }: { params: { seasonId: string } }
-) {
-  const { productIds, firstName, lastName } = await req.json();
-
-  if (!productIds || productIds.length === 0) {
-    return new NextResponse("Product ids are required", { status: 400 });
+  if (!items || items.length === 0) {
+    return new NextResponse("Product items are required", { status: 400 });
   }
+
+  const productIds = items.map(item => item.id);
+  const programCodes = items.map(item => item.programCode); // Extract program codes
 
   const products = await prismadb.product.findMany({
     where: {
       id: {
-        in: productIds
-      }
-    }
+        in: productIds,
+      },
+    },
   });
 
   const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 
-  products.forEach((product) => {
-    line_items.push({
-      quantity: 1,
-      price_data: {
-        currency: 'USD',
-        product_data: {
-          name: product.name,
+  items.forEach((item) => {
+    const product = products.find(product => product.id === item.id);
+
+    if (product) {
+      line_items.push({
+        quantity: item.quantity,
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: product.name,
+          },
+          unit_amount: product.price.toNumber() * 100,
         },
-        unit_amount: product.price.toNumber() * 100
-      }
-    });
+      });
+    }
   });
 
   const order = await prismadb.order.create({
     data: {
       seasonId: params.seasonId,
       isPaid: false,
-      Name_First: firstName,
-      Name_Last: lastName,
       orderItems: {
-        create: productIds.map((productId: string) => ({
+        create: items.map((item) => ({
           product: {
             connect: {
-              id: productId
-            }
-          }
-        }))
-      }
-    }
+              id: item.id,
+            },
+          },
+        })),
+      },
+    },
   });
 
-  const success_url = `${process.env.FRONT_END_SEASON_URL}/cart?success=1`;
+  // Determine the correct success URL based on program codes
+  const isInstructorProduct = programCodes.includes('Instructor');
+  const isAssistantProduct = programCodes.includes('Assistant');
+  const success_url = isInstructorProduct 
+    ? `${process.env.FRONT_END_SEASON_URL}/instructor-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&session_id={CHECKOUT_SESSION_ID}`
+    : isAssistantProduct
+      ? `${process.env.FRONT_END_SEASON_URL}/assistant-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&session_id={CHECKOUT_SESSION_ID}`
+      : `${process.env.FRONT_END_SEASON_URL}/student-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&session_id={CHECKOUT_SESSION_ID}`;
+  
   const cancel_url = `${process.env.FRONT_END_SEASON_URL}/cart?canceled=1`;
-
-  console.log('Success URL:', success_url);
-  console.log('Cancel URL:', cancel_url);
-
+  console.log('Creating Stripe session with items:', items);
+  console.log('Checkout session success URL:', success_url);
   const session = await stripe.checkout.sessions.create({
     line_items,
-    mode: 'payment',
-    billing_address_collection: 'required',
+    mode: "payment",
+    billing_address_collection: "required",
     phone_number_collection: {
       enabled: true,
     },
     success_url: success_url,
     cancel_url: cancel_url,
     metadata: {
-      orderId: order.id
+      orderId: order.id,
     },
   });
 
+  await Promise.all(
+    items.map(async (item) => {
+      const product = products.find(product => product.id === item.id);
+
+      if (product && product.quantity >= item.quantity) {
+        await prismadb.product.update({
+          where: { id: item.id },
+          data: { quantity: product.quantity - item.quantity },
+        });
+      }
+    })
+  );
+
   return NextResponse.json({ url: session.url }, {
-    headers: corsHeaders
+    headers: corsHeaders,
   });
 }

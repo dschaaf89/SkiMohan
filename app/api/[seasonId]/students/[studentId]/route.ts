@@ -3,8 +3,7 @@ import { auth } from "@clerk/nextjs";
 
 import prismadb from "@/lib/prismadb";
 type Student = {
-  id:string;
-  UniqueID: string;
+  UniqueID: number;
   NAME_FIRST: string;
   NAME_LAST: string;
   HOME_TEL: string;
@@ -50,7 +49,7 @@ type Student = {
 }
 export async function GET(
   req: Request,
-  { params }: { params: { studentId: string } }
+  { params }: { params: { studentId: number } }
 ) {
   try {
     if (!params.studentId) {
@@ -59,7 +58,7 @@ export async function GET(
 
     const student = await prismadb.student.findUnique({
       where: {
-        id: params.studentId
+        UniqueID: params.studentId
       }
     });
   
@@ -72,7 +71,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { studentId: string, seasonId: string } }
+  { params }: { params: { studentId: number, seasonId: string } }
 ) {
   try {
     const { userId } = auth();
@@ -98,7 +97,7 @@ export async function DELETE(
 
     const student = await prismadb.student.delete({
       where: {
-        id: params.studentId,
+        UniqueID: params.studentId,
       }
     });
   
@@ -232,7 +231,7 @@ export async function DELETE(
 //   }
 // }
 
-export async function PATCH(req: Request, { params }: { params: { studentId: string, seasonId: string } }) {
+export async function PATCH(req: Request, { params }: { params: { studentId: number, seasonId: string } }) {
   try {
    
     const body = await req.json();
@@ -240,7 +239,7 @@ export async function PATCH(req: Request, { params }: { params: { studentId: str
 
     // Update student information including status
     const updatedStudent = await prismadb.student.update({
-      where: { id: params.studentId },
+      where: { UniqueID: params.studentId },
       data: {
         ...body, // Spread all updateable fields
         seasonId: params.seasonId // Ensure seasonId is maintained or updated appropriately

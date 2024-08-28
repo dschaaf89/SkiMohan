@@ -82,7 +82,7 @@ export async function PATCH(
       firstName, lastName, birthDate, homePhone, mobilePhone, workPhone,
       Address, city, state, zipCode, email, employerSchool, occupationGrade,
       isGreeter, isProgramCoordinator, isBusChaperone, busChaperoneSchool,
-      isEmergencyDriver, emergencyDriverDay, applicantStatus, agreeToTerms, busChaperoneWk1,
+      isEmergencyDriver, emergencyDriverDay, agreeToTerms, busChaperoneWk1,
       busChaperoneWk2,
       busChaperoneWk3,
       busChaperoneWk4,
@@ -94,6 +94,7 @@ export async function PATCH(
       emergencyDriverWk4,
       emergencyDriverWk5,
       emergencyDriverWk6,
+      GreetTimeSlot,
     } = body;
 
     // Perform additional validations as needed
@@ -123,7 +124,6 @@ export async function PATCH(
         busChaperoneSchool,
         isEmergencyDriver,
         emergencyDriverDay,
-        applicantStatus,
         agreeToTerms,
         busChaperoneWk1,
         busChaperoneWk2,
@@ -137,6 +137,7 @@ export async function PATCH(
         emergencyDriverWk4,
         emergencyDriverWk5,
         emergencyDriverWk6,
+        GreetTimeSlot,
         seasonId: params.seasonId // Ensure seasonId is maintained or updated appropriately
       }
     });

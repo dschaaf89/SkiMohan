@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
-
 import prismadb from "@/lib/prismadb";
 
 export async function GET(
@@ -11,16 +9,20 @@ export async function GET(
     if (!params.instructorId) {
       return new NextResponse("Instructor ID is required", { status: 400 });
     }
-    
+
+    // Fetch the instructor's class times including related class time details
     const instructorClassTimes = await prismadb.instructorClassTime.findMany({
-      where: { instructorId: params.instructorId },
+      where: { instructorId: parseInt(params.instructorId) }, // Assuming instructorId is now an integer
+      include: {
+        classTime: true, // Include the related classTime details
+      },
     });
 
-    if (!instructorClassTimes) {
-      return new NextResponse("Instructor not found", { status: 404 });
+    if (!instructorClassTimes.length) {
+      return new NextResponse("Instructor class times not found", { status: 404 });
     }
 
-    // Return the instructor as JSON response
+    // Return the instructor class times as JSON response
     return new NextResponse(JSON.stringify(instructorClassTimes), {
       status: 200,
       headers: {

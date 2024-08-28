@@ -19,8 +19,7 @@ const StudentPage = async ({
   });
 
   const formattedStudents: StudentColumn[] = students.map((item) => ({
-  id:item.id,
-  UniqueID: item.UniqueID || "",
+  UniqueID: item.UniqueID ,
   NAME_FIRST: item.NAME_FIRST || "",
   NAME_LAST: item.NAME_LAST|| "",
   HOME_TEL: item.HOME_TEL || "",

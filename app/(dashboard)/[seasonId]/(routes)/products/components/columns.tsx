@@ -1,15 +1,15 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-
 import { CellAction } from "./cell-action"
 
 export type ProductColumn = {
-  id: string
+  id: string;
   name: string;
   price: string;
   program: string;
   type: string;
+  quantity: number; // Added quantity field
   createdAt: string;
   isFeatured: boolean;
   isArchived: boolean;
@@ -39,6 +39,10 @@ export const columns: ColumnDef<ProductColumn>[] = [
   {
     accessorKey: "type",
     header: "Type",
+  },
+  {
+    accessorKey: "quantity",  // Added quantity column
+    header: "Stock Quantity",  // Named the column appropriately
   },
   {
     accessorKey: "createdAt",

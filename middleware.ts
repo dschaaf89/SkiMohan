@@ -26,7 +26,8 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
 
   // Proceed with Clerk auth middleware for other requests
   return authMiddleware({
-    publicRoutes: ["/api/:path*"]
+    ignoredRoutes: ["/api/webhook/clerk"], // Ignore Clerk auth for the webhook endpoint
+    publicRoutes: ["/api/:path*","/api/webhook/clerk"]
   })(request, event);
 }
 

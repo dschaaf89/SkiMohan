@@ -9,18 +9,26 @@ export async function GET(
 ) {
   try {
     if (!params.instructorId) {
-      return new NextResponse("instructor id is required", { status: 400 });
+      return new NextResponse("Instructor ID is required", { status: 400 });
     }
 
     const instructor = await prismadb.instructor.findUnique({
       where: {
-        id: params.instructorId,
+        UniqueID: parseInt(params.instructorId), // Assuming `UniqueID` is an integer
+      },
+      include: {
+        clinics: true, // Include clinics if needed
+        classTimes: true, // Include classTimes if needed
       },
     });
 
+    if (!instructor) {
+      return new NextResponse("Instructor not found", { status: 404 });
+    }
+
     return NextResponse.json(instructor);
   } catch (error) {
-    console.log("[intstructor_GET]", error);
+    console.log("[instructor_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
@@ -38,23 +46,12 @@ export async function DELETE(
     }
 
     if (!params.instructorId) {
-      return new NextResponse("Billboard id is required", { status: 400 });
+      return new NextResponse("Instructor ID is required", { status: 400 });
     }
-
-    // const storeByUserId = await prismadb.season.findFirst({
-    //   where: {
-    //     id: params.seasonId,
-    //     userId,
-    //   }
-    // });
-
-    // if (!storeByUserId) {
-    //   return new NextResponse("Unauthorized", { status: 405 });
-    // }
 
     const instructor = await prismadb.instructor.delete({
       where: {
-        id: params.instructorId,
+        UniqueID: parseInt(params.instructorId), // Assuming `UniqueID` is an integer
       },
     });
 
@@ -64,125 +61,88 @@ export async function DELETE(
     return new NextResponse("Internal error", { status: 500 });
   }
 }
-
 export async function PATCH(
   req: Request,
   { params }: { params: { instructorId: string; seasonId: string } }
-  
 ) {
   try {
     const body = await req.json();
     console.log("Received data in PATCH route:", body);
-    const { clinics,classTimeIds, ageRequestByStaff, ...otherData } = body;
-    let validatedClinics;
-    if (Array.isArray(clinics)) {
-      validatedClinics = clinics.every(item => typeof item === 'string')
-        ? clinics
-        : null; // or handle the error
-    } else if (clinics === null || clinics === undefined) {
-      validatedClinics = null;
-    } else {
-      // Handle cases where `ageRequestByStaff` is not an array or null
-      // Maybe return an error or set a default value
-      validatedClinics = null; // or handle the error
-    }
-    let validatedAgeRequestByStaff;
-    if (Array.isArray(ageRequestByStaff)) {
-      validatedAgeRequestByStaff = ageRequestByStaff.every(item => typeof item === 'string')
-        ? ageRequestByStaff
-        : null; // or handle the error
-    } else if (ageRequestByStaff === null || ageRequestByStaff === undefined) {
-      validatedAgeRequestByStaff = null;
-    } else {
-      // Handle cases where `ageRequestByStaff` is not an array or null
-      // Maybe return an error or set a default value
-      validatedAgeRequestByStaff = null; // or handle the error
-    }
-    const {
-      UniqueID,
-      NAME_FIRST,
-      NAME_LAST,
-      HOME_TEL,
-      C_TEL,
-      BRTHD,
-      E_mail_main,
-      ADDRESS,
-      CITY,
-      STATE,
-      ZIP,
-      AGE,
-      STATUS,
-      COMMENTS,
-      prevYear,
-      dateReg,
-      dateConfirmed,
-      emailCommunication,
-      InstructorType,
-      PSIA,
-      AASI,
-      testScore,
-      ParentAuth,
-      OverNightLodge,
-      clinicInstructor,
-      Supervisor,
-    } = body;
+    
+    const { clinics, classTimeIds, ageRequestByStaff, classes, ...otherData } = body;
 
+    // Validate clinics and ageRequestByStaff
+    const validatedClinics = Array.isArray(clinics) ? clinics : null;
+    const validatedAgeRequestByStaff = Array.isArray(ageRequestByStaff) ? ageRequestByStaff : null;
 
-
-    if (!NAME_FIRST) {
-      return new NextResponse("Label is required", { status: 400 });
-    }
-
-    if (!NAME_LAST) {
-      return new NextResponse("Image URL is required", { status: 400 });
-    }
+    console.log("here is the validated Clinics:",validatedClinics)
 
     if (!params.instructorId) {
-      return new NextResponse("Billboard id is required", { status: 400 });
+      return new NextResponse("Instructor ID is required", { status: 400 });
     }
 
-    // const storeByUserId = await prismadb.season.findFirst({
-    //   where: {
-    //     id: params.seasonId,
-    //     userId,
-    //   }
-    // });
-
-    // if (!storeByUserId) {
-    //   return new NextResponse("Unauthorized", { status: 405 });
-    // }
-    console.log('Received data:', body);
+    // Update instructor's general information
     const instructor = await prismadb.instructor.update({
       where: {
-        id: params.instructorId,
+        UniqueID: parseInt(params.instructorId),
       },
       data: {
         ...otherData,
-        clinics:validatedClinics,
-       ageRequestByStaff:validatedAgeRequestByStaff,
-        seasonId: params.seasonId,
-        // Other updates...
-        // Remove existing class times
-        classTimes: {
-          deleteMany: {
-            instructorId: params.instructorId,
-          },
-        },
+        ageRequestByStaff: validatedAgeRequestByStaff,
+        seasonId: params.seasonId, // Use seasonId as string
       },
     });
-    
-    // After removing existing class times, create new relations
-    await Promise.all(
-      classTimeIds.map((classTimeId: number) => 
-        prismadb.instructorClassTime.create({
-          data: {
-            instructorId: params.instructorId,
-            classTimeId: classTimeId,
+
+    // Update clinics
+    if (validatedClinics.length > 0) {
+      try {
+        // Disconnect all existing clinics
+        await prismadb.instructorClinic.deleteMany({
+          where: {
+            instructorId: parseInt(params.instructorId),
           },
+        });
+    
+        // Reconnect the selected clinics
+        await Promise.all(
+          validatedClinics.map(async (clinicId: number) => {
+            await prismadb.instructorClinic.create({
+              data: {
+                instructorId: parseInt(params.instructorId),
+                clinicId,
+              },
+            });
+          })
+        );
+      } catch (error) {
+        console.error("Error updating clinics:", error);
+        throw new Error("Failed to update clinics");
+      }
+    }
+    
+    // Update class times
+    if (classTimeIds) {
+      // Disconnect all existing class times
+      await prismadb.instructorClassTime.deleteMany({
+        where: {
+          instructorId: parseInt(params.instructorId),
+        },
+      });
+
+      // Reconnect the selected class times
+      await Promise.all(
+        classTimeIds.map(async (classTimeId: number) => {
+          await prismadb.instructorClassTime.create({
+            data: {
+              instructorId: parseInt(params.instructorId),
+              classTimeId,
+            },
+          });
         })
-      )
-    );
-    console.log("Instructor UPDATED!!!!!!!!!!!!!!!!!!!!!!!",instructor); 
+      );
+    }
+
+    console.log("Instructor updated:", instructor);
     return NextResponse.json(instructor);
   } catch (error) {
     console.error("Error in PATCH route:", error);

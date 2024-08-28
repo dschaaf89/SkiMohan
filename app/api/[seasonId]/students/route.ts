@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs'
+
 
 import prismadb from '@/lib/prismadb';
 
@@ -10,13 +11,13 @@ export async function POST(
   req: Request,
   { params }: { params: { seasonId: string } }
 ) {
+  console.log('POST function called'); // Add this line
   try {
     const { userId } = auth();
-
+    console.log('User ID:', userId); 
     const body = await req.json();
-
-    const {    
-      UniqueID,
+    console.log('Request Body:', body);
+    const {
       NAME_FIRST,
       NAME_LAST,
       HOME_TEL,
@@ -50,11 +51,13 @@ export async function POST(
       AGRESSIVENESS,
       AGE_GROUP,
       GENDER,
-      FeeComment, 
+      FeeComment,
       DAY,
       StartTime,
-      EndTime, 
+      EndTime,
+      customerId,
     } = body;
+
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -83,9 +86,11 @@ export async function POST(
     //   return new NextResponse("Unauthorized", { status: 405 });
     // }
 
+    
+
     const student = await prismadb.student.create({
       data: {
-        UniqueID,
+      
         NAME_FIRST,
         NAME_LAST,
         HOME_TEL,
@@ -118,18 +123,19 @@ export async function POST(
         AGE,
         AGE_GROUP,
         GENDER,
-        AGRESSIVENESS, // Add missing properties with default values if needed
-        FeeComment,    // Add missing properties with default values if needed
+        AGRESSIVENESS,
+        FeeComment,
         DAY,
         StartTime,
         EndTime,
+        customerId,
         seasonId: params.seasonId,
       },
     });
-  
+    console.log('Student Created:', student);
     return NextResponse.json(student);
   } catch (error) {
     console.log('[Students_POST]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}

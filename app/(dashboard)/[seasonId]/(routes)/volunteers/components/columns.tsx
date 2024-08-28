@@ -24,7 +24,6 @@ export type VolunteerColumn = {
   busChaperoneSchool?: string | null;
   isEmergencyDriver: boolean;
   emergencyDriverDay?: string | null;
-  applicantStatus?: string | null;
   agreeToTerms: boolean;
   busChaperoneWk1: boolean,
   busChaperoneWk2: boolean,
@@ -38,6 +37,7 @@ export type VolunteerColumn = {
   emergencyDriverWk4: boolean,
   emergencyDriverWk5: boolean,
   emergencyDriverWk6:boolean,
+  GreetTimeSlot:String
 };
 
 const getVolunteerRoles = (volunteer: VolunteerColumn): string => {

@@ -40,7 +40,6 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       busChaperoneSchool,
       isEmergencyDriver,
       emergencyDriverDay,
-      applicantStatus,
       agreeToTerms,
       busChaperoneWk1,
       busChaperoneWk2,
@@ -54,6 +53,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       emergencyDriverWk4,
       emergencyDriverWk5,
       emergencyDriverWk6,
+      GreetTimeSlot,
     } = body;
 
     // Authentication and Authorization checks
@@ -100,7 +100,6 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         busChaperoneSchool,
         isEmergencyDriver,
         emergencyDriverDay,
-        applicantStatus,
         agreeToTerms,
         busChaperoneWk1,
         busChaperoneWk2,
@@ -114,14 +113,21 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         emergencyDriverWk4,
         emergencyDriverWk5,
         emergencyDriverWk6,
+        GreetTimeSlot,
         seasonId: params.seasonId,
       },
     });
     console.log("Volunteer created:", newVolunteer);
 
     return new NextResponse(JSON.stringify(newVolunteer), { status: 201, headers: corsHeaders });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[POST Volunteer Error]', error);
+    
+    // Specific error handling for Prisma known errors
+    if (error.code && error.code === 'P2002') {
+      return new NextResponse("A volunteer with the same unique field already exists.", { status: 409, headers: corsHeaders });
+    }
+
     return new NextResponse("Internal server error", { status: 500, headers: corsHeaders });
   }
 }

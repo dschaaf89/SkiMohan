@@ -17,8 +17,11 @@ export async function GET(
         id: params.productId
       },
       include: {
-        images: true,
-        program: true,
+        program: {
+          select: {
+            imageUrl: true, // Select the imageUrl from the Program
+          },
+        },
         type: true,
       }
     });
@@ -29,6 +32,7 @@ export async function GET(
     return new NextResponse("Internal error", { status: 500 });
   }
 };
+
 
 export async function DELETE(
   req: Request,
@@ -79,7 +83,7 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const { name, price, programId, images, typeId, isFeatured, isArchived } = body;
+    const { name, price, programId, typeId, isFeatured, isArchived, quantity } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -93,8 +97,8 @@ export async function PATCH(
       return new NextResponse("Name is required", { status: 400 });
     }
 
-    if (!images || !images.length) {
-      return new NextResponse("Images are required", { status: 400 });
+    if (quantity === undefined || quantity < 0) {
+      return new NextResponse("Valid quantity is required", { status: 400 });
     }
 
     if (!price) {
@@ -102,26 +106,26 @@ export async function PATCH(
     }
 
     if (!programId) {
-      return new NextResponse("Category id is required", { status: 400 });
+      return new NextResponse("Program id is required", { status: 400 });
     }
-
-  
 
     if (!typeId) {
-      return new NextResponse("Size id is required", { status: 400 });
+      return new NextResponse("Type id is required", { status: 400 });
     }
 
-    // const storeByUserId = await prismadb.season.findFirst({
+    // Optional: Check if the product belongs to the user’s season
+    // const seasonByUserId = await prismadb.season.findFirst({
     //   where: {
     //     id: params.seasonId,
     //     userId
     //   }
     // });
 
-    // if (!storeByUserId) {
+    // if (!seasonByUserId) {
     //   return new NextResponse("Unauthorized", { status: 405 });
     // }
 
+    // Update the product with quantity
     await prismadb.product.update({
       where: {
         id: params.productId
@@ -131,32 +135,15 @@ export async function PATCH(
         price,
         programId,
         typeId,
-        images: {
-          deleteMany: {},
-        },
         isFeatured,
         isArchived,
+        quantity, // Updated to include quantity
       },
     });
 
-    const product = await prismadb.product.update({
-      where: {
-        id: params.productId
-      },
-      data: {
-        images: {
-          createMany: {
-            data: [
-              ...images.map((image: { url: string }) => image),
-            ],
-          },
-        },
-      },
-    })
-  
-    return NextResponse.json(product);
+    return new NextResponse("Product updated successfully", { status: 200 });
   } catch (error) {
     console.log('[PRODUCT_PATCH]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}

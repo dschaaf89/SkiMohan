@@ -33,69 +33,84 @@ model Billboard {
   imageUrl String
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
-
   @@index([seasonId])
 }
 
+model Customer {
+  id               String    @id @default(uuid())
+  stripeCustomerId String    @unique
+  firstName        String
+  lastName         String
+  email            String    @unique
+  students         Student[] @relation("CustomerToStudent")
+  instructors      Instructor[]@relation("CustomerToInstructor")
+  //assistants       Assistant[]@relation("CustomerToAssistant")
+  createAt         DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+
+}
 model Student {
-  id            String   @id @default(uuid())
-  season        Season   @relation("SeasonToStudent", fields: [seasonId], references: [id])
+  UniqueID      Int       @unique @default(autoincrement())
+  season        Season    @relation("SeasonToStudent", fields: [seasonId], references: [id])
   seasonId      String
-  UniqueID      String   @map("UniqueID")
-  NAME_FIRST    String   @map("NAME_FIRST")
-  NAME_LAST     String   @map("NAME_LAST")
-  HOME_TEL      String   @map("HOME_TEL")
-  ADDRESS       String   @map("ADDRESS")
-  CITY          String   @map("CITY")
-  STATE         String   @map("STATE")
-  ZIP           String   @map("ZIP")
-  student_tel   String   @map("student_tel")
-  Email_student String?  @map("Email_student")
-  BRTHD         DateTime @map("DOB")
-  GradeLevel    String?  @map("GradeLevel")
-  APPLYING_FOR  String?  @map("APPLYING_FOR")
-  AGE           Int      @map("AGE")
-  LEVEL         String?  @map("LEVEL")
-  Approach      String?  @map("Approach")
-  E_mail_main   String?  @map("E_mail_main")
-  E_NAME        String?  @map("E_NAME")
-  E_TEL         String?  @map("E_TEL")
-  CCPayment     String?  @map("CCPayment")
-  ProgCode      String?  @map("ProgCode")
-  BUDDY         String?  @map("BUDDY")
-  WComment      String?  @map("WComment")
-  DateFeePaid   String?  @map("DateFeePaid")
-  PaymentStatus String?  @map("PaymentStatus")
-  AcceptedTerms String?  @map("AcceptedTerms")
-  AppType       Int?     @map("AppType")
-  Employer      String?  @map("Employer")
-  C_TEL         String?  @map("C_TEL")
-  Occupation    String?  @map("Occupation")
-  W_TEL         String?  @map("W_TEL")
-  AGE_GROUP     Int?     @map("AGE_GROUP")
-  AGRESSIVENESS String?  @map("AGRESSIVENESS")
-  GENDER        String?  @map("GENDER")
-  FeeComment    String?  @map("FeeComment")
-  DAY           String?  @map("Day")
-  StartTime     String?  @map("StartTime")
-  EndTime       String?  @map("EndTime")
-  createAt      DateTime @default(now())
-  updateAt      DateTime @updatedAt
-  classID       Int?     @map("classID")
-  meetColor     String?  @map("meetColor")
-  meetingPoint  Int?     @map("meetingPoint")
-  status        String   @default("Registered") @map("status")
+  customer      Customer? @relation("CustomerToStudent", fields: [customerId], references: [id])
+  customerId    String? 
+  NAME_FIRST    String    @map("NAME_FIRST")
+  NAME_LAST     String    @map("NAME_LAST")
+  HOME_TEL      String    @map("HOME_TEL")
+  ADDRESS       String    @map("ADDRESS")
+  CITY          String    @map("CITY")
+  STATE         String    @map("STATE")
+  ZIP           String    @map("ZIP")
+  student_tel   String    @map("student_tel")
+  Email_student String?   @map("Email_student")
+  BRTHD         DateTime  @map("DOB")
+  GradeLevel    String?   @map("GradeLevel")
+  APPLYING_FOR  String?   @map("APPLYING_FOR")
+  AGE           Int       @map("AGE")
+  LEVEL         String?   @map("LEVEL")
+  Approach      String?   @map("Approach")
+  E_mail_main   String?   @map("E_mail_main")
+  E_NAME        String?   @map("E_NAME")
+  E_TEL         String?   @map("E_TEL")
+  CCPayment     String?   @map("CCPayment")
+  ProgCode      String?   @map("ProgCode")
+  BUDDY         String?   @map("BUDDY")
+  WComment      String?   @map("WComment")
+  DateFeePaid   String?   @map("DateFeePaid")
+  PaymentStatus String?   @map("PaymentStatus")
+  AcceptedTerms String?   @map("AcceptedTerms")
+  AppType       Int?      @map("AppType")
+  Employer      String?   @map("Employer")
+  C_TEL         String?   @map("C_TEL")
+  Occupation    String?   @map("Occupation")
+  W_TEL         String?   @map("W_TEL")
+  AGE_GROUP     Int?      @map("AGE_GROUP")
+  AGRESSIVENESS String?   @map("AGRESSIVENESS")
+  GENDER        String?   @map("GENDER")
+  FeeComment    String?   @map("FeeComment")
+  DAY           String?   @map("Day")
+  StartTime     String?   @map("StartTime")
+  EndTime       String?   @map("EndTime")
+  createAt      DateTime  @default(now())
+  updateAt      DateTime  @updatedAt
+  classID       Int?      @map("classID")
+  meetColor     String?   @map("meetColor")
+  meetingPoint  Int?      @map("meetingPoint")
+  status        String?    @default("Registered") @map("status")
 
   @@index([classID])
   @@index([seasonId])
   @@index([ProgCode])
+  @@index([customerId])
 }
-
 model Instructor {
-  id                  String                @id @default(uuid())
+  UniqueID            Int                   @id @default(autoincrement()) @map("UniqueID")
   season              Season                @relation("SeasonToInstructor", fields: [seasonId], references: [id])
   seasonId            String
-  UniqueID            String                @map("UniqueID")
+  customer            Customer?             @relation("CustomerToInstructor", fields: [customerId], references: [id])
+  customerId          String?
   NAME_FIRST          String                @map("NAME_FIRST")
   NAME_LAST           String                @map("NAME_LAST")
   HOME_TEL            String                @map("HOME_TEL")
@@ -135,7 +150,6 @@ model Instructor {
   noteToInstructor    String?               @map("noteToInstructor")
   priority            String?               @map("priority")
   dateAssigned        String?               @map("dateAssigned")
-  assignmentConfirmed String?               @map("assignmentConfrimed")
   classSignedUp       String?               @map("classSignedUp")
   classAssigned       String?               @map("classAssigned")
   permSub             Boolean?              @map("permSub")
@@ -162,14 +176,32 @@ model Instructor {
   idRecieved          Boolean?              @map("idRecieved")
   schoolPermission    Boolean?              @map("schoolPermission")
   WSPDate             String?               @map("WSPDate")
-  clinics             Json?                 @map("clinics")
+  oldClinics          Json?                 @map("oldClinics")          // Renamed field
+  clinics             InstructorClinic[]    @relation("InstructorToClinic")  // New relation for Instructor-Clinic
   classTimes          InstructorClassTime[] @relation("InstructorToClassTime")
   classes             Classes[]             @relation("InstructorToClasses")
   classesAsAssistant  Classes[]             @relation("AssistantToClasses")
 
   @@index([seasonId])
+  @@index([customerId])
 }
 
+model Clinic {
+  id          Int                @id @default(autoincrement())
+  name        String
+  date        DateTime
+  instructors InstructorClinic[] @relation("InstructorToClinic")
+}
+model InstructorClinic {
+  instructor   Instructor @relation("InstructorToClinic", fields: [instructorId], references: [UniqueID], onDelete: Cascade)
+  clinic       Clinic     @relation("InstructorToClinic", fields: [clinicId], references: [id], onDelete: Cascade)
+  instructorId Int
+  clinicId     Int
+
+  @@id([instructorId, clinicId])
+  @@index([instructorId])
+  @@index([clinicId])
+}
 model ClassTime {
   id              Int                   @id @default(autoincrement())
   label           String                @unique
@@ -181,15 +213,16 @@ model ClassTime {
 }
 
 model InstructorClassTime {
-  instructor   Instructor @relation("InstructorToClassTime", fields: [instructorId], references: [id], onDelete: Cascade)
+  instructor   Instructor @relation("InstructorToClassTime", fields: [instructorId], references: [UniqueID], onDelete: Cascade)
   classTime    ClassTime? @relation("ClassToInstructorClassTime", fields: [classTimeId], references: [id], onDelete: Cascade)
-  instructorId String
+  instructorId Int        // Changed to Int to match the type of Instructor's UniqueID
   classTimeId  Int
 
   @@id([instructorId, classTimeId])
   @@index([instructorId])
   @@index([classTimeId])
 }
+
 
 model Classes {
   season          Season      @relation("SeasonToClasses", fields: [seasonId], references: [id])
@@ -200,14 +233,14 @@ model Classes {
   students        Json        @map("students")
   day             String      @map("day")
   progCode        String      @map("progCode")
-  discipline      String // Add this field
+  discipline      String      // This field was added as specified
   numberStudents  Int
   Level           String?
-  Age             Int? // Add this field
-  instructorId    String?
-  instructor      Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [id])
-  assistantId     String?
-  assistant       Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [id])
+  Age             Int?        // This field was added as specified
+  instructorId    Int?        // Changed to Int to match the type of Instructor's UniqueID
+  instructor      Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [UniqueID])
+  assistantId     Int?        // Changed to Int to match the type of Instructor's UniqueID
+  assistant       Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [UniqueID])
   startTime       String?
   endTime         String?
   instructorName  String?
@@ -217,6 +250,7 @@ model Classes {
   @@index([instructorId])
   @@index([assistantId])
 }
+
 
 model Program {
   id        String    @id @default(uuid())
@@ -243,8 +277,8 @@ model Product {
   isArchived Boolean     @default(false)
   typeId     String // Foreign Key to Size
   type       Type        @relation(fields: [typeId], references: [id])
-  images     Image[] // Relation to Image model
-  orderItems OrderItem[] // Relation to Order model
+  quantity   Int         @default(0) // Quantity available in stock
+  orderItems OrderItem[] // Relation to OrderItem model
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
@@ -252,7 +286,6 @@ model Product {
   @@index([programId])
   @@index([typeId])
 }
-
 model Type {
   id        String    @id @default(uuid())
   seasonId  String // Foreign Key to Store
@@ -269,7 +302,6 @@ model Type {
 model Image {
   id        String   @id @default(uuid())
   productId String // Foreign Key to Product
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   url       String // URL of the image
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -288,12 +320,11 @@ model Order {
   phone      String      @default("")
   address    String      @default("")
   createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  updatedAt  DateTime    @default(now())
 
   @@index([seasonId])
 }
 
-// Intermediary for a many-to-many relationship
 model OrderItem {
   id        String  @id @default(uuid())
   orderId   String // Foreign Key to Order
@@ -326,7 +357,6 @@ model Volunteer {
   busChaperoneSchool   String
   isEmergencyDriver    Boolean  @default(false)
   emergencyDriverDay   String
-  applicantStatus      String // Can be "Returning" or "New"
   agreeToTerms         Boolean // True = Agreed, False = Not Agreed
   busChaperoneWk1      Boolean @default(false)
   busChaperoneWk2      Boolean @default(false)
@@ -340,6 +370,7 @@ model Volunteer {
   emergencyDriverWk4   Boolean @default(false)
   emergencyDriverWk5   Boolean @default(false)
   emergencyDriverWk6   Boolean @default(false)
+  GreetTimeSlot        String  
   seasonId             String
   season               Season   @relation("SeasonToVolunteer", fields: [seasonId], references: [id])
 

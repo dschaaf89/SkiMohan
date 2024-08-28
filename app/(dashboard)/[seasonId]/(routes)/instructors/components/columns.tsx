@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table";
 import { CellAction } from "./cell-action";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -21,12 +21,14 @@ type ClassType = {
   instructorPhone: string;
   // ... other class properties
 };
+
 type InstructorClassTime = {
   classTimeId: number;
   instructorId: string;
   classTime: ClassTime;
   // ... other properties
 };
+
 type ClassTime = {
   id: number; // assuming there's an ID
   day: string;
@@ -36,8 +38,7 @@ type ClassTime = {
 };
 
 export type InstructorColumn = {
-  id:string;
-  UniqueID: string;
+  UniqueID: number;
   NAME_FIRST: string;
   NAME_LAST: string;
   HOME_TEL: string;
@@ -47,34 +48,32 @@ export type InstructorColumn = {
   CITY: string;
   STATE: string;
   ZIP: string;
-  STATUS:string;
-  COMMENTS:string;
-  prevYear:string;
-  dateReg:string;
-  emailCommunication:boolean;
-  InstructorType:string;
-  PSIA:string;
+  STATUS: string;
+  COMMENTS: string;
+  prevYear: string;
+  dateReg: string;
+  emailCommunication: boolean;
+  InstructorType: string;
+  PSIA: string;
   createAt: Date;
   updateAt: Date;
-  AASI:string;
-  testScore:string;
-  ParentAuth:boolean;
-  OverNightLodge:boolean;
-  ageRequestByStaff:string[] | null;
-  clinics:string[] | null;
-  clinicInstructor:boolean;
-  Supervisor:boolean;
-  classTimeIds:number[] | null;
+  AASI: string;
+  testScore: string;
+  ParentAuth: boolean;
+  OverNightLodge: boolean;
+  ageRequestByStaff: string[] | null;
+  clinics: string[] | null; // Updated to handle the clinics array
+  clinicInstructor: boolean;
+  Supervisor: boolean;
+  classTimeIds: number[] | null; // Updated to handle classTimeIds array
   classes?: ClassType[];
   instructorClassTimes?: InstructorClassTime[];
-}
-
-
+};
 
 export const columns: ColumnDef<InstructorColumn>[] = [
   {
-    id:"actions",
-    cell: ({row}) => <CellAction data={row.original}/>
+    id: "actions",
+    cell: ({ row }) => <CellAction data={row.original} />,
   },
   {
     accessorKey: "UniqueID",
@@ -87,7 +86,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           UniqueID
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -101,7 +100,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           First Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -115,7 +114,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Last Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -129,7 +128,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Phone
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -143,7 +142,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Birthday
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -157,7 +156,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Main Email
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -171,7 +170,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Address
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -185,7 +184,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           City
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -199,10 +198,9 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           State
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
-  
   {
     accessorKey: "ZIP",
     header: ({ column }) => {
@@ -214,7 +212,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Zip
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -228,29 +226,9 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           AGE
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
-  // {
-  //   accessorKey: "Employer",
-  //   header: "Employer",
-  // },
-  // {
-  //   accessorKey: "Occupation",
-  //   header: "Occupation",
-  // },
-  // {
-  //   accessorKey: "W_Tel",
-  //   header: "Work Telephone",
-  // },
-  // {
-  //   accessorKey: "CCPayment",
-  //   header: "Credit Card Payment",
-  // },
-  // {
-  //   accessorKey: "DateFeePaid",
-  //   header: "Date Fee Paid",
-  // },
   {
     accessorKey: "PSIA",
     header: ({ column }) => {
@@ -262,7 +240,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           PSIA
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -276,7 +254,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           AASI
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -290,7 +268,7 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Instructor Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -304,108 +282,19 @@ export const columns: ColumnDef<InstructorColumn>[] = [
           Comments
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
-  // {
-  //   accessorKey: "NumDays",
-  //   header: "Number of Days",
-  // },
-  // {
-  //   accessorKey: "ApplyingFor",
-  //   header: "Applying For",
-  // },
-  // {
-  //   accessorKey: "PaymentStatus",
-  //   header: "Payment Status",
-  // },
-  // {
-  //   accessorKey: "PROG_CODE",
-  //   header: "Program Code",
-  // },
-  // {
-  //   accessorKey: "Clinic1",
-  //   header: "Clinic 1",
-  // },
-  // {
-  //   accessorKey: "Clinic2",
-  //   header: "Clinic 2",
-  // },
-  // {
-  //   accessorKey: "Clinic3",
-  //   header: "Clinic 3",
-  // },
-  // {
-  //   accessorKey: "Clinic4",
-  //   header: "Clinic 4",
-  // },
-  // {
-  //   accessorKey: "Clinic5",
-  //   header: "Clinic 5",
-  // },
-  // {
-  //   accessorKey: "Clinic6",
-  //   header: "Clinic 6",
-  // },
-  // {
-  //   accessorKey: "AcceptedTerms",
-  //   header: "Accepted Terms",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule1",
-  //   header: "Schedule 1",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule2",
-  //   header: "Schedule 2",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule3",
-  //   header: "Schedule 3",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule4",
-  //   header: "Schedule 4",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule5",
-  //   header: "Schedule 5",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule6",
-  //   header: "Schedule 6",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule7",
-  //   header: "Schedule 7",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule8",
-  //   header: "Schedule 8",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "Schedule9",
-  //   header: "Schedule 9",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
-  // {
-  //   accessorKey: "WComment",
-  //   header: "Comment",
-  // },
-  // {
-  //   accessorKey: "returning",
-  //   header: "Returning",
-  //   cell: info => info.getValue() ? "Yes" : "No",
-  // },
+  {
+    accessorKey: "clinics",
+    header: "Clinics",
+    cell: ({ getValue }) => (getValue() as string[])?.join(", ") || "None", // Explicitly cast as string[]
+  },
+  {
+    accessorKey: "classTimeIds",
+    header: "Class Times",
+    cell: ({ getValue }) => (getValue() as number[])?.join(", ") || "None", // Explicitly cast as number[]
+  },
   {
     accessorKey: "createAt",
     header: "Creation Date",
@@ -414,7 +303,4 @@ export const columns: ColumnDef<InstructorColumn>[] = [
     accessorKey: "updateAt",
     header: "Update Date",
   }
-  // ... Continue adding remaining fields following the pattern above ...
 ];
-
-

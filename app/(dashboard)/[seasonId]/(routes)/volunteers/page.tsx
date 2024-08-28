@@ -39,7 +39,6 @@ const VolunteerPage = async ({
     busChaperoneSchool: item.busChaperoneSchool,
     isEmergencyDriver: item.isEmergencyDriver,
     emergencyDriverDay: item.emergencyDriverDay,
-    applicantStatus: item.applicantStatus,
     agreeToTerms: item.agreeToTerms,
     busChaperoneWk1: item.busChaperoneWk1 ?? false,
     busChaperoneWk2: item.busChaperoneWk2 ?? false,
@@ -53,6 +52,7 @@ const VolunteerPage = async ({
     emergencyDriverWk4: item.emergencyDriverWk4 ?? false,
     emergencyDriverWk5: item.emergencyDriverWk5 ?? false,
     emergencyDriverWk6: item.emergencyDriverWk6 ?? false,
+    GreetTimeSlot: item.GreetTimeSlot,
   }));
   
 
