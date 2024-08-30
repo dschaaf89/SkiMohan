@@ -45,7 +45,7 @@ export type StudentColumn = {
   DAY:string;
   StartTime: string;
   EndTime: string;
-  classID: number | null;
+  classId: number | null;
   meetingPoint: number | null;
   meetColor:string | null;
   status:string;
