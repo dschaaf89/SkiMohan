@@ -34,8 +34,8 @@ const CoordinatorPage = async ({
   });
 
   const formattedStudents: StudentColumn[] = students.map((item) => ({
-  id:item.id,
-  UniqueID: item.UniqueID || "",
+  
+  UniqueID: item.UniqueID,
   NAME_FIRST: item.NAME_FIRST || "",
   NAME_LAST: item.NAME_LAST|| "",
   HOME_TEL: item.HOME_TEL || "",
@@ -73,7 +73,7 @@ const CoordinatorPage = async ({
   DAY: item.DAY || "",
   StartTime:item.StartTime || "",
   EndTime: item.EndTime || "",
-  classID: item.classID||0, // Assign null if undefined
+  classID: item.classId||0, // Assign null if undefined
   meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
   meetColor: item.meetColor ||null,
   updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
@@ -104,7 +104,7 @@ const CoordinatorPage = async ({
     busChaperoneSchool: item.busChaperoneSchool || null,
     isEmergencyDriver: item.isEmergencyDriver,
     emergencyDriverDay: item.emergencyDriverDay || null,
-    applicantStatus: item.applicantStatus as "Returning" | "New", // Type assertion
+    GreetTimeSlot:item.GreetTimeSlot, // Type assertion
     agreeToTerms: item.agreeToTerms,
     busChaperoneWk1: item.busChaperoneWk1,
     busChaperoneWk2: item.busChaperoneWk2,
@@ -121,8 +121,7 @@ const CoordinatorPage = async ({
   }));
 
   const formattedWaitlist: WaitlistColumn[] = waitlistStudents.map((item) => ({
-    id:item.id,
-  UniqueID: item.UniqueID || "",
+  UniqueID: item.UniqueID ,
   NAME_FIRST: item.NAME_FIRST || "",
   NAME_LAST: item.NAME_LAST|| "",
   HOME_TEL: item.HOME_TEL || "",
@@ -160,7 +159,7 @@ const CoordinatorPage = async ({
   DAY: item.DAY || "",
   StartTime:item.StartTime || "",
   EndTime: item.EndTime || "",
-  classID: item.classID||0, // Assign null if undefined
+  classID: item.classId||0, // Assign null if undefined
   meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
   meetColor: item.meetColor ||null,
   updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
