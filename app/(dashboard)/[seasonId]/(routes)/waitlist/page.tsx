@@ -13,8 +13,7 @@ const WaitlistPage = async ({ params }: { params: { seasonId: string } }) => {
     });
 
     const formattedWaitlist: WaitlistColumn[] = waitlist.map((student) => ({
-      id: student.id,
-      UniqueID: student.UniqueID || "",
+      UniqueID: student.UniqueID ,
       NAME_FIRST: student.NAME_FIRST || "",
       NAME_LAST: student.NAME_LAST || "",
       HOME_TEL: student.HOME_TEL || "",
@@ -52,7 +51,7 @@ const WaitlistPage = async ({ params }: { params: { seasonId: string } }) => {
       DAY: student.DAY || "",
       StartTime: student.StartTime || "",
       EndTime: student.EndTime || "",
-      classID: student.classID || null,
+      classId: student.classId || null,
       meetingPoint: student.meetingPoint || null,
       meetColor: student.meetColor || "",
       status: student.status || "",

@@ -5,12 +5,12 @@ import { StudentForm } from "../../students/[studentId]/components/student-form"
 const StudentPage = async ({
   params
 }:{
-  params: { studentId : string }
+  params: { studentId : number }
 }) => {
 
 const student = await prismadb.student.findUnique({
   where:{
-    id: params.studentId
+    UniqueID: params.studentId
   }
 });
 
