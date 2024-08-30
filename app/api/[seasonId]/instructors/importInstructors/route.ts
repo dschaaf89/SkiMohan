@@ -4,7 +4,7 @@ import { differenceInYears } from "date-fns";
 import prismadb from "@/lib/prismadb";
 
 type InstructorData = {
-  UniqueID: string;
+  UniqueID: number;
   NAME_FIRST: string;
   NAME_LAST: string;
   HOME_TEL: string;
@@ -294,7 +294,7 @@ export async function POST(
             await Promise.all(schedules.map(classTimeId => {
               return prismadb.instructorClassTime.create({
                 data: {
-                  instructorId: createdInstructor.id,
+                  instructorId: createdInstructor.UniqueID,
                   classTimeId,
                 },
               });
