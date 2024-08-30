@@ -6,16 +6,14 @@ import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
-import { CalendarIcon, Trash } from "lucide-react";
-import { Classes, Student } from "@prisma/client";
+import { Trash, X } from "lucide-react";
+import { Classes } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
-import React, { MouseEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,124 +29,95 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar } from "react-calendar";
-import "react-calendar/dist/Calendar.css";
-import { cn } from "@/lib/utils";
-import { differenceInYears } from "date-fns";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { X } from "lucide-react";
-import { SearchBar } from "../../components/search-bar/searchbar";
-import { SearchResultsList } from "../../components/search-bar/searchResultList";
+
+interface Instructor {
+  UniqueID: number;
+  NAME_FIRST: string;
+  NAME_LAST: string;
+  HOME_TEL: string;
+  C_TEL: string;
+}
+
+interface StudentDetail {
+  UniqueID: number;
+  oldIds: string;
+  NAME_FIRST: string;
+  NAME_LAST: string;
+  AGE: number;
+  LEVEL: string;
+  APPLYING_FOR: string;
+  E_mail_main: string;
+}
+
 interface StudentConnection {
   connect: Array<{ id: string }>;
 }
 
-interface Instructor {
-  id: string;
-  NAME_FIRST: string;
-  NAME_LAST: string;
-  HOME_TEL: string;
-  C_TEL: string; // Add other properties as needed
-}
-
-interface InitialData {
-  // ... other fields ...
-  students?: StudentConnection | null;
-}
-
-interface StudentDetail {
-  id: string;
-  name: string;
-  age: number;
-  skillLevel: string;
-  APPLYING_FOR: string;
-  E_mail_main: string;
-}
 const formSchema = z.object({
   classId: z.number(),
   meetColor: z.string().optional(),
   meetingPoint: z.number().optional(),
-  instructor: z.string().optional(),
   instructorID: z.number().optional(),
   Level: z.string().optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
   Age: z.number().optional(),
   day: z.string().optional(),
-  assistant: z.string().optional(),
-  assistantId: z.string().optional(),
+  assistantId: z.number().optional(),
 });
-const timeMapping = {
-  Friday: { startTime: "7:00 PM", endTime: "9:00 PM" },
-  "Saturday Morning": { startTime: "10:30 AM", endTime: "12:30 PM" },
-  "Saturday Afternoon": { startTime: "2:00 PM", endTime: "4:00 PM" },
-  "Sunday Morning": { startTime: "10:30 AM", endTime: "12:30 PM" },
-  "Sunday Afternoon": { startTime: "2:00 PM", endTime: "4:00 PM" },
-  // Add other days and times as necessary
-};
+
 type ClassFormValues = z.infer<typeof formSchema>;
 
 interface ClassFormProps {
   initialData: Classes | null;
 }
-const createDefaultValues = (initialData: Classes | null): ClassFormValues => {
-  const defaultValues: ClassFormValues = {
-    classId: 0,
-    Level: initialData?.Level ?? "",
-  };
-  return defaultValues; // Make sure this return statement is present
-};
 
 export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const params = useParams();
   const router = useRouter();
-
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [studentDetails, setStudentDetails] = useState<StudentDetail[]>([]);
+
+  const form = useForm<ClassFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      classId: initialData?.classId || 0,
+      meetColor: initialData?.meetColor || "",
+      meetingPoint: initialData?.meetingPoint || 0,
+      instructorID: initialData?.instructorId || 0,
+      assistantId: initialData?.assistantId || 0,
+      Level: initialData?.Level || "",
+      startTime: initialData?.startTime || "",
+      endTime: initialData?.endTime || "",
+      Age: initialData?.Age || 0,
+      day: initialData?.day || "",
+    },
+  });
 
   const title = initialData ? "Edit Class" : "Create Class";
   const description = initialData ? "Edit a Class." : "Add a new Class";
   const toastMessage = initialData ? "Class updated." : "Class created.";
   const action = initialData ? "Save changes" : "Create";
 
-  const form = useForm<ClassFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: createDefaultValues(initialData),
-  });
-
-  const dayToClassTimeIdMapping: { [key: string]: number } = {
-    Friday: 2,
-    "Saturday Morning": 3,
-    "Saturday Afternoon": 4,
-    "Sunday Morning": 5,
-    "Sunday Afternoon": 6,
-  };
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [assistants, setAssistants] = useState<Instructor[]>([]);
+  const [selectedInstructorId, setSelectedInstructorId] = useState<string>("");
+  const [selectedAssistantId, setSelectedAssistantId] = useState<string>("");
 
   const onSubmit = async (data: ClassFormValues) => {
-    console.log("Selected Instructor Name:", selectedInstructorName);
-    console.log("Selected Instructor Phone:", selectedInstructorPhone);
-    // Include instructor name and phone in the submission data
-    const submissionData = {
-      ...data,
-      instructor: selectedInstructorId
-        ? { connect: { id: selectedInstructorId } }
-        : undefined,
-      assistant: selectedAssistantId
-        ? { connect: { id: selectedAssistantId } }
-        : undefined,
-      instructorName: selectedInstructorName,
-      instructorPhone: selectedInstructorPhone,
-    };
-    console.log("Submitting data with classId:", submissionData);
-
     try {
       setLoading(true);
+      const submissionData = {
+        ...data,
+        instructorID: selectedInstructorId
+          ? Number(selectedInstructorId)
+          : undefined,
+        assistantId: selectedAssistantId
+          ? Number(selectedAssistantId)
+          : undefined,
+      };
+
       if (initialData) {
         await axios.patch(
           `/api/${params.seasonId}/classes/${params.classId}`,
@@ -157,9 +126,9 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
       } else {
         await axios.post(`/api/${params.seasonId}/classes`, submissionData);
       }
-      router.refresh();
-      //router.push(`/${params.seasonId}/classes`);
+
       toast.success(toastMessage);
+      router.refresh();
     } catch (error: any) {
       toast.error("Something went wrong.");
     } finally {
@@ -171,227 +140,147 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     try {
       setLoading(true);
       await axios.delete(`/api/${params.seasonId}/classes/${params.classId}`);
-      router.refresh();
+      toast.success("Class deleted.");
       router.push(`/${params.seasonId}/classes`);
-      toast.success("student deleted.");
     } catch (error: any) {
-      toast.error(
-        "Make sure you removed all categories using this billboard first."
-      );
+      toast.error("Error deleting the class.");
     } finally {
       setLoading(false);
       setOpen(false);
     }
   };
-  const [studentSearch, setStudentSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<Student[]>([]);
-  // To store search results
-  const [addedStudents, setAddedStudents] = useState([]); // To store added students
-  const [studentNames, setStudentNames] = useState<string[]>([]);
-  const [studentDetails, setStudentDetails] = useState<StudentDetail[]>([]);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [assistants, setAssistants] = useState<Instructor[]>([]);
-  const [classTimeId, setClassTimeId] = useState<number | undefined>(undefined);
-  const [selectedInstructorId, setSelectedInstructorId] = useState<
-    string | null | undefined
-  >();
-  const [selectedAssistantId, setSelectedAssistantId] = useState<
-    string | null | undefined
-  >();
-  const [selectedInstructorName, setSelectedInstructorName] = useState("");
-  const [selectedInstructorPhone, setSelectedInstructorPhone] = useState("");
-  const [selectedAssistantName, setSelectedAssistantName] = useState("");
-  const [selectedAssistantPhone, setSelectedAssitantPhone] = useState("");
-  const [studentsToAdd, setStudentsToAdd] = useState<string[]>([]);
-  const [studentsToRemove, setStudentsToRemove] = useState<string[]>([]);
+
   useEffect(() => {
-    async function fetchData() {
-      if (!classTimeId) {
-        console.error("Class time ID is not available.");
-        return;
-      }
-
-      // Fetch Instructors
+    const fetchStudentDetails = async () => {
       try {
-        const responseInstructors = await axios.get(
-          `/api/${params.seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`
-        );
-        console.log("Fetched instructors:", responseInstructors.data); // This line logs the fetched instructor data
+        const studentConnections = initialData?.oldStudents as unknown as
+          | StudentConnection
+          | undefined;
+        if (!studentConnections || !studentConnections.connect) return;
 
-        setInstructors(responseInstructors.data);
+        // Separate unique IDs and old IDs
+        const uniqueIds = studentConnections.connect
+          .map((conn) => Number(conn.id))
+          .filter((id) => !isNaN(id)); // Filter valid numbers for UniqueID
+        const oldIds = studentConnections.connect
+          .map((conn) => conn.id)
+          .filter((id) => isNaN(Number(id))); // Filter strings for oldIds
+
+        let students: StudentDetail[] = [];
+
+        // Fetch students by UniqueID
+        if (uniqueIds.length > 0) {
+          const { data: uniqueIdStudents } = await axios.get(
+            `/api/${params.seasonId}/students`,
+            {
+              params: {
+                UniqueID: uniqueIds, // Pass UniqueIDs as a query parameter
+              },
+            }
+          );
+          students = uniqueIdStudents;
+        }
+
+        // Fetch students by oldIds
+        if (oldIds.length > 0) {
+          const { data: oldIdStudents } = await axios.get(
+            `/api/${params.seasonId}/students/byOldId`,
+            {
+              params: {
+                oldIds: oldIds.join(","), // Pass oldIds as a query parameter
+              },
+            }
+          );
+          students = [...students, ...oldIdStudents]; // Merge results
+        }
+
+        // Map the fetched student data into the format needed for the component
+        const studentDetails = students.map((student) => ({
+          UniqueID: student.UniqueID, // Ensure property names match the StudentDetail type
+          oldIds: student.oldIds,
+          NAME_FIRST: student.NAME_FIRST,
+          NAME_LAST: student.NAME_LAST,
+          AGE: student.AGE, // Ensure you are using the correct case
+          LEVEL: student.LEVEL, // Ensure you are using the correct case
+          APPLYING_FOR: student.APPLYING_FOR,
+          E_mail_main: student.E_mail_main,
+        }));
+
+        setStudentDetails(studentDetails);
       } catch (error) {
-        console.error("Error fetching instructors", error);
+        console.error("Error fetching student data", error);
+      }
+    };
+
+    fetchStudentDetails();
+  }, [initialData, params.seasonId]);
+
+  useEffect(() => {
+    const dayToClassTimeIdMapping = {
+      Friday: 2,
+      "Saturday Morning": 3,
+      "Saturday Afternoon": 4,
+      "Sunday Morning": 5,
+      "Sunday Afternoon": 6,
+    };
+
+    async function fetchInstructorsAndAssistants() {
+      try {
+        if (!initialData?.classId) {
+          console.error("classId is missing from initialData");
+          return;
+        }
+
+        // Use the day field to find the corresponding classTimeId
+        const { day } = initialData;
+        const classTimeId = dayToClassTimeIdMapping[day];
+
+        if (!classTimeId) {
+          console.error(`No classTimeId found for day: ${day}`);
+          return;
+        }
+
+        console.log("Using classTimeId:", classTimeId);
+
+        const [instructorResponse, assistantResponse] = await Promise.all([
+          axios.get(
+            `/api/${params.seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`
+          ),
+          axios.get(
+            `/api/${params.seasonId}/classes/availableAssistants?classTimeId=${classTimeId}`
+          ),
+        ]);
+        console.log("Instructors Response:", instructorResponse.data);
+        console.log("Assistants Response:", assistantResponse.data);
+
+        setInstructors(instructorResponse.data);
+        setAssistants(assistantResponse.data);
+      } catch (error) {
+        console.error("Error fetching instructors or assistants:", error);
         setInstructors([]);
-      }
-
-      // Fetch Assistants
-      try {
-        const responseAssistants = await axios.get(
-          `/api/${params.seasonId}/classes/availableAssistants?classTimeId=${classTimeId}`
-        );
-        setAssistants(responseAssistants.data);
-      } catch (error) {
-        console.error("Error fetching assistants", error);
         setAssistants([]);
       }
     }
 
-    fetchData();
-  }, [classTimeId, params.seasonId]);
-  useEffect(() => {
-    if (initialData) {
-      form.reset({
-        ...form.getValues(),
-        classId: initialData.classId,
-        meetColor: initialData.meetColor!,
-        meetingPoint: initialData.meetingPoint!,
-        day: initialData.day,
-        Age: initialData.Age!,
-        Level: initialData.Level!,
-      });
-
-      if (
-        instructors.some(
-          (instructor) => instructor.id === initialData.instructorId
-        )
-      ) {
-        setSelectedInstructorId(initialData.instructorId);
-      }
-      if (
-        assistants.some((assistant) => assistant.id === initialData.assistantId)
-      ) {
-        setSelectedAssistantId(initialData.assistantId);
-      }
+    if (initialData?.classId) {
+      fetchInstructorsAndAssistants();
     }
-  }, [initialData, instructors, assistants, form]);
-
-  useEffect(() => {
-    if (initialData && typeof initialData.day === "string") {
-      const dayKey = initialData.day as keyof typeof dayToClassTimeIdMapping;
-      if (dayKey in dayToClassTimeIdMapping) {
-        const newClassTimeId = dayToClassTimeIdMapping[dayKey];
-        setClassTimeId(newClassTimeId);
-      }
-    }
-  }, [initialData, dayToClassTimeIdMapping]);
-
-
-  useEffect(() => {
-    const fetchStudentNames = async () => {
-      const studentData = initialData?.students as unknown as StudentConnection | undefined;
-      if (studentData?.connect) {
-        const details = await Promise.all(
-          studentData.connect.map(async ({ id }) => {
-            try {
-              const response = await axios.get(`/api/${params.seasonId}/students/${id}`);
-              const student = response.data;
-              return {
-                id: student.id,
-                name: `${student.NAME_FIRST ?? ""} ${student.NAME_LAST ?? ""}`.trim(),
-                age: student.AGE,
-                skillLevel: student.LEVEL,
-                APPLYING_FOR: student.APPLYING_FOR,
-                E_mail_main: student.E_mail_main,
-              };
-            } catch (error) {
-              console.error("Error fetching student data", error);
-              return null;
-            }
-          })
-        );
-        setStudentDetails(details.filter((detail) => detail !== null) as StudentDetail[]);
-      }
-    };
-  
-    if ((initialData?.students as unknown as StudentConnection | undefined)?.connect) {
-      fetchStudentNames();
-    }
-  }, [initialData, params.seasonId]);
-  useEffect(() => {
-    const fetchStudents = async () => {
-      // Fetch the student list (consider doing this once and storing the result if it doesn't change often)
-      const response = await axios.get(`/api/${params.seasonId}/students/findStudnet`);
-      const allStudents = response.data;
-
-      // Filter students based on the search query
-      const filteredStudents = allStudents.filter((student:Student) =>
-        student.NAME_LAST.toLowerCase().includes(studentSearch.toLowerCase())
-      );
-
-      setSearchResults(filteredStudents);
-    };
-
-    if (studentSearch.length > 1) {
-      // Maybe trigger the search after at least 2 characters have been typed
-      fetchStudents();
-    } else {
-      setSearchResults([]); // Clear search results if the search query is cleared
-    }
-  }, [params.seasonId,studentSearch]);
-
-  useEffect(() => {
-    // Check if initialData is available and the 'day' field is a string
-    if (initialData && typeof initialData.day === "string") {
-      const dayKey = initialData.day as keyof typeof timeMapping;
-      if (dayKey in timeMapping) {
-        // Find the corresponding time mapping for the selected day
-        const times = timeMapping[dayKey];
-        // Set the start and end times in the form
-        form.setValue("startTime", times.startTime);
-        form.setValue("endTime", times.endTime);
-      }
-    }
-  }, [initialData, form]);
+  }, [initialData?.classId, params.seasonId, initialData]); // No need to add dayToClassTimeIdMapping here
+  // Add dayToClassTimeIdMapping and initialData here
 
   const handleInstructorChange = (value: string) => {
-    console.log("Selected Instructor ID:", value);
     setSelectedInstructorId(value);
-    form.setValue("instructor", value);
-
-    // Find the selected instructor and set name and phone
-    const instructor = instructors.find((i) => i.id === value);
-    if (instructor) {
-      const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
-      const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
-      setSelectedInstructorName(fullName);
-      setSelectedInstructorPhone(phone);
-
-      console.log(`Selected Instructor Name: ${fullName}`);
-      console.log(`Selected Instructor Phone: ${phone}`);
-    }
   };
+
   const handleAssistantChange = (value: string) => {
     setSelectedAssistantId(value);
-    form.setValue("assistant", value);
-
-    // Find the selected instructor and set name and phone
-    const instructor = instructors.find((i) => i.id === value);
-    if (instructor) {
-      const fullName = `${instructor.NAME_FIRST} ${instructor.NAME_LAST}`;
-      const phone = instructor.HOME_TEL || instructor.C_TEL; // Using HOME_TEL or C_TEL as the phone number
-      setSelectedAssistantName(fullName);
-      setSelectedAssitantPhone(phone);
-
-      console.log(`Selected Instructor Name: ${fullName}`);
-      console.log(`Selected Instructor Phone: ${phone}`);
-    }
   };
-  const handleRemoveStudent = (studentId: string) => {
-    setStudentDetails((prev) =>
-      prev.filter((student) => student.id !== studentId)
+
+  const handleRemoveStudent = (studentId: number) => {
+    setStudentDetails((prevDetails) =>
+      prevDetails.filter((student) => student.UniqueID !== Number(studentId))
     );
-    setStudentsToRemove((prev) => [...prev, studentId]);
   };
-  const handleAddStudent = (student: Student) => {
-    console.log("Selected student:", student);
-    // Add your logic here, for example, adding the student to a selected list
-  };
-
-
-  const handleSelectStudent = (student: Student) => {
-    // Handle the selection logic, e.g., adding the student to a selected list
-  };
-
 
   return (
     <>
@@ -431,7 +320,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     <FormItem>
                       <FormLabel>Meet Color</FormLabel>
                       <FormControl>
-                        <Input placeholder="" {...field} />
+                        <Input placeholder="Color" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -442,9 +331,9 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                   name="meetingPoint"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>MeetingPoint</FormLabel>
+                      <FormLabel>Meeting Point</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="" {...field} />
+                        <Input type="number" placeholder="Point" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -452,73 +341,71 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                 />
 
                 {/* Instructor Name */}
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name="instructor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Instructor</FormLabel>
-                        <Select
-                          onValueChange={handleInstructorChange}
-                          value={selectedInstructorId || ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Instructor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-60 overflow-y-auto">
-                            {instructors.map((instructor) => (
+                <FormField
+                  control={form.control}
+                  name="instructorID"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Instructor</FormLabel>
+                      <Select
+                        onValueChange={handleInstructorChange}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Instructor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-60 overflow-y-auto">
+                          {instructors.map((instructor) => (
+                            <SelectItem
+                              key={instructor.UniqueID}
+                              value={instructor.UniqueID.toString()}
+                            >
+                              {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Assistant Name */}
+                <FormField
+                  control={form.control}
+                  name="assistantId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assistant</FormLabel>
+                      <Select
+                        onValueChange={handleAssistantChange}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Assistant" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-60 overflow-y-auto">
+                          {assistants.map((assistant) => {
+                            console.log("Rendering Assistant:", assistant);
+                            return (
                               <SelectItem
-                                key={instructor.id}
-                                value={instructor.id}
+                                key={assistant.UniqueID}
+                                value={assistant.UniqueID.toString()}
                               >
-                                {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}{" "}
-                                {/* Concatenating first and last name */}
+                                {`${assistant.NAME_FIRST} ${assistant.NAME_LAST}`}
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* Assistants Name */}
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name="instructor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Assistant</FormLabel>
-                        <Select
-                          onValueChange={handleAssistantChange}
-                          value={selectedAssistantId || ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Assistant" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-60 overflow-y-auto">
-                            {assistants.map((assistants) => (
-                              <SelectItem
-                                key={assistants.id}
-                                value={assistants.id}
-                              >
-                                {`${assistants.NAME_FIRST} ${assistants.NAME_LAST}`}{" "}
-                                {/* Concatenating first and last name */}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               {/* Second Column */}
@@ -531,29 +418,25 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     <FormItem>
                       <FormLabel>Class ID</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="" {...field} />
+                        <Input type="number" placeholder="ID" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="relative">                 
-                </div>
 
                 <h3>Student Names</h3>
-                {/* {console.log(studentNames)} */}
                 <ul>
                   {studentDetails.map((student, index) => (
                     <li key={index}>
-                      Name: {student.name}
+                      {`Name: ${student.NAME_FIRST} ${student.NAME_LAST}, Age: ${student.AGE}, Skill Level: ${student.LEVEL}`}
                       <button
-                        onClick={() => handleRemoveStudent(student.id)}
+                        onClick={() => handleRemoveStudent(student.UniqueID)}
                         aria-label="Remove student"
-                        style={{ color: "red" }} // Inline styling for red color
-                        className="p-1" // Add padding, adjust as needed
+                        style={{ color: "red" }}
+                        className="p-1"
                       >
-                        <X className="w-6 h-6 hover:scale-110 transition-transform" />{" "}
-                        {/* Adjust size as needed */}
+                        <X className="w-6 h-6 hover:scale-110 transition-transform" />
                       </button>
                     </li>
                   ))}
@@ -574,7 +457,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="" />
+                            <SelectValue placeholder="Select Level" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -598,7 +481,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     <FormItem>
                       <FormLabel>Age Group</FormLabel>
                       <FormControl>
-                        <Input placeholder="" {...field} />
+                        <Input type="number" placeholder="Age" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -617,13 +500,14 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     </FormItem>
                   )}
                 />
+
                 {/* Start Time */}
                 <FormField
                   control={form.control}
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Time:</FormLabel>
+                      <FormLabel>Start Time</FormLabel>
                       <FormControl>
                         <Input placeholder="Start Time" {...field} />
                       </FormControl>
@@ -638,7 +522,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                   name="endTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Time:</FormLabel>
+                      <FormLabel>End Time</FormLabel>
                       <FormControl>
                         <Input placeholder="End Time" {...field} />
                       </FormControl>
@@ -646,14 +530,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                     </FormItem>
                   )}
                 />
-                {/* Date */}
-                {/* Session Time */}
-                {/* Your form fields for the third column */}
               </div>
             </div>
-
-            {/* Signature and Checklist */}
-            {/* Your form fields for signature and checklist */}
           </div>
 
           <Button disabled={loading} className="ml-auto" type="submit">

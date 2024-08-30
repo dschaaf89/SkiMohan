@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     const instructorIds = instructorClassTimes.map(ict => ict.instructorId);
     const assistant = await prismadb.instructor.findMany({
       where: {
-        id: { in: instructorIds },
+        UniqueID: { in: instructorIds },
         InstructorType: {
           notIn: ["Ski Instructor", "Board Instructor", "Ski and Board Instructor"], // Exclude these roles
         },

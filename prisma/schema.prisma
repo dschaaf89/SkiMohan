@@ -95,15 +95,20 @@ model Student {
   EndTime       String?   @map("EndTime")
   createAt      DateTime  @default(now())
   updateAt      DateTime  @updatedAt
-  classID       Int?      @map("classID")
+
   meetColor     String?   @map("meetColor")
   meetingPoint  Int?      @map("meetingPoint")
   status        String?    @default("Registered") @map("status")
+  oldIds        String?   
+  classId         Int?         @map("classID") // Foreign key referencing the Classes model
+  class           Classes?     @relation("ClassToStudents", fields: [classId], references: [classId])
 
-  @@index([classID])
+
+  @@index([UniqueID, classId])
   @@index([seasonId])
   @@index([ProgCode])
   @@index([customerId])
+   @@index([classId])
 }
 model Instructor {
   UniqueID            Int                   @id @default(autoincrement()) @map("UniqueID")
@@ -223,33 +228,35 @@ model InstructorClassTime {
   @@index([classTimeId])
 }
 
-
 model Classes {
   season          Season      @relation("SeasonToClasses", fields: [seasonId], references: [id])
   seasonId        String
   classId         Int         @id @default(autoincrement())
   meetColor       String?     @map("meetColor")
   meetingPoint    Int?        @map("meetingPoint")
-  students        Json        @map("students")
+  oldStudents     Json?       @map("oldStudents") // For storing old student associations
+  students        Student[]   @relation("ClassToStudents") // One class can have many students
   day             String      @map("day")
   progCode        String      @map("progCode")
-  discipline      String      // This field was added as specified
+  discipline      String      
   numberStudents  Int
   Level           String?
-  Age             Int?        // This field was added as specified
-  instructorId    Int?        // Changed to Int to match the type of Instructor's UniqueID
+  Age             Int?        
+  instructorId    Int?        
   instructor      Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [UniqueID])
-  assistantId     Int?        // Changed to Int to match the type of Instructor's UniqueID
+  assistantId     Int?        
   assistant       Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [UniqueID])
   startTime       String?
   endTime         String?
   instructorName  String?
   instructorPhone String?
-
+  
   @@index([seasonId])
   @@index([instructorId])
   @@index([assistantId])
+  @@index([classId, progCode])  // Compound index for class and program code
 }
+
 
 
 model Program {

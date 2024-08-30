@@ -8,49 +8,69 @@ import { z } from "zod";
 
 
 type StudentsType = {
-  connect: { id: string }[];
+  connect: { UniqueID?: number; oldIds?: string }[];
 };
 
-const fetchStudentDetails = async (studentIds: string[]): Promise<StudentDetails[]> => {
+const fetchStudentDetails = async (studentIds: (number | string)[]): Promise<StudentDetails[]> => {
   try {
-    const students = await prismadb.student.findMany({
+    // Separate numeric IDs (UniqueID) and string IDs (oldIds)
+    const numericIds = studentIds.filter(id => typeof id === "number") as number[];
+    const stringIds = studentIds.filter(id => typeof id === "string") as string[];
+
+    // Fetch students by UniqueID and oldIds
+    let students = await prismadb.student.findMany({
       where: {
-        id: {
-          in: studentIds,
-        },
+        OR: [
+          {
+            UniqueID: {
+              in: numericIds,
+            },
+          },
+          {
+            oldIds: {
+              in: stringIds,
+            },
+          },
+        ],
       },
       select: {
-        id: true,
+        UniqueID: true,
+        oldIds: true,
         NAME_FIRST: true,
         NAME_LAST: true,
-        // ... select other fields you need ...
       },
     });
 
-    return students;
+    // Add the 'id' field for compatibility
+    return students.map(student => ({
+      id: student.UniqueID || (Array.isArray(student.oldIds) ? student.oldIds[0] : student.oldIds), // Use UniqueID if available, otherwise use the first oldId as fallback
+      UniqueID: student.UniqueID,
+      NAME_FIRST: student.NAME_FIRST,
+      NAME_LAST: student.NAME_LAST,
+      oldIds: student.oldIds,
+    }));
   } catch (error) {
-    console.error('Error fetching student details:', error);
-    throw error; // or handle the error as appropriate for your application
+    console.error("Error fetching student details:", error);
+    throw error;
   }
-}
-
+};
 const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
-
   const classes = await prismadb.classes.findMany({
     where: {
-      seasonId: params.seasonId
-    }
+      seasonId: params.seasonId,
+    },
   });
 
   const formattedClassesPromises = classes.map(async (item) => {
     let studentsFormatted: StudentDetails[] = [];
 
-    if (item.students && typeof item.students === 'object' && 'connect' in item.students) {
-      const studentsObject = item.students as { connect: { id: string }[] };
-      const studentIds = studentsObject.connect.map(connection => connection.id);
+    // Handle 'oldStudents' if 'students' is not directly available
+    const studentIds = Array.isArray(item.oldStudents)
+      ? (item.oldStudents as string[]).filter(id => typeof id === 'string' || typeof id === 'number')
+      : [];
 
-      studentsFormatted = await fetchStudentDetails(studentIds);
-    }
+    studentsFormatted = await fetchStudentDetails(studentIds as (string | number)[]);
+
     return {
       DAY: item.day || "",
       classId: item.classId || 0,
@@ -67,20 +87,20 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
       instructorPhone: item.instructorPhone || "",
       startTime: item.startTime || "",
       endTime: item.endTime || "",
-      students: studentsFormatted
+      students: studentsFormatted,  // Use studentsFormatted here
     };
   });
 
-
   const formattedClasses = await Promise.all(formattedClassesPromises);
+
   return (
     <div className="flex-col">
-      <div className=" flex-1 space-y-4 p-8 pt-6">
+      <div className="flex-1 space-y-4 p-8 pt-6">
         <h1 className="text-center">Classes</h1>
-        <ClassClient data={formattedClasses}/>
+        <ClassClient data={formattedClasses} />
       </div>
     </div>
   );
 };
 
-export default ClassesPage
+export default ClassesPage;

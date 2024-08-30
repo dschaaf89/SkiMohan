@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
-
 import prismadb from "@/lib/prismadb";
 
 export async function GET(req: Request) {
@@ -16,22 +15,26 @@ export async function GET(req: Request) {
     }
 
     const numericClassTimeId = Number(classTimeId);
+    
+    console.log(`Fetching instructor class times for classTimeId: ${numericClassTimeId}...`);
     const instructorClassTimes = await prismadb.instructorClassTime.findMany({
       where: { classTimeId: numericClassTimeId }
     });
+    console.log(`Instructor class times found: ${instructorClassTimes.length}`);
+    console.log('Instructor class times:', instructorClassTimes);
 
-    const instructorIds = instructorClassTimes.map(ict => ict.instructorId);
+    const instructorUniqueIds = instructorClassTimes.map(ict => ict.instructorId);
+   
     const instructors = await prismadb.instructor.findMany({
       where: {
-        id: { in: instructorIds },
+        UniqueID: { in: instructorUniqueIds },
         InstructorType: {
           notIn: ["Ski Assistant", "Board Assistant", "Ski and Board Assistant"], // Exclude these roles
         },
       },
     });
+    console.log(`Instructors found: ${instructors.length}`);
     
-    // Log the number of instructors found
-    console.log(`Number of instructors found: ${instructors.length}`);
 
     return NextResponse.json(instructors);
   } catch (error) {
