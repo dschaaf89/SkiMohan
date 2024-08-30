@@ -73,7 +73,7 @@ const CoordinatorPage = async ({
   DAY: item.DAY || "",
   StartTime:item.StartTime || "",
   EndTime: item.EndTime || "",
-  classID: item.classId||0, // Assign null if undefined
+  classId: item.classId||0, // Assign null if undefined
   meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
   meetColor: item.meetColor ||null,
   updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
@@ -159,7 +159,7 @@ const CoordinatorPage = async ({
   DAY: item.DAY || "",
   StartTime:item.StartTime || "",
   EndTime: item.EndTime || "",
-  classID: item.classId||0, // Assign null if undefined
+  classId: item.classId||0, // Assign null if undefined
   meetingPoint: item.meetingPoint !== undefined ? item.meetingPoint : null,
   meetColor: item.meetColor ||null,
   updateAt:item.updateAt ? format(new Date(item.updateAt), "MM/dd/yyyy") : "",
