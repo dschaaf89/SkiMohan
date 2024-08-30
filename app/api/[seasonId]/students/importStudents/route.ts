@@ -5,7 +5,7 @@ import { mondayPrograms,tuesdayPrograms,wednesdayPrograms,thursdayPrograms,frida
 import prismadb from "@/lib/prismadb";
 
 type StudentData = {
-  UniqueID: string;
+  UniqueID: number;
   NAME_FIRST: string;
   NAME_LAST: string;
   HOME_TEL: string;
