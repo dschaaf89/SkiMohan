@@ -29,7 +29,7 @@ interface Student {
   UniqueID: string;
   meetingPoint: number;
   HOME_TEL: string;
-  id: string;
+  UniqueId: number;
   DAY: string;
   StartTime: string;
   EndTime: string;
@@ -39,7 +39,7 @@ interface Student {
 
 export async function POST(req: Request) {
   try {
-    let studentIds: string[] = [];
+    let studentIds: number[] = [];
     const body = await req.json();
     const classes: Class[] = body;
     console.log(classes);
@@ -50,23 +50,23 @@ export async function POST(req: Request) {
     // Extract Student IDs from classes
     classes.forEach(classItem => {
       Object.entries(classItem.students).forEach(([studentId, _]) => {
-        studentIds.push(studentId);
+        studentIds.push(Number(studentId));
       });
   
       // Additional processing for each class...
     });
     // Fetch Student Data from Database
     const studentsData = await prismadb.student.findMany({
-      where: { id: { in: Array.from(studentIds) } },
-      select: { id: true, NAME_FIRST: true, NAME_LAST: true }
+      where: { UniqueID: { in: Array.from(studentIds) } },
+      select: { UniqueID: true, NAME_FIRST: true, NAME_LAST: true }
     });
     console.log("Fetched Students Data:", studentsData);
-    const studentMap = new Map(studentsData.map(s => [s.id, s]));
+    const studentMap = new Map(studentsData.map(s => [s.UniqueID, s]));
 
     // Map Student Data Back to Classes
     classes.forEach(classItem => {
       Object.entries(classItem.students).forEach(([studentId, studentDetails]) => {
-        const studentData = studentMap.get(studentId);
+        const studentData = studentMap.get(Number(studentId));
         if (studentData) {
           studentDetails.NAME_FIRST = studentData.NAME_FIRST;
           studentDetails.NAME_LAST = studentData.NAME_LAST;
