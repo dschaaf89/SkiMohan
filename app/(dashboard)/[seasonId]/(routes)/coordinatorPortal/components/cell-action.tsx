@@ -32,7 +32,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      await axios.delete(`/api/${params.seasonId}/students/${data.id}`);
+      await axios.delete(`/api/${params.seasonId}/students/${data.UniqueID}`);
       router.refresh();
       router.push(`/${params.seasonId}/students`);
       toast.success("student deleted.");
@@ -60,7 +60,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
       // Make an API call to update the student's information
       await axios.patch(
-        `/api/${params.seasonId}/students/${updatedInfo.id}`,
+        `/api/${params.seasonId}/students/${updatedInfo.UniqueID}`,
         updatedInfo
       );
 
