@@ -8,7 +8,7 @@ import { PrismaClient } from "@prisma/client";
 
 
 interface Student {
-  id: string;
+  UniqueID: number;
   DAY: string | null; // Adjusted to allow null
   APPLYING_FOR: string | null; // Adjusted to allow null
   AGE: number | null; // Adjusted to allow null
@@ -545,7 +545,7 @@ async function processStudentGroups(groups: (StudentGroup | undefined)[], prisma
         progCode: group.progCode!,
         numberStudents: group.numberStudents,
         students: {
-          connect: group.students.map(student => ({ id: student.id })),
+          connect: group.students.map(student => ({ UniqueID: student.UniqueID })),
         },
       },
     });
@@ -556,8 +556,8 @@ async function processStudentGroups(groups: (StudentGroup | undefined)[], prisma
     // Update students in separate transactions
     for (const student of group.students) {
       await prismadb.student.update({
-        where: { id: student.id },
-        data: { classID: classId, meetingPoint: group.meetingPoint },
+        where: { UniqueID: student.UniqueID },
+        data: { classId: classId, meetingPoint: group.meetingPoint },
       });
     }
   }
