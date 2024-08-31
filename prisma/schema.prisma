@@ -12,7 +12,6 @@ model Season {
   id          String       @id @default(uuid())
   name        String
   userId      String
-  billboards  Billboard[]  @relation("SeasonToBillboard")
   students    Student[]    @relation("SeasonToStudent")
   instructors Instructor[] @relation("SeasonToInstructor")
   classes     Classes[]    @relation("SeasonToClasses")
@@ -24,13 +23,11 @@ model Season {
 
 model Billboard {
   id       String   @id @default(uuid())
-  seasonId String
-  season   Season   @relation("SeasonToBillboard", fields: [seasonId], references: [id])
   label    String
   imageUrl String
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
-  @@index([seasonId])
+
 }
 
 model Customer {

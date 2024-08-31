@@ -49,7 +49,6 @@ export async function POST(
         isArchived,
         programId,
         typeId,
-        seasonId: params.seasonId,
         quantity, // Add the quantity field here
         // Removed the images relation since images are no longer directly associated with Product
       },
@@ -79,7 +78,6 @@ export async function GET(
 
     const products = await prismadb.product.findMany({
       where: {
-        seasonId: params.seasonId,
         programId,
         typeId,
         isFeatured: isFeatured ? true : undefined,

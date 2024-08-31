@@ -45,7 +45,7 @@ export async function POST(
       data: {
         name,
         imageUrl,
-        seasonId: params.seasonId,
+      
       }
     });
   
@@ -66,9 +66,7 @@ export async function GET(
     }
 
     const categories = await prismadb.program.findMany({
-      where: {
-        seasonId: params.seasonId
-      }
+    
     });
   
     return NextResponse.json(categories);

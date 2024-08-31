@@ -45,7 +45,7 @@ export async function POST(
       data: {
         name,
         value,
-        seasonId: params.seasonId
+       
       }
     });
   
@@ -66,9 +66,7 @@ export async function GET(
     }
 
     const types = await prismadb.type.findMany({
-      where: {
-        seasonId: params.seasonId
-      }
+   
     });
   
     return NextResponse.json(types);

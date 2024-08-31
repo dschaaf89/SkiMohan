@@ -61,7 +61,7 @@ export async function POST(
       data: {
         label,
         imageUrl,
-        seasonId: params.seasonId,
+        
       }
     });
   
