@@ -4,7 +4,7 @@ import * as z from "zod";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFormContext, } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { CalendarIcon, Trash } from "lucide-react";
 import { Student } from "@prisma/client";
@@ -270,10 +270,12 @@ const createDefaultValues = (
                 initialData[key] != null
                   ? (initialData[key] as string)
                   : "Registered";
-                  break;
+              break;
             case "BRTHD":
               // case"updateAt":
-              defaultValues[key] = initialData[key] ? new Date(initialData[key]) : new Date();
+              defaultValues[key] = initialData[key]
+                ? new Date(initialData[key])
+                : new Date();
 
               break;
             case "AGE":
@@ -321,14 +323,14 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   const [selectedProgram, setSelectedProgram] = useState<ProgramDetails | null>(
     null
   );
- 
+
   const title = initialData ? "Edit Student" : "Create Student";
   const description = initialData ? "Edit a Student." : "Add a new Student";
   const toastMessage = initialData ? "Student updated." : "Student created.";
   const action = initialData ? "Save changes" : "Create";
 
   const form = useForm<StudentFormValues>({
-    resolver: zodResolver(formSchema),
+    //resolver: zodResolver(formSchema),
     defaultValues: createDefaultValues(initialData, allPrograms),
   });
 
@@ -350,46 +352,54 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
   }, [initialData]);
 
   const onSubmit = async (data: StudentFormValues) => {
-    // Ensure that classID is a string. If it's undefined, use a default value or handle accordingly.
-    const classIdValue = data.classID?.toString() ?? "0";
-
-    // Parse the string to an integer
-    const classIdNumber = parseInt(classIdValue, 10);
-
-    // Now check if classIdNumber is NaN and handle it, or proceed if it's a valid number
-    if (isNaN(classIdNumber)) {
-        console.error("Invalid classID");
-        // Handle the NaN case, maybe set an error message or use a default value
-        return;
-    }
-
-    const submissionData = {
-      ...data,
-      classID: classIdNumber,
-      ProgCode: selectedProgram?.code || "",
-      StartTime: selectedProgram?.startTime || "",
-      EndTime: selectedProgram?.endTime || "",
-    };
-
-    // Log to see the data being submitted
-    console.log("Submission Data:", submissionData);
-
     try {
+      // Debugging form data
+      console.log("Form Data:", data);
+
+      // Ensure that classID is a string. If it's undefined, use a default value or handle accordingly.
+      const classIdValue = data.classID?.toString() ?? "0";
+      const classIdNumber = parseInt(classIdValue, 10);
+
+      if (isNaN(classIdNumber)) {
+        console.error("Invalid classID");
+        return;
+      }
+
+      const submissionData = {
+        ...data,
+        classID: classIdNumber,
+        ProgCode: selectedProgram?.code || "",
+        StartTime: selectedProgram?.startTime || "",
+        EndTime: selectedProgram?.endTime || "",
+      };
+
+      // Log submission data
+      console.log("Submission Data:", submissionData);
+
       setLoading(true);
+
       if (initialData) {
-        await axios.patch(`/api/${params.seasonId}/students/${params.studentId}`, submissionData);
+        console.log("Updating student...");
+        await axios.patch(
+          `/api/${params.seasonId}/students/${params.studentId}`,
+          submissionData
+        );
       } else {
+        console.log("Creating new student...");
         await axios.post(`/api/${params.seasonId}/students`, submissionData);
       }
+
       router.refresh();
       router.push(`/${params.seasonId}/students`);
       toast.success(toastMessage);
     } catch (error: any) {
+      console.error("Error submitting form:", error);
       toast.error("Something went wrong.");
     } finally {
       setLoading(false);
     }
-};
+  };
+
   const handleDayChange = (selectedDay: string) => {
     setSelectedDay(selectedDay);
 
@@ -418,7 +428,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
       setOpen(false);
     }
   };
-
 
   const handleStatusChange = (value: string) => {
     console.log("Status changed to:", value);
@@ -499,19 +508,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
           className="space-y-8 w-full"
         >
           <div className="md:grid md:grid-cols-3 gap-8">
-            <FormField
-              control={form.control}
-              name="UniqueID"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>RegNum</FormLabel>
-                  <FormControl>
-                    <Input disabled={loading} placeholder="RegNum" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="NAME_FIRST"
@@ -802,56 +798,37 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
               control={form.control}
               name="LEVEL"
               render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Level</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col"
-                    >
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="1/2 novice" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          1/2 novice
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="3/4 inter" />
-                        </FormControl>
-                        <FormLabel className="font-normal">3/4 inter</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="5/6 adv inter" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          5/6 adv inter
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="7/8 advance" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          7/8 Advance
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="9 atac" />
-                        </FormControl>
-                        <FormLabel className="font-normal">9 ATAC</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                <FormItem>
+                  <FormLabel>Skill Level</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // handleDayChange(value); // Remove this line if not needed for skill levels
+                    }}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Skill Level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Level 1</SelectItem>
+                      <SelectItem value="2">Level 2</SelectItem>
+                      <SelectItem value="3">Level 3</SelectItem>
+                      <SelectItem value="4">Level 4</SelectItem>
+                      <SelectItem value="5">Level 5</SelectItem>
+                      <SelectItem value="6">Level 6</SelectItem>
+                      <SelectItem value="7">Level 7</SelectItem>
+                      <SelectItem value="8">Level 8</SelectItem>
+                      <SelectItem value="9">Level 9</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="AppType"
@@ -1103,8 +1080,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                   <FormLabel>Status</FormLabel>
                   <FormControl>
                     <RadioGroup
-                       value={field.value} 
-                       onValueChange={(value) => {
+                      value={field.value}
+                      onValueChange={(value) => {
                         field.onChange(value);
                         console.log(value);
                       }}
@@ -1130,9 +1107,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                         <FormControl>
                           <RadioGroupItem value="waitlist" />
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          Waitlist
-                        </FormLabel>
+                        <FormLabel className="font-normal">Waitlist</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -1148,7 +1123,12 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 <FormItem>
                   <FormLabel>ClassID</FormLabel>
                   <FormControl>
-                    <Input type='number'placeholder="classID" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="classID"
+                      {...field}
+                      value={field.value || initialData?.classId }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

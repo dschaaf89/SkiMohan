@@ -75,7 +75,7 @@ export const columns: ColumnDef<StudentColumn>[] = [
     },
   },
   {
-    accessorKey: "classID",
+    accessorKey: "classId",
     header: ({ column }) => {
       return (
         <Button

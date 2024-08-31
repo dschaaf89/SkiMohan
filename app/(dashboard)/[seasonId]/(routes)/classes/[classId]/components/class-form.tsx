@@ -69,7 +69,10 @@ const formSchema = z.object({
 type ClassFormValues = z.infer<typeof formSchema>;
 
 interface ClassFormProps {
-  initialData: Classes | null;
+  initialData: (Classes & {
+    students?: StudentDetail[];
+    oldStudents?: StudentConnection;
+  }) | null;
 }
 
 export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
@@ -153,55 +156,58 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   useEffect(() => {
     const fetchStudentDetails = async () => {
       try {
-        const studentConnections = initialData?.oldStudents as unknown as
-          | StudentConnection
-          | undefined;
-        if (!studentConnections || !studentConnections.connect) return;
-
-        // Separate unique IDs and old IDs
-        const uniqueIds = studentConnections.connect
-          .map((conn) => Number(conn.id))
-          .filter((id) => !isNaN(id)); // Filter valid numbers for UniqueID
-        const oldIds = studentConnections.connect
-          .map((conn) => conn.id)
-          .filter((id) => isNaN(Number(id))); // Filter strings for oldIds
-
         let students: StudentDetail[] = [];
 
-        // Fetch students by UniqueID
-        if (uniqueIds.length > 0) {
-          const { data: uniqueIdStudents } = await axios.get(
-            `/api/${params.seasonId}/students`,
-            {
-              params: {
-                UniqueID: uniqueIds, // Pass UniqueIDs as a query parameter
-              },
-            }
-          );
-          students = uniqueIdStudents;
-        }
+        // Fetch students using the current structure if available
+        if (initialData?.students && initialData.students.length > 0) {
+          students = initialData.students;
+        } else if (initialData?.oldStudents) {
+          // Handle backwards compatibility for oldStudents
+          const studentConnections = initialData.oldStudents.connect;
+          if (!studentConnections) return;
 
-        // Fetch students by oldIds
-        if (oldIds.length > 0) {
-          const { data: oldIdStudents } = await axios.get(
-            `/api/${params.seasonId}/students/byOldId`,
-            {
-              params: {
-                oldIds: oldIds.join(","), // Pass oldIds as a query parameter
-              },
-            }
-          );
-          students = [...students, ...oldIdStudents]; // Merge results
+          const uniqueIds = studentConnections
+            .map((conn) => Number(conn.id))
+            .filter((id) => !isNaN(id)); // Filter valid numbers for UniqueID
+          const oldIds = studentConnections
+            .map((conn) => conn.id)
+            .filter((id) => isNaN(Number(id))); // Filter strings for oldIds
+
+          // Fetch students by UniqueID
+          if (uniqueIds.length > 0) {
+            const { data: uniqueIdStudents } = await axios.get(
+              `/api/${params.seasonId}/students`,
+              {
+                params: {
+                  UniqueID: uniqueIds, // Pass UniqueIDs as a query parameter
+                },
+              }
+            );
+            students = uniqueIdStudents;
+          }
+
+          // Fetch students by oldIds
+          if (oldIds.length > 0) {
+            const { data: oldIdStudents } = await axios.get(
+              `/api/${params.seasonId}/students/byOldId`,
+              {
+                params: {
+                  oldIds: oldIds.join(","), // Pass oldIds as a query parameter
+                },
+              }
+            );
+            students = [...students, ...oldIdStudents]; // Merge results
+          }
         }
 
         // Map the fetched student data into the format needed for the component
         const studentDetails = students.map((student) => ({
-          UniqueID: student.UniqueID, // Ensure property names match the StudentDetail type
+          UniqueID: student.UniqueID,
           oldIds: student.oldIds,
           NAME_FIRST: student.NAME_FIRST,
           NAME_LAST: student.NAME_LAST,
-          AGE: student.AGE, // Ensure you are using the correct case
-          LEVEL: student.LEVEL, // Ensure you are using the correct case
+          AGE: student.AGE,
+          LEVEL: student.LEVEL,
           APPLYING_FOR: student.APPLYING_FOR,
           E_mail_main: student.E_mail_main,
         }));
@@ -214,59 +220,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
 
     fetchStudentDetails();
   }, [initialData, params.seasonId]);
-
-  useEffect(() => {
-    const dayToClassTimeIdMapping = {
-      Friday: 2,
-      "Saturday Morning": 3,
-      "Saturday Afternoon": 4,
-      "Sunday Morning": 5,
-      "Sunday Afternoon": 6,
-    };
-
-    async function fetchInstructorsAndAssistants() {
-      try {
-        if (!initialData?.classId) {
-          console.error("classId is missing from initialData");
-          return;
-        }
-
-        // Use the day field to find the corresponding classTimeId
-        const { day } = initialData;
-        const classTimeId = dayToClassTimeIdMapping[day];
-
-        if (!classTimeId) {
-          console.error(`No classTimeId found for day: ${day}`);
-          return;
-        }
-
-        console.log("Using classTimeId:", classTimeId);
-
-        const [instructorResponse, assistantResponse] = await Promise.all([
-          axios.get(
-            `/api/${params.seasonId}/classes/availableInstructors?classTimeId=${classTimeId}`
-          ),
-          axios.get(
-            `/api/${params.seasonId}/classes/availableAssistants?classTimeId=${classTimeId}`
-          ),
-        ]);
-        console.log("Instructors Response:", instructorResponse.data);
-        console.log("Assistants Response:", assistantResponse.data);
-
-        setInstructors(instructorResponse.data);
-        setAssistants(assistantResponse.data);
-      } catch (error) {
-        console.error("Error fetching instructors or assistants:", error);
-        setInstructors([]);
-        setAssistants([]);
-      }
-    }
-
-    if (initialData?.classId) {
-      fetchInstructorsAndAssistants();
-    }
-  }, [initialData?.classId, params.seasonId, initialData]); // No need to add dayToClassTimeIdMapping here
-  // Add dayToClassTimeIdMapping and initialData here
 
   const handleInstructorChange = (value: string) => {
     setSelectedInstructorId(value);

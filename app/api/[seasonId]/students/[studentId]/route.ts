@@ -68,10 +68,9 @@ export async function GET(
     return new NextResponse("Internal error", { status: 500 });
   }
 };
-
 export async function DELETE(
   req: Request,
-  { params }: { params: { studentId: number, seasonId: string } }
+  { params }: { params: { studentId: string, seasonId: string } } // Notice `studentId` is a string here
 ) {
   try {
     const { userId } = auth();
@@ -80,8 +79,10 @@ export async function DELETE(
       return new NextResponse("Unauthenticated", { status: 403 });
     }
 
-    if (!params.studentId) {
-      return new NextResponse("Billboard id is required", { status: 400 });
+    const studentId = parseInt(params.studentId, 10); // Convert studentId to an integer
+
+    if (isNaN(studentId)) {
+      return new NextResponse("Invalid student ID", { status: 400 });
     }
 
     // const storeByUserId = await prismadb.season.findFirst({
@@ -97,17 +98,16 @@ export async function DELETE(
 
     const student = await prismadb.student.delete({
       where: {
-        UniqueID: params.studentId,
-      }
+        UniqueID: studentId, // Use the converted integer
+      },
     });
-  
+
     return NextResponse.json(student);
   } catch (error) {
     console.log('[BILLBOARD_DELETE]', error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
-
+}
 
 // export async function PATCH(
 //   req: Request,
@@ -230,27 +230,95 @@ export async function DELETE(
 //     return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
 //   }
 // }
-
 export async function PATCH(req: Request, { params }: { params: { studentId: number, seasonId: string } }) {
   try {
-   
     const body = await req.json();
-    console.log(`Updating student with ID: ${params.studentId}`, body);
+    const studentId = parseInt(params.studentId.toString(), 10);
 
-    // Update student information including status
-    const updatedStudent = await prismadb.student.update({
-      where: { UniqueID: params.studentId },
-      data: {
-        ...body, // Spread all updateable fields
-        seasonId: params.seasonId // Ensure seasonId is maintained or updated appropriately
+    console.log(`Updating student with ID: ${studentId}`, body);
+
+    // Start a transaction to ensure all updates happen together
+    const updatedStudent = await prismadb.$transaction(async (prisma) => {
+      // Fetch the current student record to get the existing classId
+      const existingStudent = await prisma.student.findUnique({
+        where: { UniqueID: studentId },
+        select: { classId: true }, // Only select the classId field
+      });
+
+      // Update the student information
+      const student = await prisma.student.update({
+        where: { UniqueID: studentId },
+        data: {
+          NAME_FIRST: body.NAME_FIRST,
+          NAME_LAST: body.NAME_LAST,
+          HOME_TEL: body.HOME_TEL,
+          ADDRESS: body.ADDRESS,
+          CITY: body.CITY,
+          STATE: body.STATE,
+          ZIP: body.ZIP,
+          student_tel: body.student_tel,
+          Email_student: body.Email_student,
+          BRTHD: new Date(body.BRTHD),
+          AGE: body.AGE,
+          GradeLevel: body.GradeLevel,
+          APPLYING_FOR: body.APPLYING_FOR,
+          LEVEL: body.LEVEL,
+          Approach: body.Approach,
+          E_mail_main: body.E_mail_main,
+          E_NAME: body.E_NAME,
+          E_TEL: body.E_TEL,
+          CCPayment: body.CCPayment,
+          ProgCode: body.ProgCode,
+          BUDDY: body.BUDDY,
+          WComment: body.WComment,
+          DateFeePaid: body.DateFeePaid,
+          PaymentStatus: body.PaymentStatus,
+          AcceptedTerms: body.AcceptedTerms,
+          AppType: body.AppType,
+          Employer: body.Employer,
+          C_TEL: body.C_TEL,
+          Occupation: body.Occupation,
+          W_TEL: body.W_TEL,
+          AGE_GROUP: body.AGE_GROUP,
+          AGRESSIVENESS: body.AGRESSIVENESS,
+          GENDER: body.GENDER,
+          FeeComment: body.FeeComment,
+          DAY: body.DAY,
+          StartTime: body.StartTime,
+          EndTime: body.EndTime,
+          status: body.status,
+          class: {
+            connect: { classId: body.classID },  // Connect to the new class
+          },
+          season: {
+            connect: { id: params.seasonId },  // Correctly associate the season
+          },
+        },
+      });
+
+      // Decrement the student count in the old class if applicable
+      if (existingStudent?.classId && existingStudent.classId !== body.classID) {
+        await prisma.classes.update({
+          where: { classId: existingStudent.classId },
+          data: { numberStudents: { decrement: 1 } },
+        });
       }
-    });
-    console.log(`Student updated:`, updatedStudent);
 
+      // Increment the student count in the new class
+      await prisma.classes.update({
+        where: { classId: body.classID },
+        data: { numberStudents: { increment: 1 } },
+      });
+
+      return student;
+    });
+
+    console.log(`Student updated:`, updatedStudent);
     return new Response(JSON.stringify({ message: "Student updated successfully", student: updatedStudent }), { status: 200 });
   } catch (error) {
     console.error('[Student_PATCH] Error:', error);
     return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
   }
 }
+
 

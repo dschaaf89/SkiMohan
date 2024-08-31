@@ -23,11 +23,11 @@ export async function GET(req: Request, { params }: { params: { classId: number 
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { classId: number, seasonId: string } }
+  { params }: { params: { classId: string, seasonId: string } }
 ) {
   try {
     const { userId } = auth();
-
+    const classId = parseInt(params.classId, 10);
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
     }
@@ -49,7 +49,7 @@ export async function DELETE(
 
     const classes = await prismadb.classes.delete({
       where: {
-        classId: params.classId,
+        classId: classId,
       }
     });
   

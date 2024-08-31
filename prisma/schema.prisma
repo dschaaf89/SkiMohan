@@ -16,9 +16,6 @@ model Season {
   students    Student[]    @relation("SeasonToStudent")
   instructors Instructor[] @relation("SeasonToInstructor")
   classes     Classes[]    @relation("SeasonToClasses")
-  programs    Program[]    @relation("SeasonToProgram")
-  products    Product[]    @relation("SeasonToProduct")
-  types       Type[]       @relation("SeasonToType")
   orders      Order[]      @relation("SeasonToOrder")
   volunteers  Volunteer[]  @relation("SeasonToVolunteer")
   createAt    DateTime     @default(now())
@@ -51,7 +48,7 @@ model Customer {
 
 }
 model Student {
-  UniqueID      Int       @unique @default(autoincrement())
+  UniqueID      Int       @id@unique @default(autoincrement())
   season        Season    @relation("SeasonToStudent", fields: [seasonId], references: [id])
   seasonId      String
   customer      Customer? @relation("CustomerToStudent", fields: [customerId], references: [id])
@@ -104,11 +101,11 @@ model Student {
   class           Classes?     @relation("ClassToStudents", fields: [classId], references: [classId])
 
 
-  @@index([UniqueID, classId])
+
   @@index([seasonId])
   @@index([ProgCode])
   @@index([customerId])
-   @@index([classId])
+  @@index([classId])
 }
 model Instructor {
   UniqueID            Int                   @id @default(autoincrement()) @map("UniqueID")
@@ -261,49 +258,40 @@ model Classes {
 
 model Program {
   id        String    @id @default(uuid())
-  seasonId  String // Foreign Key to Store
-  season    Season    @relation("SeasonToProgram", fields: [seasonId], references: [id])
   imageUrl  String
   name      String
   products  Product[] @relation("ProgramToProduct")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-
-  @@index([seasonId])
 }
 
 model Product {
   id         String      @id @default(uuid())
-  seasonId   String // Foreign Key to Store
-  season     Season      @relation("SeasonToProduct", fields: [seasonId], references: [id])
-  programId  String // Foreign Key to Category
+  programId  String // Foreign Key to Program
   program    Program     @relation("ProgramToProduct", fields: [programId], references: [id])
   name       String
   price      Decimal
   isFeatured Boolean     @default(false)
   isArchived Boolean     @default(false)
-  typeId     String // Foreign Key to Size
+  typeId     String // Foreign Key to Type
   type       Type        @relation(fields: [typeId], references: [id])
   quantity   Int         @default(0) // Quantity available in stock
   orderItems OrderItem[] // Relation to OrderItem model
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
-  @@index([seasonId])
   @@index([programId])
   @@index([typeId])
 }
+
 model Type {
   id        String    @id @default(uuid())
-  seasonId  String // Foreign Key to Store
-  season    Season    @relation("SeasonToType", fields: [seasonId], references: [id])
   name      String
   value     String
   products  Product[] // Relation to Product model
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  @@index([seasonId])
 }
 
 model Image {
