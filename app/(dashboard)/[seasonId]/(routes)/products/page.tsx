@@ -6,9 +6,6 @@ import { ProductColumn } from "./components/columns";
 
 const ProductsPage = async ({ params }: { params: { seasonId: string } }) => {
   const products = await prismadb.product.findMany({
-    where: {
-      seasonId: params.seasonId,
-    },
     include: {
       program: true,
       type: true,

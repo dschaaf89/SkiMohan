@@ -18,15 +18,11 @@ const ProductPage = async ({
   });
 
   const programs = await prismadb.program.findMany({
-    where: {
-      seasonId: params.seasonId,
-    },
+ 
   });
 
   const types = await prismadb.type.findMany({
-    where: {
-      seasonId: params.seasonId,
-    },
+   
   });
 
   return ( 

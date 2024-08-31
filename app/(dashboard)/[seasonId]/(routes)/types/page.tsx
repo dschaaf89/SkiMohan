@@ -11,9 +11,6 @@ const TypePage = async ({
   params: { seasonId: string }
 }) => {
   const types = await prismadb.type.findMany({
-    where: {
-      seasonId: params.seasonId
-    },
     orderBy: {
       createdAt: 'desc'
     }

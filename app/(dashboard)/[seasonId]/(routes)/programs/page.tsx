@@ -11,10 +11,6 @@ const ProgramsPage = async ({
   params: { seasonId: string }
 }) => {
   const programs = await prismadb.program.findMany({
-    where: {
-      seasonId: params.seasonId
-    },
-
     orderBy: {
       createdAt: 'desc'
     }
