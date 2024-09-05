@@ -4,7 +4,7 @@ import { authMiddleware } from "@clerk/nextjs";
 
 const cors = (request: NextRequest) => {
   const origin = request.headers.get("origin");
-  const allowedOrigins = ["http://localhost:3001","http://localhost:3000", "https://ski-mohan-admin.vercel.app/"];
+  const allowedOrigins = ["http://localhost:3001","http://localhost:3000", "https://ski-mohan-admin.vercel.app/","https://ski-mohan-main-site.vercel.app/"];
   
   // Handle preflight requests
   if (request.method === 'OPTIONS' && origin && allowedOrigins.includes(origin)) {
@@ -27,7 +27,7 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
   // Proceed with Clerk auth middleware for other requests
   return authMiddleware({
     ignoredRoutes: ["/api/webhook/clerk"], // Ignore Clerk auth for the webhook endpoint
-    publicRoutes: ["/api/:path*","/api/webhook/clerk"]
+    publicRoutes: ["/api/:path*","/api/webhook/clerk","/api/billboards(.*)"]
   })(request, event);
 }
 
