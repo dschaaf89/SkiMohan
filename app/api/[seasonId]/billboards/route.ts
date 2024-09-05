@@ -71,23 +71,14 @@ export async function POST(
     return new NextResponse("Internal error", { status: 500 });
   }
 };
-export async function GET(
-  req: Request,
-  { params }: { params: { seasonId: string } }
-) {
+export async function GET(req: Request) {
   try {
-    if (!params.seasonId) {
-      const response = new NextResponse("Store id is required", { status: 400 });
-      setCORSHeaders(response);
-      return response;
-    }
+    // Fetch all billboards without requiring a seasonId or authentication.
+    const billboards = await prismadb.billboard.findMany();
 
-    const billboards = await prismadb.billboard.findMany({
-   
-    });
-
+    // Create the response and set CORS headers to allow access from your main site
     const response = NextResponse.json(billboards);
-    setCORSHeaders(response);
+    setCORSHeaders(response); // Ensure proper CORS handling
     return response;
   } catch (error) {
     console.log('[BILLBOARDS_GET]', error);
@@ -95,4 +86,4 @@ export async function GET(
     setCORSHeaders(response);
     return response;
   }
-};
+}
