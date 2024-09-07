@@ -1115,19 +1115,18 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="classID"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ClassID</FormLabel>
+                  <FormLabel>Class ID</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       placeholder="classID"
                       {...field}
-                      value={field.value || initialData?.classId }
+                      value={field.value || initialData?.classId || null} // Fallback to 0, as it's numeric
                     />
                   </FormControl>
                   <FormMessage />

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
-
-import { useParams, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
@@ -148,21 +148,28 @@ const busLocations: Record<ProgramKey, BusLocation> = {
 export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   data,
 }) => {
+  const { user } = useUser(); // Fetch user information from Clerk
+  const isCoordinator = user?.publicMetadata?.role === "coordinator"; // Check if user is Coordinator
+  const isAdmin = user?.publicMetadata?.role === "administrator"; // Check if user is Administrator
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const seasonId = params.seasonId;
-  const [selectedProgram, setSelectedProgram] = useState<
-    ProgramKey | undefined
-  >(undefined);
+  const programIdFromUrl = searchParams.get("programId");
+  
+  const [selectedProgram, setSelectedProgram] = useState<ProgramKey | undefined>(
+    programIdFromUrl as ProgramKey || undefined
+  );
+  const isProgramLocked = isCoordinator && !isAdmin;
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [filteredStudents, setFilteredStudents] = useState<StudentColumn[]>([]); // State for filtered students
-  const [filteredVolunteers, setFilteredVolunteers] = useState<
-    VolunteerColumn[]
-  >([]); // State for filtered volunteers
+  const [filteredStudents, setFilteredStudents] = useState<StudentColumn[]>([]);
+  const [filteredVolunteers, setFilteredVolunteers] = useState<VolunteerColumn[]>(
+    []
+  );
   const [filteredWaitlistStudents, setFilteredWaitlistStudents] = useState<
     WaitlistColumn[]
-  >([]); // State for filtered waitlist students
+  >([]);
 
   const toggleUpdateModal = () => {
     setIsUpdateModalOpen(!isUpdateModalOpen);
@@ -180,53 +187,45 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "Wallingford", label: "Wallingford" },
   ];
 
-  const programToPrefix = {
-    EastsideCatholic: "EAST-",
-    Interlake: "LINC-",
-    Meadowbrook: "NATH-",
-    Ballard: "BALL-",
-    NorthEastSeattle: "ECKS-",
-    Roosevelt: "ROOS-",
-    Soundview: "WHIT-",
-    ThortonCreek: "JANE-",
-    Wallingford: "HAML-",
+  const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {
+    if (!selectedProgram) {
+      setFilteredStudents(data.students);
+      setFilteredVolunteers(data.volunteers);
+      setFilteredWaitlistStudents(data.waitlistStudents);
+    } else {
+      const selectedPrefix = programToPrefix[selectedProgram];
+      const filteredStudents = data.students.filter((student) =>
+        student.ProgCode.startsWith(selectedPrefix)
+      );
+      const filteredVolunteers = data.volunteers.filter(
+        (volunteer) => volunteer.employerSchool === selectedProgram
+      );
+      const filteredWaitlistStudents = data.waitlistStudents.filter((student) =>
+        student.ProgCode.startsWith(selectedPrefix)
+      );
+      setFilteredStudents(filteredStudents);
+      setFilteredVolunteers(filteredVolunteers);
+      setFilteredWaitlistStudents(filteredWaitlistStudents);
+    }
   };
-  const fridayStudents = data.students.filter(
-    (student) => student.DAY === "Friday" && student.status === "Registered"
-  );
+
   useEffect(() => {
-    const filterDataByProgram = () => {
-      if (!selectedProgram) {
-        setFilteredStudents(fridayStudents);
-        setFilteredVolunteers(data.volunteers);
-        setFilteredWaitlistStudents(data.waitlistStudents);
-      } else {
-        const selectedPrefix = programToPrefix[selectedProgram];
-
-        const filteredStudents = fridayStudents.filter((student) =>
-          student.ProgCode.startsWith(selectedPrefix)
-        );
-        const filteredVolunteers = data.volunteers.filter(
-          (volunteer) => volunteer.employerSchool === selectedProgram
-        ); // Check if this should be filtered by ProgCode
-        const filteredWaitlistStudents = data.waitlistStudents.filter(
-          (student) => student.ProgCode.startsWith(selectedPrefix)
-        );
-        // Check if this should be filtered by ProgCode
-        setFilteredStudents(filteredStudents);
-        setFilteredVolunteers(filteredVolunteers);
-        setFilteredWaitlistStudents(filteredWaitlistStudents);
-      }
-    };
-
-    filterDataByProgram();
+    filterDataByProgram(selectedProgram);
   }, [selectedProgram, data]);
 
+  useEffect(() => {
+    // If there's a programId in the URL and the user is a coordinator, lock the selection.
+    if (programIdFromUrl && isCoordinator) {
+      setSelectedProgram(programIdFromUrl as ProgramKey);
+    }
+  }, [programIdFromUrl, isCoordinator]);
+
   const handleProgramChange = (value: string) => {
-    setSelectedProgram(value as ProgramKey); // Cast to ProgramKey
+    if (!isProgramLocked) {
+      setSelectedProgram(value as ProgramKey);
+    }
   };
 
-  // Create bar chart data based on the filtered students
   const transportationOnlyCount = filteredStudents.filter((student) =>
     student.ProgCode?.endsWith("-TR")
   ).length;
@@ -245,7 +244,6 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
       },
     ],
   };
-
   const formattedVolunteersWk1 = filteredVolunteers.filter(
     (volunteer) => volunteer.busChaperoneWk1 || volunteer.emergencyDriverWk1
   );
@@ -272,15 +270,11 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
 
   return (
     <>
-      {/* Header displaying the selected program */}
-      {selectedProgram && (
-        <div className="text-center mt-4">
-          <h1 className="text-4xl font-semibold">
-  {programs.find(p => p.value === selectedProgram)?.label ?? 'Default Label'} Coordinator's Portal
-</h1> 
-        </div>
-      )}
-      <Select onValueChange={handleProgramChange}>
+       <Select
+  value={selectedProgram}  // Use 'selectedProgram' here
+  onValueChange={handleProgramChange}
+  disabled={isProgramLocked && !isAdmin} // Lock dropdown for Coordinators
+>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select Program" />
         </SelectTrigger>
@@ -328,43 +322,57 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
 
         {/* Bus Information */}
         <div className="bg-gray-100 p-4 rounded-lg shadow">
-        <Card>
-  <CardHeader>
-    <CardTitle className="text-center">Bus Information</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <p className="leading-loose">
-      <strong>Bus Company:</strong> {selectedProgram && busLocations[selectedProgram].busCompany}
-    </p>
-    <p className="leading-loose">
-      <strong>Bus Driver:</strong> {selectedProgram && busLocations[selectedProgram].busDriver}
-    </p>
-    <p className="leading-loose">
-      <strong>Bus Driver Phone Number:</strong> {selectedProgram && busLocations[selectedProgram].busDriverPhone}
-    </p>
-    <p className="leading-loose">
-      <strong>Pick Up Location:</strong> {selectedProgram && busLocations[selectedProgram].pickUpLocation}
-    </p>
-    <p className="leading-loose">
-      <strong>Pick Up Time:</strong> {selectedProgram && busLocations[selectedProgram].pickUpTime}
-    </p>
-    <p className="leading-loose">
-      <strong>Drop Off Time:</strong> {selectedProgram && busLocations[selectedProgram].dropOffTime}
-    </p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">Bus Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="leading-loose">
+                <strong>Bus Company:</strong>{" "}
+                {selectedProgram && busLocations[selectedProgram].busCompany}
+              </p>
+              <p className="leading-loose">
+                <strong>Bus Driver:</strong>{" "}
+                {selectedProgram && busLocations[selectedProgram].busDriver}
+              </p>
+              <p className="leading-loose">
+                <strong>Bus Driver Phone Number:</strong>{" "}
+                {selectedProgram &&
+                  busLocations[selectedProgram].busDriverPhone}
+              </p>
+              <p className="leading-loose">
+                <strong>Pick Up Location:</strong>{" "}
+                {selectedProgram &&
+                  busLocations[selectedProgram].pickUpLocation}
+              </p>
+              <p className="leading-loose">
+                <strong>Pick Up Time:</strong>{" "}
+                {selectedProgram && busLocations[selectedProgram].pickUpTime}
+              </p>
+              <p className="leading-loose">
+                <strong>Drop Off Time:</strong>{" "}
+                {selectedProgram && busLocations[selectedProgram].dropOffTime}
+              </p>
 
-    {/* Seating Charts Section */}
-    <div className="mt-10">
-      <h3 className="text-lg font-semibold">Seating Charts</h3>
-      <p>52-passenger bus seating chart:</p>
-      <a href="https://drive.google.com/file/d/1QTtPOhXvkTLRR2T83hplgP02AM3QcxRG/view?usp=drive_link" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">View Seating Chart</a>
-    </div>
+              {/* Seating Charts Section */}
+              <div className="mt-10">
+                <h3 className="text-lg font-semibold">Seating Charts</h3>
+                <p>52-passenger bus seating chart:</p>
+                <a
+                  href="https://drive.google.com/file/d/1QTtPOhXvkTLRR2T83hplgP02AM3QcxRG/view?usp=drive_link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  View Seating Chart
+                </a>
+              </div>
 
-    <div className="mt-10">
-      <p>Any other bus related information</p>
-    </div>
-  </CardContent>
-</Card>
-
+              <div className="mt-10">
+                <p>Any other bus related information</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Waitlist Roster */}
@@ -452,8 +460,8 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
                 Questions? Please Contact your Program's Coordinator
                 Coordinator:
               </p>
-              <p>Sara Schaaf</p>
-              <p>Phone: 253-290-9926</p>
+              <p>Emily Sheehan</p>
+              <p>Phone:425-868-3820 ex 105</p>
               <p>Email: office@skimohan.com</p>
             </CardContent>
           </Card>

@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 
 const formSchema = z.object({
+  title:z.string(),
   name: z.string().min(1),
   price: z.coerce.number().min(1),
   programId: z.string().min(1),
@@ -138,12 +139,25 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
           <div className="md:grid md:grid-cols-3 gap-8">
+          <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input disabled={loading} placeholder="Product name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Product Code</FormLabel>
                   <FormControl>
                     <Input disabled={loading} placeholder="Product name" {...field} />
                   </FormControl>

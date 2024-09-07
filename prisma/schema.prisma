@@ -266,7 +266,8 @@ model Product {
   id         String      @id @default(uuid())
   programId  String // Foreign Key to Program
   program    Program     @relation("ProgramToProduct", fields: [programId], references: [id])
-  name       String
+  name       String // This will remain the product code
+  title      String      @default("") // New field for the product title
   price      Decimal
   isFeatured Boolean     @default(false)
   isArchived Boolean     @default(false)

@@ -10,7 +10,8 @@ const corsHeaders = {
 };
 
 export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
-  const { items } = await req.json();
+  const { items,userId } = await req.json();
+  console.log("userID is:",userId);
 
   if (!items || items.length === 0) {
     return new NextResponse("Product items are required", { status: 400 });
@@ -66,11 +67,11 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
   const isInstructorProduct = programCodes.includes('Instructor');
   const isAssistantProduct = programCodes.includes('Assistant');
   const success_url = isInstructorProduct 
-    ? `${process.env.FRONT_END_SEASON_URL}/instructor-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&session_id={CHECKOUT_SESSION_ID}`
-    : isAssistantProduct
-      ? `${process.env.FRONT_END_SEASON_URL}/assistant-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&session_id={CHECKOUT_SESSION_ID}`
-      : `${process.env.FRONT_END_SEASON_URL}/student-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&session_id={CHECKOUT_SESSION_ID}`;
-  
+  ? `${process.env.FRONT_END_SEASON_URL}/instructor-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`
+  : isAssistantProduct
+    ? `${process.env.FRONT_END_SEASON_URL}/assistant-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`
+    : `${process.env.FRONT_END_SEASON_URL}/student-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`;
+
   const cancel_url = `${process.env.FRONT_END_SEASON_URL}/cart?canceled=1`;
   console.log('Creating Stripe session with items:', items);
   console.log('Checkout session success URL:', success_url);

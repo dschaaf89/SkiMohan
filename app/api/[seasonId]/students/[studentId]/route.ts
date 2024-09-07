@@ -245,69 +245,74 @@ export async function PATCH(req: Request, { params }: { params: { studentId: num
         select: { classId: true }, // Only select the classId field
       });
 
-      // Update the student information
-      const student = await prisma.student.update({
-        where: { UniqueID: studentId },
-        data: {
-          NAME_FIRST: body.NAME_FIRST,
-          NAME_LAST: body.NAME_LAST,
-          HOME_TEL: body.HOME_TEL,
-          ADDRESS: body.ADDRESS,
-          CITY: body.CITY,
-          STATE: body.STATE,
-          ZIP: body.ZIP,
-          student_tel: body.student_tel,
-          Email_student: body.Email_student,
-          BRTHD: new Date(body.BRTHD),
-          AGE: body.AGE,
-          GradeLevel: body.GradeLevel,
-          APPLYING_FOR: body.APPLYING_FOR,
-          LEVEL: body.LEVEL,
-          Approach: body.Approach,
-          E_mail_main: body.E_mail_main,
-          E_NAME: body.E_NAME,
-          E_TEL: body.E_TEL,
-          CCPayment: body.CCPayment,
-          ProgCode: body.ProgCode,
-          BUDDY: body.BUDDY,
-          WComment: body.WComment,
-          DateFeePaid: body.DateFeePaid,
-          PaymentStatus: body.PaymentStatus,
-          AcceptedTerms: body.AcceptedTerms,
-          AppType: body.AppType,
-          Employer: body.Employer,
-          C_TEL: body.C_TEL,
-          Occupation: body.Occupation,
-          W_TEL: body.W_TEL,
-          AGE_GROUP: body.AGE_GROUP,
-          AGRESSIVENESS: body.AGRESSIVENESS,
-          GENDER: body.GENDER,
-          FeeComment: body.FeeComment,
-          DAY: body.DAY,
-          StartTime: body.StartTime,
-          EndTime: body.EndTime,
-          status: body.status,
-          class: {
-            connect: { classId: body.classID },  // Connect to the new class
-          },
-          season: {
-            connect: { id: params.seasonId },  // Correctly associate the season
-          },
+      // Prepare the update data
+      const updateData: any = {
+        NAME_FIRST: body.NAME_FIRST,
+        NAME_LAST: body.NAME_LAST,
+        HOME_TEL: body.HOME_TEL,
+        ADDRESS: body.ADDRESS,
+        CITY: body.CITY,
+        STATE: body.STATE,
+        ZIP: body.ZIP,
+        student_tel: body.student_tel,
+        Email_student: body.Email_student,
+        BRTHD: new Date(body.BRTHD),
+        AGE: body.AGE,
+        GradeLevel: body.GradeLevel,
+        APPLYING_FOR: body.APPLYING_FOR,
+        LEVEL: body.LEVEL,
+        Approach: body.Approach,
+        E_mail_main: body.E_mail_main,
+        E_NAME: body.E_NAME,
+        E_TEL: body.E_TEL,
+        CCPayment: body.CCPayment,
+        ProgCode: body.ProgCode,
+        BUDDY: body.BUDDY,
+        WComment: body.WComment,
+        DateFeePaid: body.DateFeePaid,
+        PaymentStatus: body.PaymentStatus,
+        AcceptedTerms: body.AcceptedTerms,
+        AppType: body.AppType,
+        Employer: body.Employer,
+        C_TEL: body.C_TEL,
+        Occupation: body.Occupation,
+        W_TEL: body.W_TEL,
+        AGE_GROUP: body.AGE_GROUP,
+        AGRESSIVENESS: body.AGRESSIVENESS,
+        GENDER: body.GENDER,
+        FeeComment: body.FeeComment,
+        DAY: body.DAY,
+        StartTime: body.StartTime,
+        EndTime: body.EndTime,
+        status: body.status,
+        season: {
+          connect: { id: params.seasonId },  // Correctly associate the season
         },
-      });
+      };
 
-      // Decrement the student count in the old class if applicable
-      if (existingStudent?.classId && existingStudent.classId !== body.classID) {
+      // Only update the class if it's provided and different from the existing one
+      if (body.classID && existingStudent?.classId !== body.classID) {
+        updateData.class = { connect: { classId: body.classID } };
+
+        // Decrement the student count in the old class if applicable
+        if (existingStudent?.classId) {
+          await prisma.classes.update({
+            where: { classId: existingStudent.classId },
+            data: { numberStudents: { decrement: 1 } },
+          });
+        }
+
+        // Increment the student count in the new class
         await prisma.classes.update({
-          where: { classId: existingStudent.classId },
-          data: { numberStudents: { decrement: 1 } },
+          where: { classId: body.classID },
+          data: { numberStudents: { increment: 1 } },
         });
       }
 
-      // Increment the student count in the new class
-      await prisma.classes.update({
-        where: { classId: body.classID },
-        data: { numberStudents: { increment: 1 } },
+      // Update the student information
+      const student = await prisma.student.update({
+        where: { UniqueID: studentId },
+        data: updateData,
       });
 
       return student;
@@ -320,5 +325,6 @@ export async function PATCH(req: Request, { params }: { params: { studentId: num
     return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
   }
 }
+
 
 

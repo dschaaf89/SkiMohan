@@ -25,6 +25,7 @@ const ProductsPage = async ({ params }: { params: { seasonId: string } }) => {
     // Debugging: Log each formatted product
     console.log("Formatted Product:", {
       id: item.id,
+      title: item.title,
       name: item.name,
       isFeatured: item.isFeatured,
       isArchived: item.isArchived,
@@ -37,6 +38,7 @@ const ProductsPage = async ({ params }: { params: { seasonId: string } }) => {
 
     return {
       id: item.id,
+      title:item.title,
       name: item.name,
       isFeatured: item.isFeatured,
       isArchived: item.isArchived,
