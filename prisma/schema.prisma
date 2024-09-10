@@ -32,7 +32,7 @@ model Billboard {
 
 model Customer {
   id               String    @id @default(uuid())
-  stripeCustomerId String    @unique
+  stripeCustomerId String    
   firstName        String
   lastName         String
   email            String    @unique

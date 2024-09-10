@@ -26,7 +26,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     try {
       setLoading(true);
       await axios.delete(
-        `/api/${params.seasonId}/instructor/${data.UniqueID}`
+        `/api/${params.seasonId}/instructors/${data.UniqueID}`
       );
       router.refresh();
       router.push(`/${params.seasonId}/instructors`);
