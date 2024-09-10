@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import prismadb from '@/lib/prismadb';
 
 export async function POST(req: Request) {
-
   console.log('Request received:', req);
 
   try {
     const body = await req.json();
-    console.log('Instructor Sign-Up Request:', body);
+    console.log('Instructor Sign-Up Request Body:', body);
+
     const {
       userId,
       NAME_FIRST,
@@ -22,21 +22,22 @@ export async function POST(req: Request) {
       ZIP,
       InstructorType,
       clinics,
-      classTimeIds, // This should be an array of selected classTime IDs
+      classTimeIds,
       seasonId
     } = body;
 
-    if (!seasonId) {
-      return new NextResponse("Season ID is required", { status: 400 });
-    }
+    // Log missing fields
+    if (!userId) console.log('Missing userId');
+    if (!seasonId) return new NextResponse("Season ID is required", { status: 400 });
 
-    // Create the Instructor and associate it with the season
+    // Creating instructor
+    console.log('Creating Instructor...');
     const instructor = await prismadb.instructor.create({
       data: {
         NAME_FIRST,
         NAME_LAST,
         HOME_TEL,
-        BRTHD: new Date(BRTHD), // Ensure BRTHD is a Date object
+        BRTHD: new Date(BRTHD),
         AGE,
         E_mail_main,
         ADDRESS,
@@ -46,24 +47,27 @@ export async function POST(req: Request) {
         InstructorType,
         STATUS: "Pre-Registered",
         season: { connect: { id: seasonId } },
-        customer:{connect:{id:userId}},
+        customer: { connect: { id: userId } },
       },
     });
+    console.log('Instructor created successfully:', instructor);
 
-    // Associate the instructor with clinics
+    // Handling clinics
     if (clinics && clinics.length > 0) {
+      console.log("Clinics associated:", clinics);
       for (const clinicId of clinics) {
         await prismadb.instructorClinic.create({
           data: {
             instructor: { connect: { UniqueID: instructor.UniqueID } },
-            clinic: { connect: { id: parseInt(clinicId, 10) } }, // Convert to int
+            clinic: { connect: { id: parseInt(clinicId, 10) } },
           },
         });
       }
     }
 
-    // Associate the instructor with class times
+    // Handling class times
     if (classTimeIds && classTimeIds.length > 0) {
+      console.log("Class times associated:", classTimeIds);
       for (const classTimeId of classTimeIds) {
         await prismadb.instructorClassTime.create({
           data: {
@@ -73,11 +77,11 @@ export async function POST(req: Request) {
         });
       }
     }
-    
-    console.log('Instructor created successfully:', instructor);
+
+    console.log('Instructor and associations completed successfully.');
     return NextResponse.json(instructor);
   } catch (error) {
-    console.log('[InstructorSignUp_POST]', error);
+    console.error('[InstructorSignUp_POST] Error:', error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
