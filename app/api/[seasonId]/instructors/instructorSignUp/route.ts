@@ -9,6 +9,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Instructor Sign-Up Request:', body);
     const {
+      userId,
       NAME_FIRST,
       NAME_LAST,
       HOME_TEL,
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
         InstructorType,
         STATUS: "Pre-Registered",
         season: { connect: { id: seasonId } },
+        customer:{connect:{id:userId}},
       },
     });
 
