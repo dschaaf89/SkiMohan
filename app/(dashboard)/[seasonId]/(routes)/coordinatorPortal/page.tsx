@@ -146,7 +146,7 @@ const CoordinatorPage = async ({
   WComment: item.WComment|| "",
   DateFeePaid: item.DateFeePaid|| "",
   PaymentStatus: item.PaymentStatus|| "", // Assuming this field is present in your document
-  AcceptedTerms: item.AcceptedTerms|| "", // Assuming this field is present in your document
+  AcceptedTerms: item.AcceptedTerms, // Assuming this field is present in your document
   AppType: item.AppType|| 0, // Assuming this field is present in your document
   Employer: item.Employer|| "", // Assuming this field is present in your document
   C_TEL: item.C_TEL|| "", // Assuming this field is present in your document
