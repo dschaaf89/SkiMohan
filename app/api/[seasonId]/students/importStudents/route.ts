@@ -30,7 +30,7 @@ type StudentData = {
   WComment: string;
   DateFeePaid: string;
   PaymentStatus: string;
-  AcceptedTerms: string;
+  AcceptedTerms: boolean;
   AppType: number; // Adjust nullability if needed
   Employer: string;
   C_TEL: string;
@@ -225,7 +225,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         }else if (header === 'AGE_GROUP') { // Add this condition for 'AGE_GROUP'Q
           studentObject[header] = null; // You can set an appropriate value for AGE_GROUP here
         }else if (header === 'AcceptedTerms') { // Add this condition for 'AGE_GROUP'Q
-          studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
+          studentObject[header] = false; // You can set an appropriate value for AGE_GROUP here
         }else if (header === 'WComment') { // Add this condition for 'AGE_GROUP'
           studentObject[header] = ''; // You can set an appropriate value for AGE_GROUP here
         } 
