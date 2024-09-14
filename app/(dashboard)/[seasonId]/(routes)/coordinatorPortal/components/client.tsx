@@ -462,7 +462,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
               </p>
               <p>Emily Sheehan</p>
               <p>Phone:425-868-3820 ex 105</p>
-              <p>Email: office@skimohan.com</p>
+              <p>Email: programmanagement@skimohan.com</p>
             </CardContent>
           </Card>
         </div>

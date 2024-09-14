@@ -115,6 +115,7 @@ export async function POST(req: Request) {
       E_TEL,
       ProgCode,
       seasonId,
+      
     } = body;
 
     console.log("Request Body:", body);
@@ -234,7 +235,8 @@ export async function POST(req: Request) {
         meetingPoint: meetingPoint,  // Assigning meetingPoint
         season: { connect: { id: seasonId } },
         customer: { connect: { id: userId } },
-        ...(classId && { class: { connect: { classId: classId } } }),  // Connect to class only if not TRANSPORTATION
+        ...(classId && { class: { connect: { classId: classId } } }), // Connect to class only if not TRANSPORTATION
+        AcceptedTerms:true,
       },
     });
 

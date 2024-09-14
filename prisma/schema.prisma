@@ -74,7 +74,7 @@ model Student {
   WComment      String?   @map("WComment")
   DateFeePaid   String?   @map("DateFeePaid")
   PaymentStatus String?   @map("PaymentStatus")
-  AcceptedTerms String?   @map("AcceptedTerms")
+  AcceptedTerms Boolean?   @default(false) @map("AcceptedTerms")
   AppType       Int?      @map("AppType")
   Employer      String?   @map("Employer")
   C_TEL         String?   @map("C_TEL")

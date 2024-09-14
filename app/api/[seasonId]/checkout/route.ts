@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
-  const { items,userId } = await req.json();
+  const { items, userId, couponCode } = await req.json(); // Accept coupon code if provided
   console.log("userID is:",userId);
 
   if (!items || items.length === 0) {
@@ -75,7 +75,9 @@ console.log( "here is the success url",success_url)
   const cancel_url = `${process.env.FRONT_END_SEASON_URL}/cart?canceled=1`;
   console.log('Creating Stripe session with items:', items);
   console.log('Checkout session success URL:', success_url);
-  const session = await stripe.checkout.sessions.create({
+
+
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     line_items,
     mode: "payment",
     billing_address_collection: "required",
@@ -84,11 +86,16 @@ console.log( "here is the success url",success_url)
     },
     success_url: success_url,
     cancel_url: cancel_url,
+    allow_promotion_codes: true, // Enable promotion codes on the Stripe checkout page
     metadata: {
       orderId: order.id,
     },
-  });
+  };
 
+  if (couponCode) {
+    sessionParams.discounts = [{ coupon: couponCode }];
+  }
+  const session = await stripe.checkout.sessions.create(sessionParams);
   await Promise.all(
     items.map(async (item) => {
       const product = products.find(product => product.id === item.id);

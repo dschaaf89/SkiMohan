@@ -52,6 +52,7 @@ import "react-calendar/dist/Calendar.css";
 import { cn } from "@/lib/utils";
 import { differenceInYears } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const calculateAge = (birthdate: Date | null): number => {
   if (birthdate === null) {
@@ -110,7 +111,7 @@ const formSchema = z.object({
   WComment: z.string().optional(),
   DateFeePaid: z.string().optional(),
   PaymentStatus: z.string().optional(),
-  AcceptedTerms: z.string().optional(),
+  AcceptedTerms: z.boolean().optional(),
   AppType: z.number().optional(),
   Employer: z.string().optional(),
   C_TEL: z.string().optional(),
@@ -163,7 +164,7 @@ const createDefaultValues = (
     WComment: "",
     DateFeePaid: "",
     PaymentStatus: "",
-    AcceptedTerms: "",
+    AcceptedTerms: false,
     AppType: 0,
     Employer: "",
     C_TEL: "",
@@ -231,7 +232,7 @@ const createDefaultValues = (
             case "WComment":
             case "DateFeePaid":
             case "PaymentStatus":
-            case "AcceptedTerms":
+
             case "Employer":
             case "C_TEL":
             case "Occupation":
@@ -265,6 +266,7 @@ const createDefaultValues = (
             //     ? initialProgram.endTime
             //     : (initialData[key] as string) || "";
             //   break;
+
             case "status":
               defaultValues[key] =
                 initialData[key] != null
@@ -290,6 +292,11 @@ const createDefaultValues = (
             case "classID":
               defaultValues.classID = (initialData[key] as number) || 0;
               break;
+            case "AcceptedTerms":
+              defaultValues[key] =
+                initialData[key] != null ? Boolean(initialData[key]) : false;
+              break;
+
             default:
               if (initialData[key] !== null && initialData[key] !== undefined) {
                 defaultValues[key] = initialData[key];
@@ -1007,23 +1014,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
             />
             <FormField
               control={form.control}
-              name="BUDDY"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Friend Rqst</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Buddy Request"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="WComment"
               render={({ field }) => (
                 <FormItem className="m-10">
@@ -1071,7 +1061,24 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 </FormItem>
               )}
             />
-
+           <FormField
+          control={form.control}
+          name="AcceptedTerms"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+                
+              </FormControl>
+              <FormLabel>
+                  Accepted Terms
+                </FormLabel>
+            </FormItem>
+          )}
+        />
             <FormField
               control={form.control}
               name="status"

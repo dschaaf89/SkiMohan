@@ -32,7 +32,7 @@ export type StudentColumn = {
   WComment: string;
   DateFeePaid: string;
   PaymentStatus: string;
-  AcceptedTerms: string;
+  AcceptedTerms: boolean;
   AppType: number; // Adjust nullability if needed
   Employer: string;
   C_TEL: string;
