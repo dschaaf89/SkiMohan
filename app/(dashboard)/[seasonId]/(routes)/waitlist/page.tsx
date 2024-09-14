@@ -38,7 +38,7 @@ const WaitlistPage = async ({ params }: { params: { seasonId: string } }) => {
       WComment: student.WComment || "",
       DateFeePaid: student.DateFeePaid || "",
       PaymentStatus: student.PaymentStatus || "",
-      AcceptedTerms: student.AcceptedTerms || "",
+      AcceptedTerms: student.AcceptedTerms,
       AppType: student.AppType || 0,
       Employer: student.Employer || "",
       C_TEL: student.C_TEL || "",
