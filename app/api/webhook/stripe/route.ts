@@ -6,8 +6,12 @@ import prismadb from "@/lib/prismadb";
 // Use this (recommended):
 export const dynamic = 'force-dynamic';
 
-export const api = {
-  bodyParser: false,  // Disable body parsing for Stripe webhook
+export const options = {
+  bodyParser: {
+    raw: {
+      type: "*/*",
+    },
+  },
 };
 
 export async function POST(req: Request) {
