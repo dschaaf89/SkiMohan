@@ -40,6 +40,8 @@ type ProgramKey =
   | "Roosevelt"
   | "Soundview"
   | "ThortonCreek"
+  |"SalmonBay"
+  |"SouthJackson"
   | "Wallingford";
 
 // Define the dictionary with explicit typing
@@ -53,6 +55,8 @@ const programToPrefix: Record<ProgramKey, string> = {
   Soundview: "WHIT-",
   ThortonCreek: "JANE-",
   Wallingford: "HAML-",
+  SouthJackson:"SJAC-",
+  SalmonBay:"SALB",
 };
 
 interface BusLocation {
@@ -65,6 +69,24 @@ interface BusLocation {
 }
 
 const busLocations: Record<ProgramKey, BusLocation> = {
+  SouthJackson: {
+    busCompany: "", // Placeholder
+    busDriver: "", // Placeholder
+    busDriverPhone: "", // Placeholder
+    pickUpLocation:
+      "Eastside Catholic High School parking lot (232 228th Ave SE, Sammamish, WA 98074)",
+    pickUpTime: "3:15 PM",
+    dropOffTime: "Approximately 10:00 PM",
+  },
+  SalmonBay: {
+    busCompany: "", // Placeholder
+    busDriver: "", // Placeholder
+    busDriverPhone: "", // Placeholder
+    pickUpLocation:
+      "Eastside Catholic High School parking lot (232 228th Ave SE, Sammamish, WA 98074)",
+    pickUpTime: "3:15 PM",
+    dropOffTime: "Approximately 10:00 PM",
+  },
   EastsideCatholic: {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
@@ -185,6 +207,8 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "Soundview", label: "Soundview" },
     { value: "ThortonCreek", label: "Thorton-Creek" },
     { value: "Wallingford", label: "Wallingford" },
+    { value: "South Jackson", label: "South Jackson" },
+    { value: "Salmon Bay ", label: "Salmon Bay" },
   ];
 
   const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {

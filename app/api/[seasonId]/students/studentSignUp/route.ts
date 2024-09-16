@@ -1,51 +1,70 @@
 import { NextResponse } from 'next/server';
 import prismadb from '@/lib/prismadb';
 import { mondayPrograms, tuesdayPrograms, thursdayPrograms, fridayNightPrograms, saturdayPrograms, sundayPrograms } from '../../../../(dashboard)/[seasonId]/(routes)/students/[studentId]/components/programDropdown';
+import { differenceInYears } from 'date-fns'; // Import date difference function
 
 let skiMeetingCounter = {
   1: 1,
-  2: 11,
-  3: 21,
-  4: 31,
-  5: 41,
-  7: 46,
+  2: 8,
+  3: 15,
+  4: 22,
+  5: 29,
+  6: 36,
+  7: 43,
 };
 
 let boardMeetingCounter = {
   1: 1,
-  2: 11,
-  3: 21,
-  4: 31,
-  5: 41,
-  7: 46,
+  2: 8,
+  3: 15,
+  4: 22,
+  5: 29,
+  6: 36,
+  7: 43,
 };
+const skiColors = ["red", "yellow", "green"];
+let skiColorIndex = 0; 
+// Age groups
+const ageGroups = [
+  { min: 6, max: 7 },
+  { min: 8, max: 10 },
+  { min: 11, max: 14 },
+  { min: 15, max: 17 },
+  { min: 18, max: Infinity },
+];
+
+// Function to find the appropriate age group for a student
+const findAgeGroup = (age: number) => {
+  return ageGroups.find(group => age >= group.min && (group.max === Infinity || age <= group.max));
+};
+
 
 // Helper function to get meeting points based on discipline and level
 function getMeetingPoint(discipline: string, level: string) {
   let meetingPoint;
   let color;
 
+  // Ensure level is treated as a number for arithmetic operations
+  const numericLevel = parseInt(level, 10);
+
   if (discipline === "SKI") {
-    color = "red";
-    if (["1", "2", "3"].includes(level)) {
-      meetingPoint = skiMeetingCounter[level]++;
-    } else if (["4"].includes(level)) {
-      meetingPoint = skiMeetingCounter[4]++;
-    } else if (["5", "6"].includes(level)) {
-      meetingPoint = skiMeetingCounter[5]++;
-    } else if (["7", "8", "9"].includes(level)) {
-      meetingPoint = skiMeetingCounter[7]++;
+    color = skiColors[skiColorIndex];
+
+    if (["1", "2", "3", "4", "5", "6", "7"].includes(level)) {
+      meetingPoint = skiMeetingCounter[numericLevel]++;
+
+      // If meeting points exceed 7, switch color and reset meeting point
+      if (meetingPoint > (7 + (numericLevel - 1) * 7)) {
+        skiColorIndex = (skiColorIndex + 1) % skiColors.length; // Cycle through colors
+        skiMeetingCounter[numericLevel] = (numericLevel - 1) * 7 + 1; // Reset to the first meeting point of new color
+        color = skiColors[skiColorIndex];
+        meetingPoint = skiMeetingCounter[numericLevel]++;
+      }
     }
   } else if (discipline === "BOARD") {
-    color = "blue";
-    if (["1", "2", "3"].includes(level)) {
-      meetingPoint = boardMeetingCounter[level]++;
-    } else if (["4"].includes(level)) {
-      meetingPoint = boardMeetingCounter[4]++;
-    } else if (["5", "6"].includes(level)) {
-      meetingPoint = boardMeetingCounter[5]++;
-    } else if (["7", "8", "9"].includes(level)) {
-      meetingPoint = boardMeetingCounter[7]++;
+    color = "blue"; // Default to blue for Board, but no cycling
+    if (["1", "2", "3", "4", "5", "6", "7"].includes(level)) {
+      meetingPoint = boardMeetingCounter[numericLevel]++; // Keep the meeting points logic, but no color change
     }
   }
 
@@ -91,9 +110,7 @@ function getProgramDetails(programCode: string) {
   ];
 
   return allPrograms.find((program) => program.code === programCode);
-}
-
-export async function POST(req: Request) {
+}export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
@@ -106,7 +123,6 @@ export async function POST(req: Request) {
       ZIP,
       Email_student,
       BRTHD,
-      AGE,
       GradeLevel,
       userId,
       LEVEL,
@@ -115,7 +131,6 @@ export async function POST(req: Request) {
       E_TEL,
       ProgCode,
       seasonId,
-      
     } = body;
 
     console.log("Request Body:", body);
@@ -154,6 +169,22 @@ export async function POST(req: Request) {
       return new NextResponse("Program not found", { status: 404 });
     }
 
+    // Parse and calculate age from birthdate
+    const birthDate = new Date(BRTHD);
+    if (isNaN(birthDate.getTime())) {
+      return new NextResponse("Invalid Birthdate", { status: 400 });
+    }
+
+    const currentDate = new Date("2025-01-01"); // Replace this date as needed
+    const calculatedAge = differenceInYears(currentDate, birthDate);
+    console.log("Calculated Age:", calculatedAge);
+
+    // Find the age group of the student
+    const studentAgeGroup = findAgeGroup(calculatedAge);
+    if (!studentAgeGroup || studentAgeGroup.min === undefined || studentAgeGroup.max === undefined) {
+      return new NextResponse("Age group not found or invalid", { status: 404 });
+    }
+
     let classId = null;
     let color = null;
     let meetingPoint = null;
@@ -164,7 +195,7 @@ export async function POST(req: Request) {
       meetingPoint = classMeetingPoint;
 
       console.log('Color:', color, 'Meeting Point:', meetingPoint);
-      console.log('Skill Level:', LEVEL, 'Age:', AGE);
+      console.log('Skill Level:', LEVEL, 'Calculated Age:', calculatedAge);
 
       const suitableClass = await prismadb.classes.findFirst({
         where: {
@@ -174,9 +205,12 @@ export async function POST(req: Request) {
           seasonId: seasonId,
           meetColor: color,
           meetingPoint: meetingPoint,
+          Age: {
+            gte: studentAgeGroup.min,  // Use the minimum age of the group
+            ...(studentAgeGroup.max !== Infinity && { lte: studentAgeGroup.max })  // Only apply lte if max is not Infinity
+          },
         },
       });
-
       if (suitableClass) {
         classId = suitableClass.classId;
         await prismadb.classes.update({
@@ -188,7 +222,7 @@ export async function POST(req: Request) {
           data: {
             season: { connect: { id: seasonId } },
             Level: LEVEL,
-            Age: AGE,
+            Age: calculatedAge, // Assign calculated age
             discipline: ProgCode,
             numberStudents: 1,
             day: programDetails.day,
@@ -206,7 +240,6 @@ export async function POST(req: Request) {
     const registrationDate = new Date(); // Capture the current date for DateFeePaid
     const formattedRegistrationDate = registrationDate.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format for string
 
-
     const student = await prismadb.student.create({
       data: {
         NAME_FIRST,
@@ -218,7 +251,7 @@ export async function POST(req: Request) {
         ZIP,
         student_tel: Email_student,
         BRTHD,
-        AGE,
+        AGE: calculatedAge, // Assign calculated age
         GradeLevel,
         LEVEL,
         APPLYING_FOR: discipline,  // Assigning discipline
@@ -236,7 +269,7 @@ export async function POST(req: Request) {
         season: { connect: { id: seasonId } },
         customer: { connect: { id: userId } },
         ...(classId && { class: { connect: { classId: classId } } }), // Connect to class only if not TRANSPORTATION
-        AcceptedTerms:true,
+        AcceptedTerms: true,
       },
     });
 

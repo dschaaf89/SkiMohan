@@ -84,11 +84,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const onSubmit = async (data: ProductFormValues) => {
     try {
       setLoading(true);
+  
+      // Convert price to number if it's not already
+      const requestData = {
+        ...data,
+        price: Number(data.price),
+      };
+  
       if (initialData) {
-        await axios.patch(`/api/${params.seasonId}/products/${params.productId}`, data);
+        await axios.patch(`/api/${params.seasonId}/products/${params.productId}`, requestData);
       } else {
-        await axios.post(`/api/${params.seasonId}/products`, data);
+        await axios.post(`/api/${params.seasonId}/products`, requestData);
       }
+  
       router.refresh();
       router.push(`/${params.seasonId}/products`);
       toast.success(toastMessage);
@@ -98,7 +106,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setLoading(false);
     }
   };
-
   const onDelete = async () => {
     try {
       setLoading(true);

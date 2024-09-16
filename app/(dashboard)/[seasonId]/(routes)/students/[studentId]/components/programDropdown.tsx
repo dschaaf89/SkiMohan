@@ -54,6 +54,48 @@ export const thursdayPrograms: ProgramDetails[] = [
 
 export const fridayNightPrograms: ProgramDetails[] = [
   {
+    code: 'SALB-B-LT',
+    program: 'Salmon Bay Snowboard Lessons and Transportation',
+    day: 'Friday',
+    startTime: '7:00 PM',
+    endTime: '9:00 PM'
+  },
+  {
+    code: 'SALB-S-LT',
+    program: 'Salmon Bay Snowboard Lessons and Transportation',
+    day: 'Friday',
+    startTime: '7:00 PM',
+    endTime: '9:00 PM'
+  },
+  {
+    code: 'SALB-T-TR',
+    program: 'Salmon Bay Snowboard Lessons and Transportation',
+    day: 'Friday',
+    startTime: '7:00 PM',
+    endTime: '9:00 PM'
+  },
+  {
+    code: 'SJAC-B-LT',
+    program: 'South Jackson Snowboard Lessons and Transportation',
+    day: 'Friday',
+    startTime: '7:00 PM',
+    endTime: '9:00 PM'
+  },
+  {
+    code: 'SJAC-S-LT',
+    program: 'South Jackson Snowboard Lessons and Transportation',
+    day: 'Friday',
+    startTime: '7:00 PM',
+    endTime: '9:00 PM'
+  },
+  {
+    code: 'SJAC-T-TR',
+    program: 'South Jackson Snowboard Lessons and Transportation',
+    day: 'Friday',
+    startTime: '7:00 PM',
+    endTime: '9:00 PM'
+  },
+  {
     code: 'BALL-B-LT',
     program: 'Ballard Snowboard Lessons and Transportation',
     day: 'Friday',

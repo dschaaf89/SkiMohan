@@ -827,8 +827,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                       <SelectItem value="5">Level 5</SelectItem>
                       <SelectItem value="6">Level 6</SelectItem>
                       <SelectItem value="7">Level 7</SelectItem>
-                      <SelectItem value="8">Level 8</SelectItem>
-                      <SelectItem value="9">Level 9</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

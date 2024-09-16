@@ -1,43 +1,42 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
-
 import prismadb from "@/lib/prismadb";
+import { Prisma } from "@prisma/client";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { productId: string } }
-) {
+// GET product
+export const GET = async (req: Request, { params }: { params: { productId: string } }) => {
   try {
     if (!params.productId) {
       return new NextResponse("Product id is required", { status: 400 });
     }
 
     const product = await prismadb.product.findUnique({
-      where: {
-        id: params.productId
-      },
+      where: { id: params.productId },
       include: {
-        program: {
-          select: {
-            imageUrl: true, // Select the imageUrl from the Program
-          },
-        },
+        program: { select: { imageUrl: true } },
         type: true,
-      }
+      },
     });
-  
-    return NextResponse.json(product);
+
+    if (!product) {
+      return new NextResponse("Product not found", { status: 404 });
+    }
+
+    // Convert Decimal to number
+    const productWithPlainPrice = {
+      ...product,
+      price: product.price.toNumber(),
+    };
+
+    return NextResponse.json(productWithPlainPrice);
   } catch (error) {
-    console.log('[PRODUCT_GET]', error);
+    console.log("[PRODUCT_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 };
 
-
-export async function DELETE(
-  req: Request,
-  { params }: { params: { productId: string, storeId: string } }
-) {
+// DELETE product
+export const DELETE = async (req: Request, { params }: { params: { productId: string } }) => {
   try {
     const { userId } = auth();
 
@@ -49,40 +48,32 @@ export async function DELETE(
       return new NextResponse("Product id is required", { status: 400 });
     }
 
-    // const storeByUserId = await prismadb.season.findFirst({
-    //   where: {
-    //     id: params.storeId,
-    //     userId
-    //   }
-    // });
-
-    // if (!storeByUserId) {
-    //   return new NextResponse("Unauthorized", { status: 405 });
-    // }
-
     const product = await prismadb.product.delete({
-      where: {
-        id: params.productId
-      },
+      where: { id: params.productId },
     });
-  
-    return NextResponse.json(product);
+
+    if (!product) {
+      return new NextResponse("Product not found", { status: 404 });
+    }
+
+    // Convert Decimal to number
+    const productWithPlainPrice = {
+      ...product,
+      price: product.price.toNumber(),
+    };
+
+    return NextResponse.json(productWithPlainPrice);
   } catch (error) {
-    console.log('[PRODUCT_DELETE]', error);
+    console.log("[PRODUCT_DELETE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 };
 
-
-export async function PATCH(
-  req: Request,
-  { params }: { params: { productId: string, seasonId: string } }
-) {
+// PATCH product
+export const PATCH = async (req: Request, { params }: { params: { productId: string } }) => {
   try {
     const { userId } = auth();
-
     const body = await req.json();
-
     const { title, name, price, programId, typeId, isFeatured, isArchived, quantity } = body;
 
     if (!userId) {
@@ -101,8 +92,8 @@ export async function PATCH(
       return new NextResponse("Valid quantity is required", { status: 400 });
     }
 
-    if (!price) {
-      return new NextResponse("Price is required", { status: 400 });
+    if (!price || isNaN(price)) {
+      return new NextResponse("Price must be a valid number", { status: 400 });
     }
 
     if (!programId) {
@@ -113,38 +104,29 @@ export async function PATCH(
       return new NextResponse("Type id is required", { status: 400 });
     }
 
-    // Optional: Check if the product belongs to the user’s season
-    // const seasonByUserId = await prismadb.season.findFirst({
-    //   where: {
-    //     id: params.seasonId,
-    //     userId
-    //   }
-    // });
-
-    // if (!seasonByUserId) {
-    //   return new NextResponse("Unauthorized", { status: 405 });
-    // }
-
-    // Update the product with quantity
-    await prismadb.product.update({
-      where: {
-        id: params.productId
-      },
+    const updatedProduct = await prismadb.product.update({
+      where: { id: params.productId },
       data: {
         title,
         name,
-        price,
+        price: new Prisma.Decimal(price),
         programId,
         typeId,
         isFeatured,
         isArchived,
-        quantity, // Updated to include quantity
+        quantity,
       },
     });
 
-    return new NextResponse("Product updated successfully", { status: 200 });
+    // Convert Decimal to number
+    const productWithPlainPrice = {
+      ...updatedProduct,
+      price: updatedProduct.price.toNumber(),
+    };
+
+    return NextResponse.json(productWithPlainPrice);
   } catch (error) {
-    console.log('[PRODUCT_PATCH]', error);
+    console.log("[PRODUCT_PATCH]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-}
+};
