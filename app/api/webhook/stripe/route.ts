@@ -3,11 +3,11 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import prismadb from "@/lib/prismadb";
+// Use this (recommended):
+export const dynamic = 'force-dynamic';
 
-export const config = {
-  api: {
-    bodyParser: false, // Handle raw body for Stripe webhook
-  },
+export const api = {
+  bodyParser: false,  // Disable body parsing for Stripe webhook
 };
 
 export async function POST(req: Request) {
