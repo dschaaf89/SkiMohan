@@ -75,7 +75,7 @@ console.log( "here is the success url",success_url)
   const cancel_url = `${process.env.FRONT_END_SEASON_URL}/cart?canceled=1`;
   console.log('Creating Stripe session with items:', items);
   console.log('Checkout session success URL:', success_url);
-
+console.log("orderId",order.id)
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     line_items,

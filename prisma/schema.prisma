@@ -303,20 +303,26 @@ model Image {
 }
 
 model Order {
-  id         String      @id @default(uuid())
-  seasonId   String // Foreign Key to Store
-  season     Season      @relation("SeasonToOrder", fields: [seasonId], references: [id])
-  orderItems OrderItem[] // Relation to OrderItem model
-  isPaid     Boolean     @default(false)
-  Name_First String      @default("")
-  Name_Last  String      @default("")
-  phone      String      @default("")
-  address    String      @default("")
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @default(now())
+  id             String      @id @default(uuid())
+  seasonId       String      // Foreign Key to Store
+  season         Season      @relation("SeasonToOrder", fields: [seasonId], references: [id])
+  orderItems     OrderItem[] // Relation to OrderItem model
+  isPaid         Boolean     @default(false)
+  Name_First     String      @default("")
+  Name_Last      String      @default("")
+  phone          String      @default("")
+  address        String      @default("")
+  transactionId  String?     // Transaction ID from Stripe
+  paymentMethod  String?     // Payment method used
+  totalAmount    Float?      // Total amount of the order
+  paymentDate    DateTime?   // Date of payment
+    sessionId      String?    @unique // Add sessionId to store Stripe session ID
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
 
   @@index([seasonId])
 }
+
 
 model OrderItem {
   id        String  @id @default(uuid())
