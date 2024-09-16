@@ -61,7 +61,7 @@ export async function POST(
       data: {
         label,
         imageUrl,
-        seasonId: params.seasonId,
+      
       }
     });
   
@@ -84,7 +84,7 @@ export async function GET(
 
     const billboards = await prismadb.billboard.findMany({
       where: {
-        seasonId: params.seasonId,
+      
       },
     });
 
