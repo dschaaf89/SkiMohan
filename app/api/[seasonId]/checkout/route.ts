@@ -11,14 +11,15 @@ const corsHeaders = {
 
 export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
   const { items, userId, couponCode } = await req.json(); // Accept coupon code if provided
-  console.log("userID is:",userId);
+  console.log("userID is:", userId);
 
   if (!items || items.length === 0) {
     return new NextResponse("Product items are required", { status: 400 });
   }
 
-  const productIds = items.map(item => item.id);
-  const programCodes = items.map(item => item.programCode); // Extract program codes
+  const productIds = items.map((item) => item.id);
+  const programCodes = items.map((item) => item.programCode); // Extract program codes
+  const quantities = items.map((item) => item.quantity); // Extract quantities
 
   const products = await prismadb.product.findMany({
     where: {
@@ -66,16 +67,19 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
   // Determine the correct success URL based on program codes
   const isInstructorProduct = programCodes.includes('Instructor');
   const isAssistantProduct = programCodes.includes('Assistant');
+
   const success_url = isInstructorProduct 
-  ? `${process.env.FRONT_END_SEASON_URL}/instructor-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`
-  : isAssistantProduct
-    ? `${process.env.FRONT_END_SEASON_URL}/assistant-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`
-    : `${process.env.FRONT_END_SEASON_URL}/student-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`;
-console.log( "here is the success url",success_url)
+    ? `${process.env.FRONT_END_SEASON_URL}/instructor-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&quantities=${quantities.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`
+    : isAssistantProduct
+      ? `${process.env.FRONT_END_SEASON_URL}/assistant-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&quantities=${quantities.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`
+      : `${process.env.FRONT_END_SEASON_URL}/student-signup?orderId=${order.id}&productIds=${productIds.join(',')}&productCodes=${programCodes.join(',')}&quantities=${quantities.join(',')}&userId=${userId}&session_id={CHECKOUT_SESSION_ID}`;
+
+  console.log("here is the success url", success_url);
   const cancel_url = `${process.env.FRONT_END_SEASON_URL}/cart?canceled=1`;
+
   console.log('Creating Stripe session with items:', items);
   console.log('Checkout session success URL:', success_url);
-console.log("orderId",order.id)
+  console.log("orderId", order.id);
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     line_items,
@@ -95,6 +99,7 @@ console.log("orderId",order.id)
   if (couponCode) {
     sessionParams.discounts = [{ coupon: couponCode }];
   }
+
   const session = await stripe.checkout.sessions.create(sessionParams);
   await Promise.all(
     items.map(async (item) => {

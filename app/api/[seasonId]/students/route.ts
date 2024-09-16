@@ -172,7 +172,6 @@ function getMeetingPoint(discipline: string, level: string) {
 
     return { color, meetingPoint };
 }
-
 export async function POST(req: Request, { params }: { params: { seasonId: string } }) {
   try {
     const { userId } = auth();
@@ -208,29 +207,31 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       C_TEL,
       Occupation,
       W_TEL,
-      AGE,
-      AGE_GROUP,
+      AGE, // This comes from the front end, but you should ensure it's accurate
+      AGE_GROUP, // Double-check this from the front end
       GENDER,
       AGRESSIVENESS,
       FeeComment,
       DAY,
       StartTime,
       EndTime,
-      customerId
+      customerId,
     } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
     }
 
+    // Define the age groups, including 5-year-olds
     const ageGroups = [
-      { min: 6, max: 7 },
+      { min: 5, max: 7 },  // Updated to include younger ages
       { min: 8, max: 10 },
       { min: 11, max: 14 },
       { min: 15, max: 17 },
       { min: 18, max: Infinity },
     ];
 
+    // Find the student's age group based on their age
     const studentAgeGroup = ageGroups.find(group => AGE >= group.min && AGE <= group.max);
 
     if (!studentAgeGroup) {
@@ -239,7 +240,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
 
     const { color, meetingPoint } = getMeetingPoint(APPLYING_FOR, LEVEL);
 
-    // Find a suitable class based on the student's level, age group, and discipline
+    // Find or create a suitable class for the student
     const suitableClass = await prismadb.classes.findFirst({
       where: {
         Level: LEVEL,
@@ -265,7 +266,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
     } else {
       const newClass = await prismadb.classes.create({
         data: {
-          season: { connect: { id: params.seasonId } }, // Correctly associate the season
+          season: { connect: { id: params.seasonId } },
           Level: LEVEL,
           Age: AGE,
           discipline: APPLYING_FOR,
@@ -320,7 +321,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         StartTime,
         EndTime,
         customerId,
-        classId: classId,  // Ensure the classId is set here
+        classId: classId,
         seasonId: params.seasonId,
       },
     });
