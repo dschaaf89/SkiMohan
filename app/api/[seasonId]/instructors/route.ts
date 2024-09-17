@@ -20,10 +20,10 @@ export async function POST(req: Request) {
       STATE,
       ZIP,
       InstructorType,
-      clinics,
-      classTimeIds,
+      clinics,        // Optional
+      classTimeIds,   // Optional
       seasonId,
-      userId, // Ensure this is included in the body for customer association
+      userId,         // Ensure this is included in the body for customer association
     } = body;
 
     // Log missing fields
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     });
     console.log("Instructor created successfully:", instructor);
 
-    // Handling clinics association
+    // Handling clinics association only if clinics are provided
     if (clinics && clinics.length > 0) {
       console.log("Associating clinics:", clinics);
       for (const clinicId of clinics) {
@@ -74,9 +74,11 @@ export async function POST(req: Request) {
           },
         });
       }
+    } else {
+      console.log("No clinics provided, skipping clinic association.");
     }
 
-    // Handling class times association
+    // Handling class times association only if classTimeIds are provided
     if (classTimeIds && classTimeIds.length > 0) {
       console.log("Associating class times:", classTimeIds);
       for (const classTimeId of classTimeIds) {
@@ -87,9 +89,11 @@ export async function POST(req: Request) {
           },
         });
       }
+    } else {
+      console.log("No class times provided, skipping class time association.");
     }
 
-    console.log("Instructor and associations completed successfully.");
+    console.log("Instructor and optional associations completed successfully.");
     return NextResponse.json(instructor);
   } catch (error) {
     console.error("[InstructorSignUp_POST] Error:", error);
