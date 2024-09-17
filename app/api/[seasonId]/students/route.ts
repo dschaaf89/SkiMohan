@@ -208,7 +208,6 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       Occupation,
       W_TEL,
       AGE, // This comes from the front end, but you should ensure it's accurate
-     // Double-check this from the front end
       GENDER,
       AGRESSIVENESS,
       FeeComment,
@@ -222,24 +221,26 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       return new NextResponse("Unauthenticated", { status: 403 });
     }
 
-// Define the age groups, including 5-year-olds
-const ageGroups = [
-  { min: 5, max: 7 },  // Updated to include younger ages
-  { min: 8, max: 10 },
-  { min: 11, max: 14 },
-  { min: 15, max: 17 },
-  { min: 18, max: Infinity },  // 18+ age group
-];
+    // Define the age groups, including 5-year-olds
+    const ageGroups = [
+      { min: 5, max: 7 },  // Updated to include younger ages
+      { min: 8, max: 10 },
+      { min: 11, max: 14 },
+      { min: 15, max: 17 },
+      { min: 18, max: Infinity },
+    ];
 
-// Find the student's age group based on their age
-const studentAgeGroup = ageGroups.find(group => AGE >= group.min && AGE <= group.max);
+    // Find the student's age group based on their age
+    const studentAgeGroup = ageGroups.find(group => AGE >= group.min && AGE <= group.max);
 
-if (!studentAgeGroup) {
-  return new NextResponse("Age group not found for the student's age", { status: 400 });
-}
+    if (!studentAgeGroup) {
+      return new NextResponse("Age group not found for the student's age", { status: 400 });
+    }
 
-// Dynamically set the AGE_GROUP value
-const AGE_GROUP = `${studentAgeGroup.min}-${studentAgeGroup.max < Infinity ? studentAgeGroup.max : 'up'}`;  // E.g., "8-10"
+    // Dynamically set the AGE_GROUP value as the minimum of the group (integer)
+    const AGE_GROUP = studentAgeGroup.min;
+
+    // Get meeting point for the student's discipline (Ski/Board)
     const { color, meetingPoint } = getMeetingPoint(APPLYING_FOR, LEVEL);
 
     // Find or create a suitable class for the student
@@ -281,6 +282,8 @@ const AGE_GROUP = `${studentAgeGroup.min}-${studentAgeGroup.max < Infinity ? stu
       });
       classId = newClass.classId;
     }
+
+    // Create the student and assign them to the determined class
     const createdStudent = await prismadb.student.create({
       data: {
         NAME_FIRST,
@@ -313,7 +316,7 @@ const AGE_GROUP = `${studentAgeGroup.min}-${studentAgeGroup.max < Infinity ? stu
         Occupation,
         W_TEL,
         AGE,
-        AGE_GROUP,  // Calculated dynamically
+        AGE_GROUP,  // Now it’s an integer
         GENDER,
         AGRESSIVENESS,
         FeeComment,
@@ -325,7 +328,6 @@ const AGE_GROUP = `${studentAgeGroup.min}-${studentAgeGroup.max < Infinity ? stu
         seasonId: params.seasonId,
       },
     });
-    
 
     return NextResponse.json(createdStudent);
   } catch (error) {
