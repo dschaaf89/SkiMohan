@@ -208,7 +208,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       Occupation,
       W_TEL,
       AGE, // This comes from the front end, but you should ensure it's accurate
-      AGE_GROUP, // Double-check this from the front end
+     // Double-check this from the front end
       GENDER,
       AGRESSIVENESS,
       FeeComment,
@@ -222,22 +222,24 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       return new NextResponse("Unauthenticated", { status: 403 });
     }
 
-    // Define the age groups, including 5-year-olds
-    const ageGroups = [
-      { min: 5, max: 7 },  // Updated to include younger ages
-      { min: 8, max: 10 },
-      { min: 11, max: 14 },
-      { min: 15, max: 17 },
-      { min: 18, max: Infinity },
-    ];
+// Define the age groups, including 5-year-olds
+const ageGroups = [
+  { min: 5, max: 7 },  // Updated to include younger ages
+  { min: 8, max: 10 },
+  { min: 11, max: 14 },
+  { min: 15, max: 17 },
+  { min: 18, max: Infinity },  // 18+ age group
+];
 
-    // Find the student's age group based on their age
-    const studentAgeGroup = ageGroups.find(group => AGE >= group.min && AGE <= group.max);
+// Find the student's age group based on their age
+const studentAgeGroup = ageGroups.find(group => AGE >= group.min && AGE <= group.max);
 
-    if (!studentAgeGroup) {
-      return new NextResponse("Age group not found for the student's age", { status: 400 });
-    }
+if (!studentAgeGroup) {
+  return new NextResponse("Age group not found for the student's age", { status: 400 });
+}
 
+// Dynamically set the AGE_GROUP value
+const AGE_GROUP = `${studentAgeGroup.min}-${studentAgeGroup.max < Infinity ? studentAgeGroup.max : 'up'}`;  // E.g., "8-10"
     const { color, meetingPoint } = getMeetingPoint(APPLYING_FOR, LEVEL);
 
     // Find or create a suitable class for the student
@@ -279,8 +281,6 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       });
       classId = newClass.classId;
     }
-
-    // Create the student and assign them to the determined class
     const createdStudent = await prismadb.student.create({
       data: {
         NAME_FIRST,
@@ -313,7 +313,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         Occupation,
         W_TEL,
         AGE,
-        AGE_GROUP,
+        AGE_GROUP,  // Calculated dynamically
         GENDER,
         AGRESSIVENESS,
         FeeComment,
@@ -325,6 +325,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         seasonId: params.seasonId,
       },
     });
+    
 
     return NextResponse.json(createdStudent);
   } catch (error) {
