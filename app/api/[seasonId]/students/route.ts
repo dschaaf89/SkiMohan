@@ -207,7 +207,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       C_TEL,
       Occupation,
       W_TEL,
-      AGE, // This comes from the front end, but you should ensure it's accurate
+      AGE,
       GENDER,
       AGRESSIVENESS,
       FeeComment,
@@ -221,9 +221,9 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       return new NextResponse("Unauthenticated", { status: 403 });
     }
 
-    // Define the age groups, including 5-year-olds
+    // Define the age groups (optional)
     const ageGroups = [
-      { min: 5, max: 7 },  // Updated to include younger ages
+      { min: 5, max: 7 },
       { min: 8, max: 10 },
       { min: 11, max: 14 },
       { min: 15, max: 17 },
@@ -233,12 +233,8 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
     // Find the student's age group based on their age
     const studentAgeGroup = ageGroups.find(group => AGE >= group.min && AGE <= group.max);
 
-    if (!studentAgeGroup) {
-      return new NextResponse("Age group not found for the student's age", { status: 400 });
-    }
-
-    // Dynamically set the AGE_GROUP value as the minimum of the group (integer)
-    const AGE_GROUP = studentAgeGroup.min;
+    // Set the AGE_GROUP dynamically, or set it to a default value like 0 if the age group isn't found
+    const AGE_GROUP = studentAgeGroup ? studentAgeGroup.min : 0;
 
     // Get meeting point for the student's discipline (Ski/Board)
     const { color, meetingPoint } = getMeetingPoint(APPLYING_FOR, LEVEL);
@@ -248,8 +244,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       where: {
         Level: LEVEL,
         Age: {
-          gte: studentAgeGroup.min,
-          ...(studentAgeGroup.max < Infinity && { lte: studentAgeGroup.max }),
+          gte: studentAgeGroup ? studentAgeGroup.min : 0,
         },
         discipline: APPLYING_FOR,
         numberStudents: { lt: 7 }, // Ensure the class isn't full
@@ -316,7 +311,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         Occupation,
         W_TEL,
         AGE,
-        AGE_GROUP,  // Now it’s an integer
+        AGE_GROUP,  // Set dynamically, or default to 0
         GENDER,
         AGRESSIVENESS,
         FeeComment,
