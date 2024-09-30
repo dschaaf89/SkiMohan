@@ -518,6 +518,7 @@ export const InstructorForm: React.FC<InstructorFormProps> = ({
 
       const updatedData = {
         ...data,
+        seasonId,
         UniqueID: data.UniqueID ? Number(data.UniqueID) : undefined,
         clinics: selectedClinics.map((clinic) => Number(clinic)), // Ensure they are numbers
         classTimeIds: selectedClassTimes, // Ensure these are being passed correctly
