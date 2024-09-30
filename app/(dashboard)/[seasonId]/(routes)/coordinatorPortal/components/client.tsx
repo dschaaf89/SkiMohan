@@ -334,7 +334,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
                 </TabsContent>
                 <TabsContent value="roster">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={studentColumns}
                     data={filteredStudents}
                   />
@@ -403,7 +403,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
         <div className="bg-gray-100 p-4 rounded-lg shadow">
           <h2 className="font-bold text-center">Waitlist</h2>
           <DataTable
-            searchKey="NAME_LAST"
+            searchKeys={["NAME_LAST"]}
             columns={WaitlistColumns}
             data={filteredWaitlistStudents}
           />
@@ -425,42 +425,42 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
                 </TabsList>
                 <TabsContent value="Week1">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={Volunteercolumns}
                     data={formattedVolunteersWk1}
                   />
                 </TabsContent>
                 <TabsContent value="Week2">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={Volunteercolumns}
                     data={formattedVolunteersWk2}
                   />
                 </TabsContent>
                 <TabsContent value="Week3">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={Volunteercolumns}
                     data={formattedVolunteersWk3}
                   />
                 </TabsContent>
                 <TabsContent value="Week4">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={Volunteercolumns}
                     data={formattedVolunteersWk4}
                   />
                 </TabsContent>
                 <TabsContent value="Week5">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={Volunteercolumns}
                     data={formattedVolunteersWk5}
                   />
                 </TabsContent>
                 <TabsContent value="Week6">
                   <DataTable
-                    searchKey="NAME_LAST"
+                    searchKeys={["NAME_LAST"]}
                     columns={Volunteercolumns}
                     data={formattedVolunteersWk6}
                   />

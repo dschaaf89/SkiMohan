@@ -424,7 +424,7 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
         <option value="Saturday">Saturday</option>
         <option value="Sunday">Sunday</option>
       </select>
-      <DataTable searchKey="NAME_LAST" columns={columns} data={filteredData} />
+      <DataTable searchKeys={["NAME_LAST"]} columns={columns} data={filteredData} />
     </>
   );
 };

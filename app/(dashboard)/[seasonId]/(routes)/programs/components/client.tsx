@@ -31,7 +31,7 @@ export const ProgramClient: React.FC<ProgramClientProps> = ({
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={columns} data={data} />
+      <DataTable searchKeys={["name"]} columns={columns} data={data} />
       <Heading title="API" description="API Calls for Categories" />
       <Separator />
       <ApiList entityName="programs" entityIdName="programId" />

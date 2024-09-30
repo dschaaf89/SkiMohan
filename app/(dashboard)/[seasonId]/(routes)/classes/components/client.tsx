@@ -209,7 +209,7 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
         </select>
       </div>
       <Separator />
-      <DataTable searchKey="classId" columns={columns} data={filteredData} />
+      <DataTable searchKeys={["classId"]} columns={columns} data={filteredData} />
     </>
   );
 };

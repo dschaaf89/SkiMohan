@@ -36,7 +36,7 @@ export const VolunteerClient: React.FC<VolunteerClientProps> = ({
       </Button>
     </div>
     <Separator/>
-    <DataTable searchKey="label" columns={columns} data={data}/>
+    <DataTable searchKeys={["NAME_LAST"]} columns={columns} data={data}/>
     
       
     </>
