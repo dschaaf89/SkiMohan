@@ -31,7 +31,7 @@ export const TypeClient: React.FC<TypeClientProps> = ({
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={columns} data={data} />
+      <DataTable searchKeys={["name"]} columns={columns} data={data} />
       <Heading title="API" description="API Calls for Categories" />
       <Separator />
       <ApiList entityName="types" entityIdName="typeId" />
