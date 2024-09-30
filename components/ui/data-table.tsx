@@ -28,7 +28,7 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  searchKeys: string[]; // Now an array of keys to search (e.g., ['productCode', 'lastName'])
+  searchKeys: string[]; // Array of keys to search (e.g., ['productCode', 'lastName'])
 }
 
 export function DataTable<TData, TValue>({
@@ -38,6 +38,17 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  // Custom combined filter function for multi-key search
+  const combinedFilterFn = (row, columnId, filterValue) => {
+    const searchValue = filterValue.toLowerCase();
+    
+    // Check if any of the searchKeys contain the searchValue
+    return searchKeys.some((key) => {
+      const cellValue = row.getValue(key)?.toString().toLowerCase();
+      return cellValue?.includes(searchValue);
+    });
+  };
 
   const table = useReactTable({
     data,
@@ -52,21 +63,22 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
     },
+    filterFns: {
+      combined: combinedFilterFn, // Register the custom filter function
+    },
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const searchValue = event.target.value.toLowerCase(); // Normalize the search value
-  
-    // Update filters for all searchKeys (productCode, lastName, etc.)
-    const filters = searchKeys.map((key) => ({
-      id: key,
-      value: searchValue,
-    }));
-  
-    // Set the new filters
-    setColumnFilters(filters);
+    const searchValue = event.target.value.toLowerCase(); // Normalize search for case-insensitivity
+    
+    // Set a single combined filter for all relevant columns
+    setColumnFilters([
+      {
+        id: 'combined', // Use the custom combined filter
+        value: searchValue, // Set the search value
+      },
+    ]);
   };
-  
 
   return (
     <div>
@@ -82,18 +94,16 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
