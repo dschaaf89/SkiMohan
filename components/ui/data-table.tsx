@@ -55,11 +55,15 @@ export function DataTable<TData, TValue>({
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const searchValue = event.target.value;
-    
-    searchKeys.forEach((key) => {
-      table.getColumn(key)?.setFilterValue(searchValue);
-    });
+    const searchValue = event.target.value.toLowerCase(); // Normalize the search value for case-insensitive search
+  
+    // Apply search filters to all keys in searchKeys
+    setColumnFilters((prevFilters) => 
+      searchKeys.map((key) => ({
+        id: key, // the accessorKey or id for the column
+        value: searchValue, // the value to filter by
+      }))
+    );
   };
 
   return (
