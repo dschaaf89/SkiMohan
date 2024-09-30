@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import {
   ColumnDef,
   SortingState,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -51,12 +50,10 @@ export function DataTable<TData, TValue>({
       sorting,
       globalFilter,
     },
-    globalFilterFn: (rows, columnIds, filterValue) => {
+    globalFilterFn: (row, columnIds, filterValue) => {
       const searchValue = filterValue.toLowerCase();
-      return rows.filter((row) =>
-        searchKeys.some((key) =>
-          String(row.getValue(key)).toLowerCase().includes(searchValue)
-        )
+      return searchKeys.some((key) =>
+        String(row.original[key]).toLowerCase().includes(searchValue)
       );
     },
   });
