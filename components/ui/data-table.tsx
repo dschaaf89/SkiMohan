@@ -14,6 +14,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from "@tanstack/react-table";
 
 import {
@@ -25,10 +26,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// Custom filter function for partial matching (case-insensitive)
+const containsFilter: FilterFn<any> = (row, columnId, value) => {
+  const rowValue = row.getValue(columnId);
+  return rowValue?.toString().toLowerCase().includes(value.toLowerCase());
+};
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  searchKeys: string[]; // Array of keys to search (e.g., ['productCode', 'lastName'])
+  searchKeys: string[]; // Array of keys to search (e.g., ['productCode', 'NAME_LAST'])
 }
 
 export function DataTable<TData, TValue>({
@@ -52,18 +59,27 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
     },
+    filterFns: {
+      // Use the custom partial match filter
+      contains: containsFilter,
+    },
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const searchValue = event.target.value.toLowerCase(); // Normalize the search value for case-insensitive search
-    
-    // Clear all filters first
-    setColumnFilters([]);
+    const searchValue = event.target.value.toLowerCase().trim(); // Normalize search value for case-insensitive search
 
-    // Set the search value for each search key (i.e., for each relevant column)
-    searchKeys.forEach((key) => {
-      table.getColumn(key)?.setFilterValue(searchValue);
-    });
+    if (searchValue.length > 0) {
+      // Set filters for all keys in searchKeys with the custom "contains" filter
+      setColumnFilters(
+        searchKeys.map((key) => ({
+          id: key, // The accessorKey or id for the column
+          value: searchValue, // The value to filter by
+        }))
+      );
+    } else {
+      // Clear filters when input is empty
+      setColumnFilters([]);
+    }
   };
 
   return (
