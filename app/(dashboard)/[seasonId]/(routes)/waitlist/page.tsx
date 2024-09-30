@@ -10,7 +10,11 @@ const WaitlistPage = async ({ params }: { params: { seasonId: string } }) => {
         seasonId: params.seasonId,
         status: 'Waitlist',
       },
+      orderBy: {
+        createAt: 'desc', // Ordering by createdAt in descending order
+      },
     });
+    
 
     const formattedWaitlist: WaitlistColumn[] = waitlist.map((student) => ({
       UniqueID: student.UniqueID ,
