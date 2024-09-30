@@ -55,16 +55,18 @@ export function DataTable<TData, TValue>({
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const searchValue = event.target.value.toLowerCase(); // Normalize the search value for case-insensitive search
+    const searchValue = event.target.value.toLowerCase(); // Normalize the search value
   
-    // Apply search filters to all keys in searchKeys
-    setColumnFilters((prevFilters) => 
-      searchKeys.map((key) => ({
-        id: key, // the accessorKey or id for the column
-        value: searchValue, // the value to filter by
-      }))
-    );
+    // Update filters for all searchKeys (productCode, lastName, etc.)
+    const filters = searchKeys.map((key) => ({
+      id: key,
+      value: searchValue,
+    }));
+  
+    // Set the new filters
+    setColumnFilters(filters);
   };
+  
 
   return (
     <div>
