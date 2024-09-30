@@ -17,7 +17,8 @@ export const WaitlistClient: React.FC<WaitlistClientProps> = ({
     <>
       <Heading title={`Waitlist (${data.length})`} description="Manage waitlist for your season" />
       <Separator />
-      <DataTable searchKeys={["NAME_LAST"]}columns={columns} data={data} />
+      <DataTable searchKeys={["NAME_LAST","ProgCode"
+      ]}columns={columns} data={data} />
     </>
   );
 };
