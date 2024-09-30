@@ -16,7 +16,7 @@ export const columns: ColumnDef<BillboardColumn>[] = [
     header: "Label",
   },
   {
-    accessorFn: (row) => new Date(row.createdAt).toLocaleDateString(), // Format the date for display
+    accessorKey: "createdAt",
     header: "Date",
   },
   {
