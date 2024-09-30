@@ -14,7 +14,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  FilterFn,
 } from "@tanstack/react-table";
 
 import {
@@ -26,16 +25,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Custom filter function for partial matching (case-insensitive)
-const containsFilter: FilterFn<any> = (row, columnId, value) => {
-  const rowValue = row.getValue(columnId);
-  return rowValue?.toString().toLowerCase().includes(value.toLowerCase());
-};
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  searchKeys: string[]; // Array of keys to search (e.g., ['productCode', 'NAME_LAST'])
+  searchKeys: string[]; // An array of keys to search (e.g., ['productCode', 'lastName'])
 }
 
 export function DataTable<TData, TValue>({
@@ -44,42 +37,32 @@ export function DataTable<TData, TValue>({
   searchKeys,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState(""); // Global filter to match multiple columns
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
-      columnFilters,
+      globalFilter,
     },
-    filterFns: {
-      // Use the custom partial match filter
-      contains: containsFilter,
+    globalFilterFn: (rows, columnIds, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      return rows.filter((row) =>
+        searchKeys.some((key) =>
+          String(row.getValue(key)).toLowerCase().includes(searchValue)
+        )
+      );
     },
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const searchValue = event.target.value.toLowerCase().trim(); // Normalize search value for case-insensitive search
-
-    if (searchValue.length > 0) {
-      // Set filters for all keys in searchKeys with the custom "contains" filter
-      setColumnFilters(
-        searchKeys.map((key) => ({
-          id: key, // The accessorKey or id for the column
-          value: searchValue, // The value to filter by
-        }))
-      );
-    } else {
-      // Clear filters when input is empty
-      setColumnFilters([]);
-    }
+    setGlobalFilter(event.target.value);
   };
 
   return (
@@ -87,6 +70,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Search by product code or last name"
+          value={globalFilter}
           onChange={handleSearchChange}
           className="max-w-sm"
         />
