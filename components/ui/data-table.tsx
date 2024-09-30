@@ -1,8 +1,8 @@
 "use client";
-import * as React from "react"
+import * as React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 
 import {
   ColumnDef,
@@ -28,18 +28,16 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  searchKey:string;
+  searchKeys: string[]; // Now an array of keys to search (e.g., ['productCode', 'lastName'])
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  searchKey,
+  searchKeys,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
@@ -50,21 +48,26 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    state:{
+    state: {
       sorting,
       columnFilters,
-    }
+    },
   });
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const searchValue = event.target.value;
+    
+    searchKeys.forEach((key) => {
+      table.getColumn(key)?.setFilterValue(searchValue);
+    });
+  };
 
   return (
     <div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Search"
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-          }
+          placeholder="Search by product code or last name"
+          onChange={handleSearchChange}
           className="max-w-sm"
         />
       </div>

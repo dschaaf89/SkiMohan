@@ -282,7 +282,7 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       </select>
 
       <Separator />
-      <DataTable searchKey="NAME_LAST" columns={columns} data={filteredData} />
+      <DataTable searchKeys={['ProgCode', 'NAME_LAST']}  columns={columns} data={filteredData} />
       <Separator />
       <ApiList entityName="students" entityIdName="studentId" />
     </>
