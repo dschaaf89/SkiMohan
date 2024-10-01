@@ -82,8 +82,7 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation:
-      "",
+    pickUpLocation:"",
     pickUpTime: "3:15 PM",
     dropOffTime: "Approximately 10:00 PM",
   },
@@ -344,60 +343,59 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           </Card>
         </div>
 
-        {/* Bus Information */}
-        <div className="bg-gray-100 p-4 rounded-lg shadow">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">Bus Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="leading-loose">
-                <strong>Bus Company:</strong>{" "}
-                {selectedProgram && busLocations[selectedProgram].busCompany}
-              </p>
-              <p className="leading-loose">
-                <strong>Bus Driver:</strong>{" "}
-                {selectedProgram && busLocations[selectedProgram].busDriver}
-              </p>
-              <p className="leading-loose">
-                <strong>Bus Driver Phone Number:</strong>{" "}
-                {selectedProgram &&
-                  busLocations[selectedProgram].busDriverPhone}
-              </p>
-              <p className="leading-loose">
-                <strong>Pick Up Location:</strong>{" "}
-                {selectedProgram &&
-                  busLocations[selectedProgram].pickUpLocation}
-              </p>
-              <p className="leading-loose">
-                <strong>Pick Up Time:</strong>{" "}
-                {selectedProgram && busLocations[selectedProgram].pickUpTime}
-              </p>
-              <p className="leading-loose">
-                <strong>Drop Off Time:</strong>{" "}
-                {selectedProgram && busLocations[selectedProgram].dropOffTime}
-              </p>
+       {/* Bus Information */}
+<div className="bg-gray-100 p-4 rounded-lg shadow">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-center">Bus Information</CardTitle>
+    </CardHeader>
+    <CardContent>
+      {selectedProgram && busLocations[selectedProgram] ? (
+        <>
+          <p className="leading-loose">
+            <strong>Bus Company:</strong> {busLocations[selectedProgram].busCompany || "Not available"}
+          </p>
+          <p className="leading-loose">
+            <strong>Bus Driver:</strong> {busLocations[selectedProgram].busDriver || "Not available"}
+          </p>
+          <p className="leading-loose">
+            <strong>Bus Driver Phone Number:</strong> {busLocations[selectedProgram].busDriverPhone || "Not available"}
+          </p>
+          <p className="leading-loose">
+            <strong>Pick Up Location:</strong> {busLocations[selectedProgram].pickUpLocation || "Not available"}
+          </p>
+          <p className="leading-loose">
+            <strong>Pick Up Time:</strong> {busLocations[selectedProgram].pickUpTime || "Not available"}
+          </p>
+          <p className="leading-loose">
+            <strong>Drop Off Time:</strong> {busLocations[selectedProgram].dropOffTime || "Not available"}
+          </p>
+        </>
+      ) : (
+        <p>No bus information available for the selected program.</p>
+      )}
 
-              {/* Seating Charts Section */}
-              <div className="mt-10">
-                <h3 className="text-lg font-semibold">Seating Charts</h3>
-                <p>52-passenger bus seating chart:</p>
-                <a
-                  href="https://drive.google.com/file/d/1QTtPOhXvkTLRR2T83hplgP02AM3QcxRG/view?usp=drive_link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:text-blue-600"
-                >
-                  View Seating Chart
-                </a>
-              </div>
+      {/* Seating Charts Section */}
+      <div className="mt-10">
+        <h3 className="text-lg font-semibold">Seating Charts</h3>
+        <p>52-passenger bus seating chart:</p>
+        <a
+          href="https://drive.google.com/file/d/1QTtPOhXvkTLRR2T83hplgP02AM3QcxRG/view?usp=drive_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-600"
+        >
+          View Seating Chart
+        </a>
+      </div>
 
-              <div className="mt-10">
-                <p>Any other bus related information</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="mt-10">
+        <p>Any other bus related information</p>
+      </div>
+    </CardContent>
+  </Card>
+</div>
+
 
         {/* Waitlist Roster */}
         <div className="bg-gray-100 p-4 rounded-lg shadow">
