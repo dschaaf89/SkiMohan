@@ -56,7 +56,7 @@ const programToPrefix: Record<ProgramKey, string> = {
   ThortonCreek: "JANE-",
   Wallingford: "HAML-",
   SouthJackson:"SJAC-",
-  SalmonBay:"SALB",
+  SalmonBay:"SALB-",
 };
 
 interface BusLocation {
