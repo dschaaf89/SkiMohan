@@ -40,8 +40,8 @@ type ProgramKey =
   | "Roosevelt"
   | "Soundview"
   | "ThortonCreek"
-  |"SalmonBay"
-  |"SouthJackson"
+  | "SalmonBay"
+  | "SouthJackson"
   | "Wallingford";
 
 // Define the dictionary with explicit typing
@@ -74,7 +74,7 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
     pickUpLocation:
-      "Eastside Catholic High School parking lot (232 228th Ave SE, Sammamish, WA 98074)",
+      "",
     pickUpTime: "3:15 PM",
     dropOffTime: "Approximately 10:00 PM",
   },
@@ -83,7 +83,7 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
     pickUpLocation:
-      "Eastside Catholic High School parking lot (232 228th Ave SE, Sammamish, WA 98074)",
+      "",
     pickUpTime: "3:15 PM",
     dropOffTime: "Approximately 10:00 PM",
   },
@@ -207,8 +207,8 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "Soundview", label: "Soundview" },
     { value: "ThortonCreek", label: "Thorton-Creek" },
     { value: "Wallingford", label: "Wallingford" },
-    { value: "South Jackson", label: "South Jackson" },
-    { value: "Salmon Bay ", label: "Salmon Bay" },
+    { value: "SouthJackson", label: "South Jackson" },
+    { value: "SalmonBay ", label: "Salmon Bay" },
   ];
 
   const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {
