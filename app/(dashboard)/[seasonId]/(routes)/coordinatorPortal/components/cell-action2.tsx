@@ -1,135 +1,72 @@
 "use-client";
-import { UpdateStudentModal } from "@/components/modals/update-student-modal";
 import { UpdateStudentWaitlistModal } from "@/components/modals/update-Student-waitlist";
 import axios from "axios";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Edit, MoreHorizontal, Trash } from "lucide-react";
-import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { toast } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { StudentColumn } from "../../students/components/columns";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Trash } from "lucide-react";
+
 interface CellActionProps {
   data: StudentColumn;
 }
-// Inside the CellAction component
+
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
-  const [initialStudentInfo, setInitialStudentInfo] =
-    useState<StudentColumn | null>(null);
+  const [initialStudentInfo, setInitialStudentInfo] = useState<StudentColumn | null>(null);
   const [updateLoading, setUpdateLoading] = useState(false);
   const router = useRouter();
-  const params = useParams();
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const params = useParams(); // Get params
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
-  const onDelete = async () => {
-    try {
-      setLoading(true);
-      await axios.delete(`/api/${params.seasonId}/students/${data.UniqueID}`);
-      router.refresh();
-      router.push(`/${params.seasonId}/students`);
-      toast.success("student deleted.");
-    } catch (error: any) {
-      toast.error("student not deleted");
-    } finally {
-      setLoading(false);
-      setOpen(false);
-    }
-  };
+  const [open, setOpen] = useState(false);
 
-  const handleUpdate = async (updatedInfo: Partial<StudentColumn>) => {
+  // Ensure that seasonId is a string
+  const seasonId = Array.isArray(params.seasonId) ? params.seasonId[0] : params.seasonId;
+
+  const handleWaitlistToPending = async (updatedInfo: Partial<StudentColumn>) => {
     try {
       setUpdateLoading(true);
 
-      // Convert the BRTHD field to an ISO-8601 date format
-      // Convert `BRTHD` into a valid ISO-8601 format
-      if (updatedInfo.BRTHD) {
-        const formattedDate = new Date(updatedInfo.BRTHD).toISOString();
-        updatedInfo.BRTHD = formattedDate;
-      }
-      if (updatedInfo.updateAt) {
-        updatedInfo.updateAt = new Date(updatedInfo.updateAt).toISOString();
-      }
+      // Update the student status to "Pending Payment" first
+      await axios.patch(`/api/${seasonId}/students/${updatedInfo.UniqueID}`, {
+        status: "Pending Payment",
+      });
 
-      // Make an API call to update the student's information
-      await axios.patch(
-        `/api/${params.seasonId}/students/${updatedInfo.UniqueID}`,
-        updatedInfo
-      );
+      // Ensure the data is fully populated by merging with original 'data'
+      const fullStudentInfo: StudentColumn = { ...data, ...updatedInfo };
 
-      setInitialStudentInfo(null); // Reset initial student info
-      setIsEditModalOpen(false); // Close the edit modal
-      router.refresh(); // Refresh the page or update data as needed
-      toast.success("Student information updated.");
+      // Open modal to send the payment link with fully populated data
+      setInitialStudentInfo(fullStudentInfo);
+      setIsWaitlistModalOpen(true);
+
+      toast.success("Student status updated to 'Pending Payment'.");
     } catch (error) {
-      toast.error("Failed to update student information.");
+      console.error(error);
+      toast.error("Failed to move student to Registered.");
     } finally {
       setUpdateLoading(false);
     }
-  };
-
-  // State to manage modal visibility for editing
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Function to toggle modal visibility for editing
-
-  const handleModalClose = () => {
-    setIsEditModalOpen(false); // Properly close the modal
   };
 
   const toggleWaitlistModal = (student: StudentColumn) => {
-    setInitialStudentInfo(student);
-    setIsWaitlistModalOpen(!isWaitlistModalOpen);
-  };
-
-  const handleWaitlistToRegistered = async (
-    updatedInfo: Partial<StudentColumn>
-  ) => {
-    try {
-      setUpdateLoading(true);
-
-      updatedInfo.status = "Registered"; // Update status to "Registered"
-
-      await axios.patch(
-        `/api/${params.seasonId}/students/${updatedInfo.UniqueID}`,
-        updatedInfo
-      );
-
-      if (updatedInfo.E_mail_main) {
-        await axios.post("/api/send-payslip", {
-          email: updatedInfo.E_mail_main,
-        });
-      }
-
-      setInitialStudentInfo(null);
-      setIsWaitlistModalOpen(false);
-      router.refresh();
-      toast.success("Student information updated.");
-    } catch (error) {
-      toast.error("Failed to update student information.");
-    } finally {
-      setUpdateLoading(false);
-    }
+    setInitialStudentInfo(student); // Set initial student info before opening modal
+    setIsWaitlistModalOpen(true); // Opens modal when triggered
   };
 
   return (
     <>
-      {/* Render UpdateStudentModal for editing */}
-         <UpdateStudentWaitlistModal
-        isOpen={isWaitlistModalOpen}
-        onClose={() => setIsWaitlistModalOpen(false)}
-        onUpdate={handleWaitlistToRegistered}
-        initialInfo={initialStudentInfo}
-        loading={updateLoading}
-      />
-
-      {/* Rest of your code */}
+      {/* Render UpdateStudentWaitlistModal */}
+      {initialStudentInfo && (
+        <UpdateStudentWaitlistModal
+          isOpen={isWaitlistModalOpen}
+          onClose={() => setIsWaitlistModalOpen(false)}
+          onUpdate={handleWaitlistToPending}  // Move to pending here
+          initialInfo={initialStudentInfo}
+          loading={updateLoading}
+          seasonId={seasonId} // Pass the seasonId here
+        />
+      )}
 
       {/* Dropdown menu */}
       <DropdownMenu>
@@ -142,12 +79,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => toggleWaitlistModal(data)}>
-            <Edit className="mr-2 h-4 w-4"/>Move to Registered
+            <Edit className="mr-2 h-4 w-4" />Move to Registered
           </DropdownMenuItem>
           {/* Delete action */}
           <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Trash className="mr-2 h-4 w-4" />
-            Delete
+            <Trash className="mr-2 h-4 w-4" />Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
