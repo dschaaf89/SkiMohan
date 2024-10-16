@@ -15,9 +15,12 @@ import { toast } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { StudentColumn } from "../../students/components/columns";
+import { useUser } from "@clerk/nextjs"; // Clerk hook to get user information
+
 interface CellActionProps {
   data: StudentColumn;
 }
+
 // Inside the CellAction component
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [initialStudentInfo, setInitialStudentInfo] =
@@ -27,7 +30,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const params = useParams();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  
+  const { user } = useUser(); // Get user info from Clerk
+  const isAdmin = user?.publicMetadata?.role === "admin"; // Check if user is an Admin
 
   const onDelete = async () => {
     try {
@@ -35,9 +39,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       await axios.delete(`/api/${params.seasonId}/students/${data.UniqueID}`);
       router.refresh();
       router.push(`/${params.seasonId}/students`);
-      toast.success("student deleted.");
+      toast.success("Student deleted.");
     } catch (error: any) {
-      toast.error("student not deleted");
+      toast.error("Student not deleted");
     } finally {
       setLoading(false);
       setOpen(false);
@@ -48,8 +52,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     try {
       setUpdateLoading(true);
 
-      // Convert the BRTHD field to an ISO-8601 date format
-      // Convert `BRTHD` into a valid ISO-8601 format
       if (updatedInfo.BRTHD) {
         const formattedDate = new Date(updatedInfo.BRTHD).toISOString();
         updatedInfo.BRTHD = formattedDate;
@@ -58,15 +60,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         updatedInfo.updateAt = new Date(updatedInfo.updateAt).toISOString();
       }
 
-      // Make an API call to update the student's information
       await axios.patch(
         `/api/${params.seasonId}/students/${updatedInfo.UniqueID}`,
         updatedInfo
       );
 
-      setInitialStudentInfo(null); // Reset initial student info
-      setIsEditModalOpen(false); // Close the edit modal
-      router.refresh(); // Refresh the page or update data as needed
+      setInitialStudentInfo(null);
+      setIsEditModalOpen(false);
+      router.refresh();
       toast.success("Student information updated.");
     } catch (error) {
       toast.error("Failed to update student information.");
@@ -75,35 +76,27 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     }
   };
 
-  // State to manage modal visibility for editing
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Function to toggle modal visibility for editing
   const toggleEditModal = (student: StudentColumn) => {
-    setInitialStudentInfo(student); // Set initial student info
-    setIsEditModalOpen(!isEditModalOpen); // Toggle the edit modal
+    setInitialStudentInfo(student);
+    setIsEditModalOpen(!isEditModalOpen);
   };
 
   const handleModalClose = () => {
-    setIsEditModalOpen(false); // Properly close the modal
+    setIsEditModalOpen(false);
   };
-
-
-
- 
 
   return (
     <>
       {/* Render UpdateStudentModal for editing */}
       <UpdateStudentModal
         isOpen={isEditModalOpen}
-        onClose={handleModalClose} // Close without arguments
+        onClose={handleModalClose}
         onUpdate={handleUpdate}
         initialInfo={initialStudentInfo}
         loading={updateLoading}
       />
-
-      {/* Rest of your code */}
 
       {/* Dropdown menu */}
       <DropdownMenu>
@@ -120,11 +113,13 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          {/* Delete action */}
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Trash className="mr-2 h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+          {/* Conditionally render Delete option if user is an Admin */}
+          {isAdmin && (
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <Trash className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

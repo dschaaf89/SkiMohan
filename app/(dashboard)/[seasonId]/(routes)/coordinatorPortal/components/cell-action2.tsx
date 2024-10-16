@@ -8,6 +8,7 @@ import { StudentColumn } from "../../students/components/columns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash } from "lucide-react";
+import { useUser } from "@clerk/nextjs"; // Import Clerk's useUser hook
 
 interface CellActionProps {
   data: StudentColumn;
@@ -18,6 +19,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const router = useRouter();
   const params = useParams(); // Get params
+  const { user } = useUser(); // Get user information from Clerk
+  const isAdmin = user?.publicMetadata?.role === "admin"; // Check if the user is an Admin
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -28,7 +31,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     try {
       setUpdateLoading(true);
 
-      // Update the student status to "Pending Payment" first
+      // Update the student status to "Pending Payment"
       await axios.patch(`/api/${seasonId}/students/${updatedInfo.UniqueID}`, {
         status: "Pending Payment",
       });
@@ -78,13 +81,16 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          {/* Edit action */}
           <DropdownMenuItem onClick={() => toggleWaitlistModal(data)}>
             <Edit className="mr-2 h-4 w-4" />Move to Registered
           </DropdownMenuItem>
-          {/* Delete action */}
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Trash className="mr-2 h-4 w-4" />Delete
-          </DropdownMenuItem>
+          {/* Conditionally render Delete action if user is Admin */}
+          {isAdmin && (
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <Trash className="mr-2 h-4 w-4" />Delete
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

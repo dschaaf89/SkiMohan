@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
 
     const mail = {
       message: {
-        subject: `Complete Your Registration - Payment Link`,
+        subject: `Mohan Skiing and Boarding: Complete Your Registration - Payment Link`,
         body: {
           contentType: "HTML",
           content: `
-            <p>Dear student,</p>
-            <p>Please complete your registration by making the payment using the link below:</p>
+            <p>Dear Parent / Student,</p>
+            <p>Thank you for registering for the WAITLIST with Mohan Skiing and Boarding! We are READY TO PROCESS YOUR REGISTRATION for this season.Please complete your registration by filling out the payment link here: </p>
             <p><a href="${session.url}">Complete Payment</a></p>
             <p>Upon successful payment, your status will be updated from waitlist to registered.  If you have questions, please email your program coordinator.</p>
             <p>Thank you!</p>
