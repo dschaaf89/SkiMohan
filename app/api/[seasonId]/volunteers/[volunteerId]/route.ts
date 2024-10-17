@@ -95,6 +95,7 @@ export async function PATCH(
       emergencyDriverWk5,
       emergencyDriverWk6,
       GreetTimeSlot,
+      WSPRecieved,
     } = body;
 
     // Perform additional validations as needed
@@ -138,6 +139,7 @@ export async function PATCH(
         emergencyDriverWk5,
         emergencyDriverWk6,
         GreetTimeSlot,
+        WSPRecieved,
         seasonId: params.seasonId // Ensure seasonId is maintained or updated appropriately
       }
     });

@@ -54,6 +54,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
       emergencyDriverWk5,
       emergencyDriverWk6,
       GreetTimeSlot,
+      WSPRecieved,
     } = body;
 
     // Authentication and Authorization checks
@@ -114,6 +115,7 @@ export async function POST(req: Request, { params }: { params: { seasonId: strin
         emergencyDriverWk5,
         emergencyDriverWk6,
         GreetTimeSlot,
+        WSPRecieved,
         seasonId: params.seasonId,
       },
     });
