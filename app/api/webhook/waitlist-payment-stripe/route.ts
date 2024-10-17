@@ -47,7 +47,9 @@ export async function POST(req: Request) {
     try {
       const updatedStudent = await prismadb.student.update({
         where: { UniqueID: Number(studentId) },
-        data: { status: "Registered" },
+        data: { status: "Registered",
+          AcceptedTerms: true,
+         },
       });
 
       console.log(`Student ${studentId} status updated to Registered.`);
