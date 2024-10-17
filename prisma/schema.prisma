@@ -372,6 +372,6 @@ model Volunteer {
   GreetTimeSlot        String  
   seasonId             String
   season               Season   @relation("SeasonToVolunteer", fields: [seasonId], references: [id])
-
+   WSPRecieved         Boolean?              @map("WSPRecieved")
   @@index([seasonId])
 }

@@ -75,7 +75,8 @@ const formSchema = z.object({
   emergencyDriverWk4: z.boolean().optional(),
   emergencyDriverWk5: z.boolean().optional(),
   emergencyDriverWk6: z.boolean().optional(),
-  GreetTimeSlot:z.string().optional(),
+  GreetTimeSlot: z.string().optional(),
+  WSPRecieved: z.boolean().optional(),
 });
 
 type VolunteerFormValues = z.infer<typeof formSchema>;
@@ -138,17 +139,21 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
       emergencyDriverWk4: false,
       emergencyDriverWk5: false,
       emergencyDriverWk6: false,
-      GreetTimeSlot:""
+      GreetTimeSlot: "",
+      WSPRecieved: false,
     },
   });
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     form.control._formValues.birthDate ?? null // Ensure correct initialization
   );
-  const handleCheckboxChange = (type: 'busChaperone' | 'emergencyDriver', checked: boolean) => {
-    if (type === 'busChaperone') {
+  const handleCheckboxChange = (
+    type: "busChaperone" | "emergencyDriver",
+    checked: boolean
+  ) => {
+    if (type === "busChaperone") {
       setBusChaperoneChecked(checked);
-    } else if (type === 'emergencyDriver') {
+    } else if (type === "emergencyDriver") {
       setEmergencyDriverChecked(checked);
     }
   };
@@ -433,6 +438,24 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="WSPRecieved"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>WSP Recieved</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="employerSchool"
@@ -515,7 +538,7 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                       checked={field.value}
                       onCheckedChange={(checked: boolean) => {
                         field.onChange(checked); // Update form state
-                        handleCheckboxChange('busChaperone', checked); // Update local state
+                        handleCheckboxChange("busChaperone", checked); // Update local state
                       }}
                     />
                   </FormControl>
@@ -535,7 +558,7 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                       checked={field.value}
                       onCheckedChange={(checked: boolean) => {
                         field.onChange(checked); // Update form state
-                        handleCheckboxChange('emergencyDriver', checked); // Update local state
+                        handleCheckboxChange("emergencyDriver", checked); // Update local state
                       }}
                     />
                   </FormControl>
@@ -545,26 +568,26 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 </FormItem>
               )}
             />
-       <FormField
-            control={form.control}
-            name="isGreeter"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(checked: boolean) => {
-                      field.onChange(checked);
-                      setIsGreeterChecked(checked);
-                    }}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Greeter</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="isGreeter"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked: boolean) => {
+                        field.onChange(checked);
+                        setIsGreeterChecked(checked);
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Greeter</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="agreeToTerms"
@@ -584,35 +607,43 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
             />
 
             {/* Conditional rendering based on the checkbox state */}
-             {/* Conditional rendering of Programs field for Greeter */}
-          {isGreeterChecked && (
-            <FormField
-              control={form.control}
-              name="GreetTimeSlot"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Day and Time Slot</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Day" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="SaturdayMorning">Saturday 10:30 AM - 12:30pm</SelectItem>
-                      <SelectItem value="SaturdayAfternoon">Saturday 02:00pm - 04:00pm</SelectItem>
-                      <SelectItem value="SundayMorning">Sunday 10:30 AM - 12:30pm</SelectItem>
-                      <SelectItem value="SundayAfternoon">Sunday 02:00pm - 04:00pm</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+            {/* Conditional rendering of Programs field for Greeter */}
+            {isGreeterChecked && (
+              <FormField
+                control={form.control}
+                name="GreetTimeSlot"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Day and Time Slot</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Day" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="SaturdayMorning">
+                          Saturday 10:30 AM - 12:30pm
+                        </SelectItem>
+                        <SelectItem value="SaturdayAfternoon">
+                          Saturday 02:00pm - 04:00pm
+                        </SelectItem>
+                        <SelectItem value="SundayMorning">
+                          Sunday 10:30 AM - 12:30pm
+                        </SelectItem>
+                        <SelectItem value="SundayAfternoon">
+                          Sunday 02:00pm - 04:00pm
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             {isBusChaperoneChecked ? (
               <div className="scheduling">
                 Scheduling
@@ -720,8 +751,8 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 />
               </div>
             ) : null}
-              {/* Conditional rendering based on the checkbox state */}
-              {isEmergencyDriverChecked ? (
+            {/* Conditional rendering based on the checkbox state */}
+            {isEmergencyDriverChecked ? (
               <div className="scheduling">
                 Scheduling
                 <FormField
