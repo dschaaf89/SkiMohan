@@ -17,7 +17,8 @@ const CoordinatorPage = async ({
 }) => {
   const students = await prismadb.student.findMany({
     where: {
-      seasonId: params.seasonId
+      seasonId: params.seasonId,
+      status: 'Registered',
     }
   });
   const volunteers = await prismadb.volunteer.findMany({
