@@ -499,6 +499,10 @@ const studentColumns: ColumnDef<StudentColumn>[] = [
     cell: ({ row }) => <CellAction data={row.original} />,
   },
   {
+    accessorKey: "Status",
+    header: "Status",
+  },
+  {
     accessorKey: "ProgCode",
     header: "Program Code",
   },
@@ -524,6 +528,10 @@ const WaitlistColumns: ColumnDef<WaitlistColumn>[] = [
   {
     id: "actions",
     cell: ({ row }) => <CellAction2 data={row.original} />,
+  },
+  {
+    accessorKey: "Status",
+    header: "Status",
   },
   {
     accessorKey: "ProgCode",
