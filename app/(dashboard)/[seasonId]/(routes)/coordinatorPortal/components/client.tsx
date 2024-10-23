@@ -545,10 +545,7 @@ const WaitlistColumns: ColumnDef<WaitlistColumn>[] = [
     accessorKey: "NAME_LAST",
     header: "Last Name",
   },
-  {
-    accessorKey: "Program",
-    header: "Program",
-  },
+
   {
     accessorKey: "HOME_TEL",
     header: "Phone",
