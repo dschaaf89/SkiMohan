@@ -397,15 +397,17 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
 </div>
 
 
-        {/* Waitlist Roster */}
-        <div className="bg-gray-100 p-4 rounded-lg shadow">
-          <h2 className="font-bold text-center">Waitlist</h2>
-          <DataTable
-            searchKeys={["NAME_LAST"]}
-            columns={WaitlistColumns}
-            data={filteredWaitlistStudents}
-          />
-        </div>
+<div className="bg-gray-100 p-4 rounded-lg shadow">
+  <h2 className="font-bold text-center">
+    Waitlist ({filteredWaitlistStudents.length} students)
+  </h2>
+  <DataTable
+    searchKeys={["NAME_LAST"]}
+    columns={WaitlistColumns}
+    data={filteredWaitlistStudents}
+  />
+</div>
+
         {/* Volunteer Roster */}
         <div className="bg-gray-100 p-4 rounded-lg shadow">
           <h2 className="font-bold text-center">Volunteers</h2>
