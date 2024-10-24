@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Edit, MoreHorizontal, Trash } from "lucide-react";
+import { Copy,Edit, MoreHorizontal, Trash } from "lucide-react";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { toast } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
@@ -17,11 +17,11 @@ import { useState } from "react";
 import { StudentColumn } from "../../students/components/columns";
 import { useUser } from "@clerk/nextjs"; // Clerk hook to get user information
 
+
 interface CellActionProps {
   data: StudentColumn;
 }
 
-// Inside the CellAction component
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [initialStudentInfo, setInitialStudentInfo] =
     useState<StudentColumn | null>(null);
@@ -87,6 +87,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     setIsEditModalOpen(false);
   };
 
+  // Function to copy email to clipboard
+  const copyEmailToClipboard = () => {
+    navigator.clipboard.writeText(data.E_mail_main); // Copy email
+    toast.success("Email copied to clipboard!"); // Show toast message
+  };
+
   return (
     <>
       {/* Render UpdateStudentModal for editing */}
@@ -108,11 +114,19 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
           {/* Edit action */}
           <DropdownMenuItem onClick={() => toggleEditModal(data)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
+
+          {/* Copy Email action */}
+          <DropdownMenuItem onClick={copyEmailToClipboard}>
+            <Copy className="mr-2 h-4 w-4" />
+            Copy Email
+          </DropdownMenuItem>
+
           {/* Conditionally render Delete option if user is an Admin */}
           {isAdmin && (
             <DropdownMenuItem onClick={() => setOpen(true)}>
