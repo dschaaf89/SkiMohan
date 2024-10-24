@@ -209,7 +209,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "ThortonCreek", label: "Thorton-Creek" },
     { value: "Wallingford", label: "Wallingford" },
     { value: "SouthJackson", label: "South Jackson" },
-    { value: "SalmonBay ", label: "Salmon Bay" },
+    { value: "SalmonBay", label: "Salmon Bay" },
   ];
 
   const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {
