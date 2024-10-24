@@ -366,7 +366,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           >
             Copy All Student Emails
           </button>
-          <Button onClick={downloadStudentData} className="mb-4">
+          <Button onClick={downloadStudentData} className="mt-4 mb-4">
             Download Student Data
           </Button>
           <Card>
@@ -461,7 +461,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           >
             Copy All Waitlist Emails
           </button>
-          <Button onClick={downloadWaitlistData}  className="mb-4">
+          <Button onClick={downloadStudentData} className="mt-4 mb-4">
             Download Waitlist Data
           </Button>
   <DataTable
