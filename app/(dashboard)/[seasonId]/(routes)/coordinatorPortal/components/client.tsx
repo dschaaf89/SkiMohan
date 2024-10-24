@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "react-hot-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CellAction } from "./cell-action";
@@ -297,6 +298,21 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     (volunteer) => volunteer.busChaperoneWk6 || volunteer.emergencyDriverWk6
   );
 
+
+  // Function to copy all student emails
+  const copyAllStudentEmails = () => {
+    const allEmails = filteredStudents.map((student) => student.E_mail_main).join(", ");
+    navigator.clipboard.writeText(allEmails);
+    toast.success("All student emails copied to clipboard!");
+  };
+
+  // Function to copy all waitlist emails
+  const copyAllWaitlistEmails = () => {
+    const allEmails = filteredWaitlistStudents.map((student) => student.E_mail_main).join(", ");
+    navigator.clipboard.writeText(allEmails);
+    toast.success("All waitlist emails copied to clipboard!");
+  };
+
   return (
     <>
        <Select
@@ -322,6 +338,12 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           <h2 className="font-bold text-center">
             Students ({filteredStudents.length})
           </h2>
+          <button
+            onClick={copyAllStudentEmails}
+            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Copy All Student Emails
+          </button>
           <Card>
             <CardHeader>
               <h1 className="font-bold text-center">
@@ -407,6 +429,14 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   <h2 className="font-bold text-center">
     Waitlist ({filteredWaitlistStudents.length} students)
   </h2>
+
+  <button
+            onClick={copyAllWaitlistEmails}
+            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Copy All Waitlist Emails
+          </button>
+          
   <DataTable
     searchKeys={["NAME_LAST"]}
     columns={WaitlistColumns}
