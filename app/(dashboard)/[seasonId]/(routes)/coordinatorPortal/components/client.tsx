@@ -23,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CellAction } from "./cell-action";
 import { CellAction as CellAction2 } from "./cell-action2";
 import { CellAction as CellAction3 } from "./cell-action3";
+import * as XLSX from "xlsx"; // Import the xlsx library
+import { Button } from "@/components/ui/button";
 interface CoordinatorClientProps {
   data: {
     students: StudentColumn[];
@@ -313,6 +315,26 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     toast.success("All waitlist emails copied to clipboard!");
   };
 
+   // Function to download student data as an Excel file
+   const downloadStudentData = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredStudents);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+
+    // Create and download the Excel file
+    XLSX.writeFile(workbook, "student_data.xlsx");
+  };
+
+  // Function to download waitlist data as an Excel file
+  const downloadWaitlistData = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredWaitlistStudents);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Waitlist");
+
+    // Create and download the Excel file
+    XLSX.writeFile(workbook, "waitlist_data.xlsx");
+  };
+
   return (
     <>
        <Select
@@ -344,6 +366,9 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           >
             Copy All Student Emails
           </button>
+          <Button onClick={downloadStudentData} className="mb-4">
+            Download Student Data
+          </Button>
           <Card>
             <CardHeader>
               <h1 className="font-bold text-center">
@@ -424,7 +449,9 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   </Card>
 </div>
 
-
+<Button onClick={downloadWaitlistData}  className="mb-4">
+            Download Waitlist Data
+          </Button>
 <div className="bg-gray-100 p-4 rounded-lg shadow">
   <h2 className="font-bold text-center">
     Waitlist ({filteredWaitlistStudents.length} students)
@@ -436,7 +463,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           >
             Copy All Waitlist Emails
           </button>
-          
+
   <DataTable
     searchKeys={["NAME_LAST"]}
     columns={WaitlistColumns}
