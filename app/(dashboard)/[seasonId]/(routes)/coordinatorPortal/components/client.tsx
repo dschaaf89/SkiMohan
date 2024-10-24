@@ -58,8 +58,8 @@ const programToPrefix: Record<ProgramKey, string> = {
   Soundview: "WHIT-",
   ThortonCreek: "JANE-",
   Wallingford: "HAML-",
-  SouthJackson:"SJAC-",
-  SalmonBay:"SALB-",
+  SouthJackson: "SJAC-",
+  SalmonBay: "SALB-",
 };
 
 interface BusLocation {
@@ -76,8 +76,7 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation:
-      "",
+    pickUpLocation: "",
     pickUpTime: "3:15 PM",
     dropOffTime: "Approximately 10:00 PM",
   },
@@ -85,7 +84,7 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation:"",
+    pickUpLocation: "",
     pickUpTime: "3:15 PM",
     dropOffTime: "Approximately 10:00 PM",
   },
@@ -180,17 +179,17 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   const searchParams = useSearchParams();
   const seasonId = params.seasonId;
   const programIdFromUrl = searchParams.get("programId");
-  
-  const [selectedProgram, setSelectedProgram] = useState<ProgramKey | undefined>(
-    programIdFromUrl as ProgramKey || undefined
-  );
+
+  const [selectedProgram, setSelectedProgram] = useState<
+    ProgramKey | undefined
+  >((programIdFromUrl as ProgramKey) || undefined);
   const isProgramLocked = isCoordinator && !isAdmin;
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [filteredStudents, setFilteredStudents] = useState<StudentColumn[]>([]);
-  const [filteredVolunteers, setFilteredVolunteers] = useState<VolunteerColumn[]>(
-    []
-  );
+  const [filteredVolunteers, setFilteredVolunteers] = useState<
+    VolunteerColumn[]
+  >([]);
   const [filteredWaitlistStudents, setFilteredWaitlistStudents] = useState<
     WaitlistColumn[]
   >([]);
@@ -259,7 +258,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   const lessonsAndTransportationCount = filteredStudents.filter((student) =>
     student.ProgCode?.endsWith("-LT")
   ).length;
-  
+
   const waitlistCount = filteredWaitlistStudents.length;
 
   const chartData = {
@@ -267,11 +266,15 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     datasets: [
       {
         label: "Number of Students",
-        data: [transportationOnlyCount, lessonsAndTransportationCount, waitlistCount],
+        data: [
+          transportationOnlyCount,
+          lessonsAndTransportationCount,
+          waitlistCount,
+        ],
         backgroundColor: [
           "rgba(255, 99, 132, 0.5)", // Color for Transportation Only
           "rgba(54, 162, 235, 0.5)", // Color for Lessons and Transportation
-          "rgba(75, 192, 192, 0.5)"  // Color for Waitlist
+          "rgba(75, 192, 192, 0.5)", // Color for Waitlist
         ],
       },
     ],
@@ -300,23 +303,26 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     (volunteer) => volunteer.busChaperoneWk6 || volunteer.emergencyDriverWk6
   );
 
-
   // Function to copy all student emails
   const copyAllStudentEmails = () => {
-    const allEmails = filteredStudents.map((student) => student.E_mail_main).join(", ");
+    const allEmails = filteredStudents
+      .map((student) => student.E_mail_main)
+      .join(", ");
     navigator.clipboard.writeText(allEmails);
     toast.success("All student emails copied to clipboard!");
   };
 
   // Function to copy all waitlist emails
   const copyAllWaitlistEmails = () => {
-    const allEmails = filteredWaitlistStudents.map((student) => student.E_mail_main).join(", ");
+    const allEmails = filteredWaitlistStudents
+      .map((student) => student.E_mail_main)
+      .join(", ");
     navigator.clipboard.writeText(allEmails);
     toast.success("All waitlist emails copied to clipboard!");
   };
 
-   // Function to download student data as an Excel file
-   const downloadStudentData = () => {
+  // Function to download student data as an Excel file
+  const downloadStudentData = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredStudents);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
@@ -337,11 +343,11 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
 
   return (
     <>
-       <Select
-  value={selectedProgram}  // Use 'selectedProgram' here
-  onValueChange={handleProgramChange}
-  disabled={isProgramLocked && !isAdmin} // Lock dropdown for Coordinators
->
+      <Select
+        value={selectedProgram} // Use 'selectedProgram' here
+        onValueChange={handleProgramChange}
+        disabled={isProgramLocked && !isAdmin} // Lock dropdown for Coordinators
+      >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select Program" />
         </SelectTrigger>
@@ -360,15 +366,15 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           <h2 className="font-bold text-center">
             Students ({filteredStudents.length})
           </h2>
-          <button
-            onClick={copyAllStudentEmails}
-            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            Copy All Student Emails
-          </button>
-          <Button onClick={downloadStudentData} className="mt-4 mb-4">
-            Download Student Data
-          </Button>
+          <div className="flex space-x-4 mb-4">
+            <button
+              onClick={copyAllStudentEmails}
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Copy All Student Emails
+            </button>
+            <Button onClick={downloadStudentData}>Download Student Data</Button>
+          </div>
           <Card>
             <CardHeader>
               <h1 className="font-bold text-center">
@@ -396,80 +402,90 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           </Card>
         </div>
 
-       {/* Bus Information */}
-<div className="bg-gray-100 p-4 rounded-lg shadow">
-  <Card>
-    <CardHeader>
-      <CardTitle className="text-center">Bus Information</CardTitle>
-    </CardHeader>
-    <CardContent>
-      {selectedProgram && busLocations[selectedProgram] ? (
-        <>
-          <p className="leading-loose">
-            <strong>Bus Company:</strong> {busLocations[selectedProgram].busCompany || "Not available"}
-          </p>
-          <p className="leading-loose">
-            <strong>Bus Driver:</strong> {busLocations[selectedProgram].busDriver || "Not available"}
-          </p>
-          <p className="leading-loose">
-            <strong>Bus Driver Phone Number:</strong> {busLocations[selectedProgram].busDriverPhone || "Not available"}
-          </p>
-          <p className="leading-loose">
-            <strong>Pick Up Location:</strong> {busLocations[selectedProgram].pickUpLocation || "Not available"}
-          </p>
-          <p className="leading-loose">
-            <strong>Pick Up Time:</strong> {busLocations[selectedProgram].pickUpTime || "Not available"}
-          </p>
-          <p className="leading-loose">
-            <strong>Drop Off Time:</strong> {busLocations[selectedProgram].dropOffTime || "Not available"}
-          </p>
-        </>
-      ) : (
-        <p>No bus information available for the selected program.</p>
-      )}
+        {/* Bus Information */}
+        <div className="bg-gray-100 p-4 rounded-lg shadow">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">Bus Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedProgram && busLocations[selectedProgram] ? (
+                <>
+                  <p className="leading-loose">
+                    <strong>Bus Company:</strong>{" "}
+                    {busLocations[selectedProgram].busCompany ||
+                      "Not available"}
+                  </p>
+                  <p className="leading-loose">
+                    <strong>Bus Driver:</strong>{" "}
+                    {busLocations[selectedProgram].busDriver || "Not available"}
+                  </p>
+                  <p className="leading-loose">
+                    <strong>Bus Driver Phone Number:</strong>{" "}
+                    {busLocations[selectedProgram].busDriverPhone ||
+                      "Not available"}
+                  </p>
+                  <p className="leading-loose">
+                    <strong>Pick Up Location:</strong>{" "}
+                    {busLocations[selectedProgram].pickUpLocation ||
+                      "Not available"}
+                  </p>
+                  <p className="leading-loose">
+                    <strong>Pick Up Time:</strong>{" "}
+                    {busLocations[selectedProgram].pickUpTime ||
+                      "Not available"}
+                  </p>
+                  <p className="leading-loose">
+                    <strong>Drop Off Time:</strong>{" "}
+                    {busLocations[selectedProgram].dropOffTime ||
+                      "Not available"}
+                  </p>
+                </>
+              ) : (
+                <p>No bus information available for the selected program.</p>
+              )}
 
-      {/* Seating Charts Section */}
-      <div className="mt-10">
-        <h3 className="text-lg font-semibold">Seating Charts</h3>
-        <p>52-passenger bus seating chart:</p>
-        <a
-          href="https://drive.google.com/file/d/1QTtPOhXvkTLRR2T83hplgP02AM3QcxRG/view?usp=drive_link"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-600"
-        >
-          View Seating Chart
-        </a>
-      </div>
+              {/* Seating Charts Section */}
+              <div className="mt-10">
+                <h3 className="text-lg font-semibold">Seating Charts</h3>
+                <p>52-passenger bus seating chart:</p>
+                <a
+                  href="https://drive.google.com/file/d/1QTtPOhXvkTLRR2T83hplgP02AM3QcxRG/view?usp=drive_link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  View Seating Chart
+                </a>
+              </div>
 
-      <div className="mt-10">
-        <p>Any other bus related information</p>
-      </div>
-    </CardContent>
-  </Card>
-</div>
+              <div className="mt-10">
+                <p>Any other bus related information</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
+        <div className="bg-gray-100 p-4 rounded-lg shadow">
+          <h2 className="font-bold text-center">
+            Waitlist ({filteredWaitlistStudents.length} students)
+          </h2>
 
-<div className="bg-gray-100 p-4 rounded-lg shadow">
-  <h2 className="font-bold text-center">
-    Waitlist ({filteredWaitlistStudents.length} students)
-  </h2>
-
-  <button
-            onClick={copyAllWaitlistEmails}
-            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            Copy All Waitlist Emails
-          </button>
-          <Button onClick={downloadStudentData} className="mt-4 mb-4">
-            Download Waitlist Data
-          </Button>
-  <DataTable
-    searchKeys={["NAME_LAST"]}
-    columns={WaitlistColumns}
-    data={filteredWaitlistStudents}
-  />
-</div>
+          <div className="flex space-x-4 mb-4">
+            <button
+              onClick={copyAllStudentEmails}
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Copy All Student Emails
+            </button>
+            <Button onClick={downloadStudentData}>Download Student Data</Button>
+          </div>
+          <DataTable
+            searchKeys={["NAME_LAST"]}
+            columns={WaitlistColumns}
+            data={filteredWaitlistStudents}
+          />
+        </div>
 
         {/* Volunteer Roster */}
         <div className="bg-gray-100 p-4 rounded-lg shadow">
