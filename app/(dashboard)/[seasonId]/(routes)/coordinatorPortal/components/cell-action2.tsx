@@ -7,7 +7,7 @@ import { useState } from "react";
 import { StudentColumn } from "../../students/components/columns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Trash } from "lucide-react";
+import { Copy, MoreHorizontal, Edit, Trash } from "lucide-react"; // Import Copy icon
 import { useUser } from "@clerk/nextjs"; // Import Clerk's useUser hook
 
 interface CellActionProps {
@@ -57,6 +57,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     setIsWaitlistModalOpen(true); // Opens modal when triggered
   };
 
+  // Function to copy email to clipboard
+  const copyEmailToClipboard = () => {
+    navigator.clipboard.writeText(data.E_mail_main); // Copy the student's email
+    toast.success("Email copied to clipboard!"); // Show a success toast message
+  };
+
   return (
     <>
       {/* Render UpdateStudentWaitlistModal */}
@@ -81,10 +87,17 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          {/* Edit action */}
+
+          {/* Move to Registered action */}
           <DropdownMenuItem onClick={() => toggleWaitlistModal(data)}>
             <Edit className="mr-2 h-4 w-4" />Move to Registered
           </DropdownMenuItem>
+
+          {/* Copy Email action */}
+          <DropdownMenuItem onClick={copyEmailToClipboard}>
+            <Copy className="mr-2 h-4 w-4" />Copy Email
+          </DropdownMenuItem>
+
           {/* Conditionally render Delete action if user is Admin */}
           {isAdmin && (
             <DropdownMenuItem onClick={() => setOpen(true)}>
