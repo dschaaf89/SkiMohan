@@ -256,14 +256,20 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   const lessonsAndTransportationCount = filteredStudents.filter((student) =>
     student.ProgCode?.endsWith("-LT")
   ).length;
+  
+  const waitlistCount = filteredWaitlistStudents.length;
 
   const chartData = {
-    labels: ["Transportation Only", "Lessons and Transportation"],
+    labels: ["Transportation Only", "Lessons and Transportation", "Waitlist"],
     datasets: [
       {
         label: "Number of Students",
-        data: [transportationOnlyCount, lessonsAndTransportationCount],
-        backgroundColor: ["rgba(255, 99, 132, 0.5)", "rgba(54, 162, 235, 0.5)"],
+        data: [transportationOnlyCount, lessonsAndTransportationCount, waitlistCount],
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.5)", // Color for Transportation Only
+          "rgba(54, 162, 235, 0.5)", // Color for Lessons and Transportation
+          "rgba(75, 192, 192, 0.5)"  // Color for Waitlist
+        ],
       },
     ],
   };
