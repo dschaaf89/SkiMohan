@@ -449,9 +449,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   </Card>
 </div>
 
-<Button onClick={downloadWaitlistData}  className="mb-4">
-            Download Waitlist Data
-          </Button>
+
 <div className="bg-gray-100 p-4 rounded-lg shadow">
   <h2 className="font-bold text-center">
     Waitlist ({filteredWaitlistStudents.length} students)
@@ -463,7 +461,9 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
           >
             Copy All Waitlist Emails
           </button>
-
+          <Button onClick={downloadWaitlistData}  className="mb-4">
+            Download Waitlist Data
+          </Button>
   <DataTable
     searchKeys={["NAME_LAST"]}
     columns={WaitlistColumns}
