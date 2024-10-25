@@ -473,12 +473,12 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
 
           <div className="flex space-x-4 mb-4">
             <button
-              onClick={copyAllStudentEmails}
+              onClick={copyAllWaitlistEmails}
               className="px-4 py-2 bg-blue-500 text-white rounded"
             >
               Copy All Student Emails
             </button>
-            <Button onClick={downloadStudentData}>Download Student Data</Button>
+            <Button onClick={downloadWaitlistData}>Download Student Data</Button>
           </div>
           <DataTable
             searchKeys={["NAME_LAST"]}
