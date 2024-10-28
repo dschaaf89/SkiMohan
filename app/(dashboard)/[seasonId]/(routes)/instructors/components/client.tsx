@@ -119,6 +119,7 @@ export const InstructorClient: React.FC<InstuctorClientProps> = ({
         `/api/${params.seasonId}/instructors/instructorClasses`,
         {
           selectedDay: selectedDay,
+          seasonId: params.seasonId,
         }
       );
 

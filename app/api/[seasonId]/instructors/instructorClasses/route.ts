@@ -3,37 +3,37 @@ import prismadb from "@/lib/prismadb";
 
 export async function POST(req: Request) {
   try {
-    const { selectedDay } = await req.json();
-    console.log(`Received day: ${selectedDay}`);
+    const { selectedDay, seasonId } = await req.json(); 
+    console.log(`Received day: ${selectedDay}, seasonId: ${seasonId}`);
 
-    if (!selectedDay) {
-      throw new Error("Day is required");
+    if (!selectedDay || !seasonId) {
+      throw new Error("Day and seasonId are required");
     }
 
-    console.log("Fetching class times...");
+    // Step 1: Fetch class times based on the selected day
     const classTimes = await prismadb.classTime.findMany({
-      where: { day: selectedDay },
-    });
-    console.log(`Class times found: ${classTimes.length}`);
-
-    const classTimeIds = classTimes.map((ct) => ct.id);
-
-    console.log("Fetching instructor class times...");
-    const instructorClassTimes = await prismadb.instructorClassTime.findMany({
-      where: { classTimeId: { in: classTimeIds } },
-      include: {
-        classTime: true,
+      where: {
+        day: selectedDay,
       },
     });
-    console.log(
-      `Instructor class times found: ${instructorClassTimes.length}`
-    );
+    const classTimeIds = classTimes.map((ct) => ct.id);
 
+    // Step 2: Fetch InstructorClassTimes by classTimeId
+    const instructorClassTimes = await prismadb.instructorClassTime.findMany({
+      where: {
+        classTimeId: { in: classTimeIds },
+      },
+    });
+
+    // Extract instructor IDs from InstructorClassTime entries
     const instructorIds = instructorClassTimes.map((ict) => ict.instructorId);
 
-    console.log("Fetching instructors...");
+    // Step 3: Fetch instructors based on seasonId and filtered instructor IDs
     const instructors = await prismadb.instructor.findMany({
-      where: { UniqueID: { in: instructorIds } }, // Assuming instructor `UniqueID` is used for identification
+      where: {
+        UniqueID: { in: instructorIds },
+        seasonId: seasonId, // Apply season filter here in the Instructor table
+      },
       include: {
         classes: true,
         classTimes: {
@@ -43,6 +43,7 @@ export async function POST(req: Request) {
         },
       },
     });
+
     console.log(`Instructors found: ${instructors.length}`);
 
     return new NextResponse(JSON.stringify(instructors), {
