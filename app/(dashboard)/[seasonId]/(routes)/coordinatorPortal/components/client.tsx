@@ -4,7 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StudentColumn } from "../../students/components/columns";
 import { VolunteerColumn } from "../../volunteers/components/columns";
 import { WaitlistColumn } from "../../waitlist/components/columns";
@@ -212,31 +212,81 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "SalmonBay", label: "Salmon Bay" },
   ];
 
-  const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {
+  const volunteerProgramMappings = [
+    { display: "EastsideCatholic", dataValue: "Eastside Catholic" },
+    { display: "Interlake", dataValue: "Interlake" },
+    { display: "Meadowbrook", dataValue: "Meadowbrook" },
+    { display: "Ballard", dataValue: "Ballard" },
+    { display: "NorthEastSeattle", dataValue: "North East Seattle" },
+    { display: "Roosevelt", dataValue: "Roosevelt" },
+    { display: "Soundview", dataValue: "Soundview" },
+    { display: "ThortonCreek", dataValue: "Thorton Creek" },
+    { display: "Wallingford", dataValue: "Wallingford" },
+    { display: "SouthJackson", dataValue: "South Jackson" },
+    { display: "SalmonBay", dataValue: "Salmon Bay" },
+  ];
+
+  const getVolunteerProgramName = (displayValue) => {
+  const program = volunteerProgramMappings.find(p => p.display === displayValue);
+  return program ? program.dataValue : displayValue; // Default to displayValue if no mapping found
+};
+  // const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {
+  //   if (!selectedProgram) {
+  //     setFilteredStudents(data.students);
+  //     setFilteredVolunteers(data.volunteers);
+  //     setFilteredWaitlistStudents(data.waitlistStudents);
+  //   } else {
+  //     const selectedPrefix = programToPrefix[selectedProgram];
+  //     const filteredStudents = data.students.filter((student) =>
+  //       student.ProgCode.startsWith(selectedPrefix)
+  //     );
+  //     const filteredVolunteers = data.volunteers.filter(
+  //       (volunteer) => volunteer.employerSchool === selectedProgram
+  //     );
+  //     const filteredWaitlistStudents = data.waitlistStudents.filter((student) =>
+  //       student.ProgCode.startsWith(selectedPrefix)
+  //     );
+  //     setFilteredStudents(filteredStudents);
+  //     setFilteredVolunteers(filteredVolunteers);
+  //     setFilteredWaitlistStudents(filteredWaitlistStudents);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   filterDataByProgram(selectedProgram);
+  // }, [selectedProgram, data]);
+
+  const filterDataByProgram = useCallback((selectedProgram: ProgramKey | undefined) => {
     if (!selectedProgram) {
       setFilteredStudents(data.students);
       setFilteredVolunteers(data.volunteers);
       setFilteredWaitlistStudents(data.waitlistStudents);
     } else {
       const selectedPrefix = programToPrefix[selectedProgram];
+      
+      // Filtering students and waitlist normally
       const filteredStudents = data.students.filter((student) =>
         student.ProgCode.startsWith(selectedPrefix)
-      );
-      const filteredVolunteers = data.volunteers.filter(
-        (volunteer) => volunteer.employerSchool === selectedProgram
       );
       const filteredWaitlistStudents = data.waitlistStudents.filter((student) =>
         student.ProgCode.startsWith(selectedPrefix)
       );
+  
+      // Filtering volunteers with new mapping for `employerSchool`
+      const volunteerProgramName = getVolunteerProgramName(selectedProgram); // Translated name for filtering
+      const filteredVolunteers = data.volunteers.filter(
+        (volunteer) => volunteer.employerSchool === volunteerProgramName
+      );
+  
       setFilteredStudents(filteredStudents);
       setFilteredVolunteers(filteredVolunteers);
       setFilteredWaitlistStudents(filteredWaitlistStudents);
     }
-  };
-
+  }, [data]); // Include data as a dependency because it is used in the function
+  
   useEffect(() => {
     filterDataByProgram(selectedProgram);
-  }, [selectedProgram, data]);
+  }, [selectedProgram, filterDataByProgram]);
 
   useEffect(() => {
     // If there's a programId in the URL and the user is a coordinator, lock the selection.
