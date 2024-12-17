@@ -13,45 +13,42 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { useState } from "react";
 import { ApiList } from "@/components/ui/api-list";
+
 interface StudentClientProps {
   data: StudentColumn[];
 }
+
 declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
   }
 }
+
 interface ProgCodeTimeSlots {
   [progCode: string]: "Morning" | "Afternoon";
 }
 
 const saturdayProgCodeTimeSlots: ProgCodeTimeSlots = {
-  // Saturday Morning Program Codes
   "G710-B-LO": "Morning",
   "G710-S-LO": "Morning",
   "G715-S-LO": "Morning",
-
-  // Saturday Afternoon Program Codes
   "G720-B-LO": "Afternoon",
   "G720-S-LO": "Afternoon",
   "G725-S-LO": "Afternoon",
 };
 
 const sundayProgCodeTimeSlots: ProgCodeTimeSlots = {
-  // Saturday Morning Program Codes
   "G110-B-LO": "Morning",
   "G110-S-LO": "Morning",
   "G115-S-LO": "Morning",
-
-  // Saturday Afternoon Program Codes
   "G120-B-LO": "Afternoon",
   "G120-S-LO": "Afternoon",
   "G125-S-LO": "Afternoon",
 };
+
 const progCodeTimeSlots: ProgCodeTimeSlots = {
   ...saturdayProgCodeTimeSlots,
   ...sundayProgCodeTimeSlots,
-  //
 };
 
 export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
@@ -59,57 +56,123 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
   const router = useRouter();
   const seasonId = params.seasonId;
 
-  const [selectedDay, setSelectedDay] = useState<string | null>(null); // State for the selected day
-  const [filteredData, setFilteredData] = useState<StudentColumn[]>(data); // State for filtered data
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [filteredData, setFilteredData] = useState<StudentColumn[]>(data);
 
-  const handleFileInputChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const filteredDataForResort = filteredData.filter(
+    (student) =>
+      student.status.toLowerCase() !== "waitlist" &&
+      student.APPLYING_FOR.toLowerCase() !== "transportation"
+  );
+// Function to delete all classes and resort students
+const handleResortClasses = async () => {
+  try {
+    console.log("Deleting all classes for season:", seasonId);
+    const deleteResponse = await axios.delete(`/api/${seasonId}/deleteClasses`);
+    console.log("Delete response:", deleteResponse.data);
+
+    console.log("Preparing data for createClasses request:");
+    console.log("filteredDataForResort:", filteredDataForResort); // Log to check data being sent
+
+    // Filter students to identify ones without APPLYING_FOR field
+    const invalidStudents = filteredDataForResort.filter(
+      (student) => !student.APPLYING_FOR || student.APPLYING_FOR.trim() === ""
+    );
+
+    // Log invalid students
+    if (invalidStudents.length > 0) {
+      console.warn("The following students are missing 'APPLYING_FOR' and were not processed:", invalidStudents);
+    }
+
+    // Filter out students with valid APPLYING_FOR
+    const validStudents = filteredDataForResort.filter(
+      (student) => student.APPLYING_FOR && student.APPLYING_FOR.trim() !== ""
+    );
+
+    // Map data for valid students, including seasonId in each entry
+    const requestData = {
+      seasonId, // Pass seasonId in the top-level object
+      students: validStudents.map((student) => ({
+        UniqueID: student.UniqueID,
+        NAME_FIRST: student.NAME_FIRST,
+        NAME_LAST: student.NAME_LAST,
+        HOME_TEL: student.HOME_TEL,
+        ADDRESS: student.ADDRESS,
+        CITY: student.CITY,
+        STATE: student.STATE,
+        ZIP: student.ZIP,
+        student_tel: student.student_tel,
+        Email_student: student.Email_student,
+        BRTHD: student.BRTHD,
+        GradeLevel: student.GradeLevel,
+        APPLYING_FOR: student.APPLYING_FOR,
+        LEVEL: student.LEVEL,
+        Approach: student.Approach,
+        E_mail_main: student.E_mail_main,
+        E_NAME: student.E_NAME,
+        E_TEL: student.E_TEL,
+        CCPayment: student.CCPayment,
+        ProgCode: student.ProgCode,
+        BUDDY: student.BUDDY,
+        WComment: student.WComment,
+        DateFeePaid: student.DateFeePaid,
+        PaymentStatus: student.PaymentStatus,
+        AcceptedTerms: student.AcceptedTerms,
+        AppType: student.AppType,
+        Employer: student.Employer,
+        C_TEL: student.C_TEL,
+        Occupation: student.Occupation,
+        W_TEL: student.W_TEL,
+        AGE: student.AGE,
+        AGRESSIVENESS: student.AGRESSIVENESS,
+        AGE_GROUP: student.AGE_GROUP,
+        GENDER: student.GENDER,
+        FeeComment: student.FeeComment,
+        DAY: student.DAY,
+        StartTime: student.StartTime,
+        EndTime: student.EndTime,
+      })),
+    };
+
+    console.log("Sending request to create new classes with data:", requestData);
+
+    const createResponse = await axios.post(`/api/${seasonId}/createClasses`, requestData);
+    console.log("Create response:", createResponse.data);
+
+    router.refresh();
+    alert("Classes have been resorted for the season");
+
+  } catch (error) {
+    console.error("Error resorting classes:", error);
+    alert("Error resorting classes. Please try again.");
+  }
+};
+
+
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const reader = new FileReader();
 
       reader.onload = async (e) => {
-        // Ensure that the result is not null
         if (e.target && e.target.result) {
           const data = e.target.result;
-          const workbook = XLSX.read(data, {
-            type: "binary",
-          });
-
-          // Assuming your Excel file has a sheet named "Sheet1"
+          const workbook = XLSX.read(data, { type: "binary" });
           const worksheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[worksheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-          // Convert the sheet to JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-            header: 1,
-          });
-
-          // Log the JSON object to inspect it
-          console.log(jsonData);
-
-          // Use axios to send this JSON data to your server
           try {
             const response = await axios.post(
               `/api/${params.seasonId}/students/importStudents`,
               jsonData
             );
             console.log("Server Response:", response.data);
-            // Handle the successful response here
             router.refresh();
-            router.push(`/${params.seasonId}/students`);
           } catch (error) {
             console.error("Error posting data:", error);
-            // Handle the error here
           }
-        } else {
-          console.error("File read error");
         }
-      };
-
-      reader.onerror = (error) => {
-        console.error("FileReader error:", error);
       };
 
       reader.readAsBinaryString(file);
@@ -122,7 +185,6 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
 
     let filtered;
     if (selected.includes("Saturday") || selected.includes("Sunday")) {
-      // Saturday and Sunday with morning and afternoon sessions
       const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
       filtered = data.filter(
         (item) =>
@@ -130,31 +192,24 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
           item.DAY === selected.split(" ")[0]
       );
     } else {
-      // Other days with only one time slot
       filtered = data.filter((item) => item.DAY === selected);
     }
 
     setFilteredData(filtered);
   };
+
   async function generateStudentPDFs(students: StudentColumn[]): Promise<void> {
     try {
-      console.log("data sent to pdf",students);
-      const filteredStudents = students.filter(student => 
-        student.status !== "Unregistered" &&  
-        student.APPLYING_FOR !== "Transportation"
+      const filteredStudents = students.filter(
+        (student) => student.status !== "Unregistered" && student.APPLYING_FOR !== "Transportation"
       );
-      console.log("data sent to pdf", filteredStudents);
-      const response = await fetch( `/api/${params.seasonId}/students/studentCard`, {
+      const response = await fetch(`/api/${params.seasonId}/students/studentCard`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(filteredStudents),
       });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Error: ${response.statusText}`);
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -171,18 +226,23 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       console.error("Error generating PDFs:", error);
     }
   }
+
   const handleExportToPDF = async () => {
     const exportData = filteredData
-      .filter((student) => student.APPLYING_FOR !== "Transportation" && student.status !== "Unregistered")
-        .sort((a, b) => a.NAME_LAST.trim().toUpperCase().localeCompare(b.NAME_LAST.trim().toUpperCase()));
-      const doc = new jsPDF({
-      orientation: "portrait",
-    });
-    const title = "List of All Students"; // Your title
-    const titleX = 12; // X coordinate for the title, adjust as needed
-    const titleY = 8; //
-    doc.setFontSize(10); // Set font size
+      .filter(
+        (student) => student.APPLYING_FOR !== "Transportation" && student.status !== "Unregistered"
+      )
+      .sort((a, b) =>
+        a.NAME_LAST.trim().toUpperCase().localeCompare(b.NAME_LAST.trim().toUpperCase())
+      );
+
+    const doc = new jsPDF({ orientation: "portrait" });
+    const title = "List of All Students";
+    const titleX = 12;
+    const titleY = 8;
+    doc.setFontSize(10);
     doc.text(title, titleX, titleY);
+
     const columns = [
       { title: "Last", dataKey: "NAME_LAST" },
       { title: "First", dataKey: "NAME_FIRST" },
@@ -194,9 +254,9 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       { title: "Ability", dataKey: "level" },
       { title: "Program", dataKey: "ProgCode" },
       { title: "Age", dataKey: "AGE" },
-      // { title: "Registered For", dataKey: "APPLYING_FOR" },
       { title: "Emergency", dataKey: "phone" },
     ];
+
     const rows = exportData.map((student) => ({
       NAME_LAST: student.NAME_LAST,
       NAME_FIRST: student.NAME_FIRST,
@@ -208,12 +268,10 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       level: student.LEVEL,
       ProgCode: student.ProgCode,
       AGE: student.AGE,
-      //APPLYING_FOR: student.APPLYING_FOR, // Note: This appears to be a duplicate of the "Applying_For" field
       phone: student.HOME_TEL,
     }));
-    
 
-    doc.autoTable({ columns: columns, body: rows,styles: { fontSize: 8 } });
+    doc.autoTable({ columns: columns, body: rows, styles: { fontSize: 8 } });
     const fileName = selectedDay
       ? `${selectedDay.replace(" ", "_")}_Students.pdf`
       : "All_Students.pdf";
@@ -222,16 +280,13 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
 
   return (
     <>
-      <div className=" flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <Heading
           title={`Students (${filteredData.length})`}
-          description="manage students for the season website"
+          description="Manage students for the season website"
         />
         <div className="flex items-center">
-          <Button
-            className="mr-4"
-            onClick={() => generateStudentPDFs(filteredData)}
-          >
+          <Button className="mr-4" onClick={() => generateStudentPDFs(filteredData)}>
             <Plus className="mr-4 b-4 w-4" />
             Export Student cards
           </Button>
@@ -239,10 +294,7 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
             <Plus className="mr-4 b-4 w-4" />
             Export Students
           </Button>
-          <Button
-            onClick={() => document.getElementById("fileInput")!.click()}
-            className="mr-4"
-          >
+          <Button onClick={() => document.getElementById("fileInput")!.click()} className="mr-4">
             <input
               type="file"
               id="fileInput"
@@ -253,14 +305,14 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
             <Plus className=" mr-2 b-4 w-4" />
             Import Students
           </Button>
-
-          <Button
-            onClick={() => router.push(`/${params.seasonId}/students/new`)}
-          >
+          <Button onClick={() => router.push(`/${params.seasonId}/students/new`)}>
             <Plus className=" m-2 b-4 w-4" />
             Add New
           </Button>
-         
+          <Button onClick={handleResortClasses} className="ml-4">
+            <Plus className=" mr-2 b-4 w-4" />
+            Resort Classes
+          </Button>
         </div>
       </div>
 
@@ -282,7 +334,7 @@ export const StudentClient: React.FC<StudentClientProps> = ({ data }) => {
       </select>
 
       <Separator />
-      <DataTable searchKeys={['ProgCode', 'NAME_LAST']}  columns={columns} data={filteredData} />
+      <DataTable searchKeys={['ProgCode', 'NAME_LAST']} columns={columns} data={filteredData} />
       <Separator />
       <ApiList entityName="students" entityIdName="studentId" />
     </>

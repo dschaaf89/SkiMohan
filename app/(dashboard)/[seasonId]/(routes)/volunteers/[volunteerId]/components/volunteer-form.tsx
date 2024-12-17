@@ -473,6 +473,8 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Ballard">Ballard</SelectItem>
+                      <SelectItem value="SouthJackon">South Jackson</SelectItem>
+                      <SelectItem value="SalmonBay">Salmon Bay</SelectItem>
                       <SelectItem value="Eastside Catholic">
                         Eastside Catholic
                       </SelectItem>
