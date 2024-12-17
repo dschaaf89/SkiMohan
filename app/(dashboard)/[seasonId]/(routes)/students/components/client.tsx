@@ -226,24 +226,28 @@ const handleResortClasses = async () => {
       console.error("Error generating PDFs:", error);
     }
   }
-
   const handleExportToPDF = async () => {
+    // Filter data based on the current season
     const exportData = filteredData
       .filter(
-        (student) => student.APPLYING_FOR !== "Transportation" && student.status !== "Unregistered"
+        (student) =>
+          student.APPLYING_FOR !== "Transportation" &&
+          student.status !== "Unregistered" &&
+          seasonId === seasonId // Ensure it matches the current seasonId
       )
       .sort((a, b) =>
         a.NAME_LAST.trim().toUpperCase().localeCompare(b.NAME_LAST.trim().toUpperCase())
       );
-
+  
     const doc = new jsPDF({ orientation: "portrait" });
     const title = "List of All Students";
     const titleX = 12;
     const titleY = 8;
     doc.setFontSize(10);
     doc.text(title, titleX, titleY);
-
+  
     const columns = [
+      { title: "SeasonID", dataKey: "SeasonID" },
       { title: "Last", dataKey: "NAME_LAST" },
       { title: "First", dataKey: "NAME_FIRST" },
       { title: "Day", dataKey: "Day" },
@@ -256,7 +260,7 @@ const handleResortClasses = async () => {
       { title: "Age", dataKey: "AGE" },
       { title: "Emergency", dataKey: "phone" },
     ];
-
+  
     const rows = exportData.map((student) => ({
       NAME_LAST: student.NAME_LAST,
       NAME_FIRST: student.NAME_FIRST,
@@ -270,7 +274,7 @@ const handleResortClasses = async () => {
       AGE: student.AGE,
       phone: student.HOME_TEL,
     }));
-
+  
     doc.autoTable({ columns: columns, body: rows, styles: { fontSize: 8 } });
     const fileName = selectedDay
       ? `${selectedDay.replace(" ", "_")}_Students.pdf`
