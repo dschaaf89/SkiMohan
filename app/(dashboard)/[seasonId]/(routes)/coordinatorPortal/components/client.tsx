@@ -222,8 +222,8 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { display: "Soundview", dataValue: "Soundview" },
     { display: "ThortonCreek", dataValue: "Thorton Creek" },
     { display: "Wallingford", dataValue: "Wallingford" },
-    { display: "SouthJackon", dataValue: "South Jackson" },
-    { display: "SalmonBay", dataValue: "Salmon Bay" },
+    { display: "South Jackson", dataValue: "SouthJackon" },
+    { display: "Salmon Bay", dataValue: "SalmonBay" },
   ];
 
   const getVolunteerProgramName = (displayValue) => {
