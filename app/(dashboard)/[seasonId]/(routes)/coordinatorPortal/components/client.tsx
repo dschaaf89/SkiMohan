@@ -208,7 +208,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "Soundview", label: "Soundview" },
     { value: "ThortonCreek", label: "Thorton-Creek" },
     { value: "Wallingford", label: "Wallingford" },
-    { value: "SouthJackon", label: "South Jackson" },
+    { value: "SouthJackson", label: "South Jackson" },
     { value: "SalmonBay", label: "Salmon Bay" },
   ];
 
