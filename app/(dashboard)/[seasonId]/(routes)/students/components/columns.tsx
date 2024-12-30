@@ -297,7 +297,7 @@ export const columns: ColumnDef<StudentColumn>[] = [
     header: "Aggressivness",
   },
   {
-    accessorKey: "emailMain",
+    accessorKey: "Email_student",
     header: "Main Email",
   },
   {

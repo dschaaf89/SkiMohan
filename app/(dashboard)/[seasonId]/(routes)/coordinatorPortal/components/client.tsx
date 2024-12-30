@@ -284,7 +284,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
         setFilteredWaitlistStudents(filteredWaitlistStudents);
       }
     },
-    [data] // Include getVolunteerProgramName in the dependency array
+    [data, getVolunteerProgramName] // Include getVolunteerProgramName in the dependency array
   ); // Include data as a dependency because it is used in the function
   
   useEffect(() => {
