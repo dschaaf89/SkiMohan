@@ -249,7 +249,8 @@ function getProgramDetails(programCode: string) {
         CITY,
         STATE,
         ZIP,
-        student_tel: Email_student,
+        Email_student,
+        student_tel:"",
         BRTHD,
         AGE: calculatedAge, // Assign calculated age
         GradeLevel,
