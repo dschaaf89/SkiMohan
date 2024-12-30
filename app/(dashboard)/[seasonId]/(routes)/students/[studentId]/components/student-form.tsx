@@ -629,7 +629,20 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
               name="E_mail_main"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email Main</FormLabel>
+                  <FormControl>
+                    <Input disabled={loading} placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+                <FormField
+              control={form.control}
+              name="Email_student"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>contact</FormLabel>
                   <FormControl>
                     <Input disabled={loading} placeholder="Email" {...field} />
                   </FormControl>
