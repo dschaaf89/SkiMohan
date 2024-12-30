@@ -222,7 +222,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { display: "Soundview", dataValue: "Soundview" },
     { display: "ThortonCreek", dataValue: "Thorton Creek" },
     { display: "Wallingford", dataValue: "Wallingford" },
-    { display: "South Jackson", dataValue: "SouthJackon" },
+    { display: "South Jackson", dataValue: "SouthJackson" },
     { display: "Salmon Bay", dataValue: "SalmonBay" },
   ];
 
@@ -256,33 +256,36 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   //   filterDataByProgram(selectedProgram);
   // }, [selectedProgram, data]);
 
-  const filterDataByProgram = useCallback((selectedProgram: ProgramKey | undefined) => {
-    if (!selectedProgram) {
-      setFilteredStudents(data.students);
-      setFilteredVolunteers(data.volunteers);
-      setFilteredWaitlistStudents(data.waitlistStudents);
-    } else {
-      const selectedPrefix = programToPrefix[selectedProgram];
-      
-      // Filtering students and waitlist normally
-      const filteredStudents = data.students.filter((student) =>
-        student.ProgCode.startsWith(selectedPrefix)
-      );
-      const filteredWaitlistStudents = data.waitlistStudents.filter((student) =>
-        student.ProgCode.startsWith(selectedPrefix)
-      );
-  
-      // Filtering volunteers with new mapping for `employerSchool`
-      const volunteerProgramName = getVolunteerProgramName(selectedProgram); // Translated name for filtering
-      const filteredVolunteers = data.volunteers.filter(
-        (volunteer) => volunteer.employerSchool === volunteerProgramName
-      );
-  
-      setFilteredStudents(filteredStudents);
-      setFilteredVolunteers(filteredVolunteers);
-      setFilteredWaitlistStudents(filteredWaitlistStudents);
-    }
-  }, [data]); // Include data as a dependency because it is used in the function
+  const filterDataByProgram = useCallback(
+    (selectedProgram: ProgramKey | undefined) => {
+      if (!selectedProgram) {
+        setFilteredStudents(data.students);
+        setFilteredVolunteers(data.volunteers);
+        setFilteredWaitlistStudents(data.waitlistStudents);
+      } else {
+        const selectedPrefix = programToPrefix[selectedProgram];
+        
+        // Filtering students and waitlist normally
+        const filteredStudents = data.students.filter((student) =>
+          student.ProgCode.startsWith(selectedPrefix)
+        );
+        const filteredWaitlistStudents = data.waitlistStudents.filter((student) =>
+          student.ProgCode.startsWith(selectedPrefix)
+        );
+    
+        // Filtering volunteers with new mapping for `employerSchool`
+        const volunteerProgramName = getVolunteerProgramName(selectedProgram); // Translated name for filtering
+        const filteredVolunteers = data.volunteers.filter(
+          (volunteer) => volunteer.employerSchool === volunteerProgramName
+        );
+    
+        setFilteredStudents(filteredStudents);
+        setFilteredVolunteers(filteredVolunteers);
+        setFilteredWaitlistStudents(filteredWaitlistStudents);
+      }
+    },
+    [data, getVolunteerProgramName] // Include getVolunteerProgramName in the dependency array
+  ); // Include data as a dependency because it is used in the function
   
   useEffect(() => {
     filterDataByProgram(selectedProgram);
