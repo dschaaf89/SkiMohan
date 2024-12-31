@@ -4,7 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StudentColumn } from "../../students/components/columns";
 import { VolunteerColumn } from "../../volunteers/components/columns";
 import { WaitlistColumn } from "../../waitlist/components/columns";
@@ -212,7 +212,9 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { value: "SalmonBay", label: "Salmon Bay" },
   ];
 
-  const volunteerProgramMappings = [
+// Memoize the volunteerProgramMappings array
+const volunteerProgramMappings = useMemo(
+  () => [
     { display: "EastsideCatholic", dataValue: "Eastside Catholic" },
     { display: "Interlake", dataValue: "Interlake" },
     { display: "Meadowbrook", dataValue: "Meadowbrook" },
@@ -224,12 +226,20 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
     { display: "Wallingford", dataValue: "Wallingford" },
     { display: "South Jackson", dataValue: "SouthJackson" },
     { display: "Salmon Bay", dataValue: "SalmonBay" },
-  ];
+  ],
+  [] // Empty dependency array to ensure it is memoized
+);
 
-  const getVolunteerProgramName = (displayValue) => {
-  const program = volunteerProgramMappings.find(p => p.display === displayValue);
-  return program ? program.dataValue : displayValue; // Default to displayValue if no mapping found
-};
+// Memoize the getVolunteerProgramName function
+const getVolunteerProgramName = useCallback(
+  (displayValue: string) => {
+    const program = volunteerProgramMappings.find(
+      (p) => p.display === displayValue
+    );
+    return program ? program.dataValue : displayValue; // Default to displayValue if no mapping is found
+  },
+  [volunteerProgramMappings] // Add memoized array as a dependency
+);
   // const filterDataByProgram = (selectedProgram: ProgramKey | undefined) => {
   //   if (!selectedProgram) {
   //     setFilteredStudents(data.students);
@@ -256,6 +266,7 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
   //   filterDataByProgram(selectedProgram);
   // }, [selectedProgram, data]);
 
+
   const filterDataByProgram = useCallback(
     (selectedProgram: ProgramKey | undefined) => {
       if (!selectedProgram) {
@@ -264,29 +275,26 @@ export const CoordinatorClient: React.FC<CoordinatorClientProps> = ({
         setFilteredWaitlistStudents(data.waitlistStudents);
       } else {
         const selectedPrefix = programToPrefix[selectedProgram];
-        
-        // Filtering students and waitlist normally
+  
         const filteredStudents = data.students.filter((student) =>
           student.ProgCode.startsWith(selectedPrefix)
         );
         const filteredWaitlistStudents = data.waitlistStudents.filter((student) =>
           student.ProgCode.startsWith(selectedPrefix)
         );
-    
-        // Filtering volunteers with new mapping for `employerSchool`
-        const volunteerProgramName = getVolunteerProgramName(selectedProgram); // Translated name for filtering
+  
+        const volunteerProgramName = getVolunteerProgramName(selectedProgram);
         const filteredVolunteers = data.volunteers.filter(
           (volunteer) => volunteer.employerSchool === volunteerProgramName
         );
-    
+  
         setFilteredStudents(filteredStudents);
         setFilteredVolunteers(filteredVolunteers);
         setFilteredWaitlistStudents(filteredWaitlistStudents);
       }
     },
-    [data, getVolunteerProgramName] // Include getVolunteerProgramName in the dependency array
-  ); // Include data as a dependency because it is used in the function
-  
+    [data.students, data.volunteers, data.waitlistStudents, getVolunteerProgramName]
+  );
   useEffect(() => {
     filterDataByProgram(selectedProgram);
   }, [selectedProgram, filterDataByProgram]);
