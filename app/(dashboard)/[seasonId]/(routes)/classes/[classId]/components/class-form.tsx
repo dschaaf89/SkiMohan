@@ -69,10 +69,12 @@ const formSchema = z.object({
 type ClassFormValues = z.infer<typeof formSchema>;
 
 interface ClassFormProps {
-  initialData: (Classes & {
-    students?: StudentDetail[];
-    oldStudents?: StudentConnection;
-  }) | null;
+  initialData:
+    | (Classes & {
+        students?: StudentDetail[];
+        oldStudents?: StudentConnection;
+      })
+    | null;
 }
 
 export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
@@ -413,14 +415,15 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
                             <SelectValue placeholder="Select Level" />
                           </SelectTrigger>
                         </FormControl>
+                        
                         <SelectContent>
-                          <SelectItem value="1/2 novice">1/2 novice</SelectItem>
-                          <SelectItem value="3/4 inter">3/4 Int</SelectItem>
-                          <SelectItem value="5/6 adv inter">
-                            5/6 Int ADV
-                          </SelectItem>
-                          <SelectItem value="7/8 advance">7/8 ADV</SelectItem>
-                          <SelectItem value="9 ATAC">9 ATAC</SelectItem>
+                          <SelectItem value="1">Level 1</SelectItem>
+                          <SelectItem value="2">Level 2</SelectItem>
+                          <SelectItem value="3">Level 3</SelectItem>
+                          <SelectItem value="4">Level 4</SelectItem>
+                          <SelectItem value="5">Level 5</SelectItem>
+                          <SelectItem value="6">Level 6</SelectItem>
+                          <SelectItem value="7">Level 7</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
