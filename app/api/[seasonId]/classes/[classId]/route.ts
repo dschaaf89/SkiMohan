@@ -7,11 +7,11 @@ export async function GET(req: Request, { params }: { params: { classId: number 
   try {
     const classData = await prismadb.classes.findUnique({
       where: { classId: params.classId },
-      include: {
-        instructor: true, // include instructor details
-        assistant: true,  // include assistant details
-        // ... other fields you need
-      }
+      // include: {
+      //   instructor: true, // include instructor details
+      //   assistant: true,  // include assistant details
+      //   // ... other fields you need
+      // }
     });
 
     return NextResponse.json(classData);
@@ -59,45 +59,48 @@ export async function DELETE(
     return new NextResponse("Internal error", { status: 500 });
   }
 };
-
-
 export async function PATCH(
   req: Request,
-  { params }: { params: { classId: number, seasonId: string } }
+  { params }: { params: { classId: string; seasonId: string } }
 ) {
-  try { 
-    console.log('Received params:', params);
+  try {
     const { userId } = auth();
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
     }
-    const body = await req.json();
-    console.log("Received body:", body); // Log the entire body
-    console.log("Params:", params); // Log the params
-    const { classId:classId,instructorId, assistantId, instructorName, instructorPhone, ...updateData } = body;
-    
-    console.log("Body classId:", classId); // Log classId from body
-    console.log("Params classId:", params.classId); // Log classId from params
 
-    if (!params.classId) {
-      return new NextResponse("Class id is required", { status: 400 });
+    const body = await req.json();
+    const {
+      instructorID,
+      assistantId,
+      instructorName,
+      instructorPhone,
+      assistantName,
+      ...updateData
+    } = body;
+
+    const parsedClassId = parseInt(params.classId, 10);
+    if (isNaN(parsedClassId)) {
+      return new NextResponse("Invalid classId provided", { status: 400 });
     }
 
+    const dataToUpdate = {
+      ...updateData,
+      instructorId: instructorID || null,
+      assistantId: assistantId || null,
+      instructorName: instructorName || null,
+      instructorPhone: instructorPhone || null,
+      assistantName: assistantName || null,
+    };
+
     const updatedClass = await prismadb.classes.update({
-      where: {
-        classId: classId,
-      },
-      data: {
-        ...updateData, // Spread the body to update fields
-        instructorId: instructorId,
-        assistantId: assistantId,
-        instructorName: instructorName,
-        instructorPhone: instructorPhone
-      }
+      where: { classId: parsedClassId },
+      data: dataToUpdate,
     });
+
     return NextResponse.json(updatedClass);
   } catch (error) {
-    console.error('[Class_PATCH]', error);
+    console.error("[Class_PATCH] Error:", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}

@@ -16,43 +16,38 @@ interface ClassClientProps {
   data: ClassColumn[];
 }
 
-interface ProgCodeTimeSlots {
-  [progCode: string]: "Morning" | "Afternoon";
-}
-
-type ColorOrder = {
-  [key: string]: number;
-};
-
-const saturdayProgCodeTimeSlots: ProgCodeTimeSlots = {
-  "G710-B-LO": "Morning",
-  "G710-S-LO": "Morning",
-  "G715-S-LO": "Morning",
-  "G720-B-LO": "Afternoon",
-  "G720-S-LO": "Afternoon",
-  "G725-S-LO": "Afternoon",
-};
-
-const sundayProgCodeTimeSlots: ProgCodeTimeSlots = {
-  "G110-B-LO": "Morning",
-  "G110-S-LO": "Morning",
-  "G115-S-LO": "Morning",
-  "G120-B-LO": "Afternoon",
-  "G120-S-LO": "Afternoon",
-  "G125-S-LO": "Afternoon",
-};
-
-const progCodeTimeSlots: ProgCodeTimeSlots = {
-  ...saturdayProgCodeTimeSlots,
-  ...sundayProgCodeTimeSlots,
-};
-
 export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
   const params = useParams();
   const router = useRouter();
   const seasonId = params.seasonId;
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [filteredData, setFilteredData] = useState<ClassColumn[]>(data);
+
+  const assignMeetingPoints = async () => {
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const response = await axios.post(`/api/${seasonId}/meetingPoint`, {
+        seasonId,
+        classes: filteredData,
+      });
+
+      if (response.status === 200) {
+        setMessage("Meeting points assigned successfully!");
+        router.refresh(); // Refresh the page to show updated data
+      } else {
+        setMessage("Failed to assign meeting points.");
+      }
+    } catch (error) {
+      console.error("Error assigning meeting points:", error);
+      setMessage("An error occurred while assigning meeting points.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDayChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = event.target.value;
@@ -61,130 +56,69 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
     let filtered: ClassColumn[] = [];
 
     if (selected.includes("Saturday") || selected.includes("Sunday")) {
-      const timeSlot = selected.includes("Morning") ? "Morning" : "Afternoon";
+      const isMorning = selected.includes("Morning");
       filtered = data.filter(
         (item) =>
-          progCodeTimeSlots[item.progCode] === timeSlot &&
-          item.DAY === selected.split(" ")[0]
+          item.DAY === selected.split(" ")[0] &&
+          ((isMorning && item.startTime < "12:00 PM") ||
+            (!isMorning && item.startTime >= "12:00 PM"))
       );
     } else {
       filtered = data.filter((item) => item.DAY === selected);
     }
 
     setFilteredData(filtered);
+    console.log(`Filtered Data for ${selected}:`, filtered); // Debugging logs
   };
 
   const handleExportToPDF = async () => {
     const exportData = [...filteredData];
-
-    exportData.sort((a, b) => {
-      const colorOrder: ColorOrder = { MK: 1, Red: 2, Yellow: 2, Blue: 3 };
-      const defaultColorOrderValue = 999;
-
-      const colorRankA = colorOrder[a.meetColor] || defaultColorOrderValue;
-      const colorRankB = colorOrder[b.meetColor] || defaultColorOrderValue;
-
-      if (colorRankA !== colorRankB) {
-        return colorRankA - colorRankB;
-      }
-
-      return a.meetingPoint - b.meetingPoint;
-    });
-
-    const doc = new jsPDF({
-      orientation: "landscape",
-    });
-    const title = selectedDay
-      ? `List of Classes for ${selectedDay}`
-      : "List of All Classes";
+    const doc = new jsPDF({ orientation: "landscape" });
     doc.setFontSize(18);
-    doc.text(title, 15, 10);
+    doc.text("Classes Report", 15, 10);
 
     const columns = [
-      { title: "Sign#", dataKey: "meetingPoint" },
-      { title: "meetColor", dataKey: "meetColor" },
-      { title: "#ofStudents", dataKey: "numberStudents" },
+      { title: "Meeting Point", dataKey: "meetingPoint" },
+      { title: "Color", dataKey: "meetColor" },
+      { title: "Students", dataKey: "numberStudents" },
       { title: "Discipline", dataKey: "discipline" },
-      { title: "Ability", dataKey: "Level" },
+      { title: "Level", dataKey: "Level" },
       { title: "Age", dataKey: "Age" },
       { title: "ClassId", dataKey: "classId" },
-      { title: "Instructor", dataKey: "instructorName" },
-      { title: "Phone", dataKey: "instructorPhone" },
     ];
 
     const rows = exportData.map((classes) => ({
       meetingPoint: classes.meetingPoint,
+      meetColor: classes.meetColor,
       numberStudents: classes.numberStudents,
       discipline: classes.discipline,
       Level: classes.Level,
       Age: classes.Age,
       classId: classes.classId,
-      meetColor: classes.meetColor,
-      instructorName: classes.instructorName,
-      instructorPhone: classes.instructorPhone,
     }));
 
-    doc.autoTable({ columns: columns, body: rows });
-
-    const fileName = selectedDay
-      ? `${selectedDay.replace(" ", "_")}_classes.pdf`
-      : "All_Classes.pdf";
-    doc.save(fileName);
+    doc.autoTable({ columns, body: rows });
+    doc.save("Classes_Report.pdf");
   };
-
-  async function generatePayCardPDFs(classes: ClassColumn[]): Promise<void> {
-    try {
-      const response = await fetch(
-        `/api/${params.seasonId}/classes/classCard`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(classes),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "students.pdf";
-      document.body.appendChild(a);
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (error) {
-      console.error("Error generating PDFs:", error);
-    }
-  }
 
   return (
     <>
-      <div className=" flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <Heading
           title={`Classes (${filteredData.length})`}
           description="Manage Classes for the season website"
         />
       </div>
       <div className="flex items-center">
-        <Button
-          className="mr-4"
-          onClick={() => generatePayCardPDFs(filteredData)}
-        >
-          Export Pay Slips
+        <Button className="mr-4" onClick={assignMeetingPoints}>
+          <Plus className="m-2 b-4 w-4" />
+          Assign Meeting Points
         </Button>
         <Button
           className="mr-4"
           onClick={() => router.push(`/${params.seasonId}/classes/new`)}
         >
-          <Plus className=" m-2 b-4 w-4" />
+          <Plus className="m-2 b-4 w-4" />
           Add New
         </Button>
         <Button className="mr-4" onClick={handleExportToPDF}>

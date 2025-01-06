@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Console } from "console";
 
 interface Instructor {
   UniqueID: number;
@@ -36,7 +37,11 @@ interface Instructor {
   NAME_LAST: string;
   HOME_TEL: string;
   C_TEL: string;
+  classTimes: Array<{
+    day: string; // Add any other properties from classTimes if necessary
+  }>;
 }
+
 
 interface StudentDetail {
   UniqueID: number;
@@ -75,11 +80,16 @@ interface ClassFormProps {
         oldStudents?: StudentConnection;
       })
     | null;
+    instructors: Instructor[]; // Add this
+    assistants: Instructor[];  // Add this
 }
 
-export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
+export const ClassForm: React.FC<ClassFormProps> = ({ initialData, instructors, assistants }) => {
   const params = useParams();
   const router = useRouter();
+
+  //console.log("Instructors passed to ClassForm:", instructors);
+  //console.log("Assitants  passed to ClassForm:", assistants);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [studentDetails, setStudentDetails] = useState<StudentDetail[]>([]);
@@ -105,22 +115,23 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
   const toastMessage = initialData ? "Class updated." : "Class created.";
   const action = initialData ? "Save changes" : "Create";
 
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [assistants, setAssistants] = useState<Instructor[]>([]);
+  // const [instructors, setInstructors] = useState<Instructor[]>([]);
+  // const [assistants, setAssistants] = useState<Instructor[]>([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>("");
   const [selectedAssistantId, setSelectedAssistantId] = useState<string>("");
 
   const onSubmit = async (data: ClassFormValues) => {
     try {
       setLoading(true);
+
+      const instructor = instructors.find((inst) => inst.UniqueID === data.instructorID);
+      const assistant = assistants.find((ast) => ast.UniqueID === data.assistantId);
+
       const submissionData = {
         ...data,
-        instructorID: selectedInstructorId
-          ? Number(selectedInstructorId)
-          : undefined,
-        assistantId: selectedAssistantId
-          ? Number(selectedAssistantId)
-          : undefined,
+        instructorName: instructor ? `${instructor.NAME_FIRST} ${instructor.NAME_LAST}` : null,
+        instructorPhone: instructor ? instructor.C_TEL : null,
+        assistantName: assistant ? `${assistant.NAME_FIRST} ${assistant.NAME_LAST}` : null,
       };
 
       if (initialData) {
@@ -155,21 +166,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
     }
   };
 
-  useEffect(() => {
-    const fetchInstructors = async () => {
-      try {
-        console.log("Season ID:", params.seasonId);
-        const { data } = await axios.get(`/api/${params.seasonId}/instructors`);
-        console.table(data);
-        setInstructors(data); // Update the state with the fetched data
-      } catch (error) {
-        console.error("Error fetching instructors:", error);
-        toast.error("Failed to load instructors.");
-      }
-    };
   
-    fetchInstructors();
-  }, [params.seasonId]); 
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -313,70 +310,77 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData }) => {
 
                 {/* Instructor Name */}
                 <FormField
-                  control={form.control}
-                  name="instructorID"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instructor</FormLabel>
-                      <Select
-                        onValueChange={handleInstructorChange}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Instructor" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 overflow-y-auto">
-                          {instructors.map((instructor) => (
-                            <SelectItem
-                              key={instructor.UniqueID}
-                              value={instructor.UniqueID.toString()}
-                            >
-                              {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+  control={form.control}
+  name="instructorID"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Instructor</FormLabel>
+      <Select
+        onValueChange={(value) => {
+          field.onChange(Number(value)); // Update the form field value
+          setSelectedInstructorId(value); // Update your local state
+          console.log("Selected Instructor ID:", value); // Debug log
+        }}
+        value={field.value?.toString()} // Bind the value
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Instructor" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent className="max-h-60 overflow-y-auto">
+          {instructors.map((instructor) => (
+            <SelectItem
+              key={instructor.UniqueID}
+              value={instructor.UniqueID.toString()}
+            >
+              {`${instructor.NAME_FIRST} ${instructor.NAME_LAST}`}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
 
-                {/* Assistant Name */}
-                <FormField
-                  control={form.control}
-                  name="assistantId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assistant</FormLabel>
-                      <Select
-                        onValueChange={handleAssistantChange}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Assistant" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 overflow-y-auto">
-                          {assistants.map((assistant) => {
-                            console.log("Rendering Assistant:", assistant);
-                            return (
-                              <SelectItem
-                                key={assistant.UniqueID}
-                                value={assistant.UniqueID.toString()}
-                              >
-                                {`${assistant.NAME_FIRST} ${assistant.NAME_LAST}`}
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+{/* Assistant Name */}
+<FormField
+  control={form.control}
+  name="assistantId"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Assistant</FormLabel>
+      <Select
+        onValueChange={(value) => {
+          field.onChange(Number(value)); // Update the form field value
+          setSelectedAssistantId(value); // Update your local state
+          console.log("Selected Assistant ID:", value); // Debug log
+        }}
+        value={field.value?.toString()} // Bind the value
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Assistant" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent className="max-h-60 overflow-y-auto">
+          {assistants.map((assistant) => (
+            <SelectItem
+              key={assistant.UniqueID}
+              value={assistant.UniqueID.toString()}
+            >
+              {`${assistant.NAME_FIRST} ${assistant.NAME_LAST}`}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
               </div>
 
               {/* Second Column */}

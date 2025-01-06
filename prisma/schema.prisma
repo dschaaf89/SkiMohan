@@ -178,8 +178,7 @@ model Instructor {
   oldClinics          Json?                 @map("oldClinics")          // Renamed field
   clinics             InstructorClinic[]    @relation("InstructorToClinic")  // New relation for Instructor-Clinic
   classTimes          InstructorClassTime[] @relation("InstructorToClassTime")
-  classes             Classes[]             @relation("InstructorToClasses")
-  classesAsAssistant  Classes[]             @relation("AssistantToClasses")
+
 
   @@index([seasonId])
   @@index([customerId])
@@ -236,20 +235,20 @@ model Classes {
   numberStudents  Int
   Level           String?
   Age             Int?        
-  instructorId    Int?        
-  instructor      Instructor? @relation("InstructorToClasses", fields: [instructorId], references: [UniqueID])
-  assistantId     Int?        
-  assistant       Instructor? @relation("AssistantToClasses", fields: [assistantId], references: [UniqueID])
+  instructorId    Int?        // Scalar field, no relation
+  assistantId     Int?        // Scalar field, no relation
+  instructorName  String?     // Store instructor name directly
+  instructorPhone String?     // Store instructor phone directly
+  assistantName   String?     // Store assistant name directly
   startTime       String?
   endTime         String?
-  instructorName  String?
-  instructorPhone String?
-  
+
   @@index([seasonId])
   @@index([instructorId])
   @@index([assistantId])
   @@index([classId, progCode])  // Compound index for class and program code
 }
+
 
 
 
