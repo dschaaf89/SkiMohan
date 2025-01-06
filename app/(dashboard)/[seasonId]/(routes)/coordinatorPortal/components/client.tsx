@@ -76,17 +76,17 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation: "",
-    pickUpTime: "3:15 PM",
-    dropOffTime: "Approximately 10:00 PM",
+    pickUpLocation: "the parking lot at the intersection of S Weller & 20th Pl (2006 S Weller St, Seattle, WA 98144)",
+    pickUpTime: "4:10PM",
+    dropOffTime: "Approximately 11:30PM",
   },
   SalmonBay: {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation: "",
-    pickUpTime: "3:15 PM",
-    dropOffTime: "Approximately 10:00 PM",
+    pickUpLocation: "SW side of school in bus zone on corner of 19th Ave NW and NW 65th St.",
+    pickUpTime: "4:00PM",
+    dropOffTime: "Approximately 11:30PM",
   },
   EastsideCatholic: {
     busCompany: "", // Placeholder
@@ -95,7 +95,7 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     pickUpLocation:
       "Eastside Catholic High School parking lot (232 228th Ave SE, Sammamish, WA 98074)",
     pickUpTime: "3:15 PM",
-    dropOffTime: "Approximately 10:00 PM",
+    dropOffTime: "Approximately 111:30PM",
   },
   Interlake: {
     busCompany: "", // Placeholder
@@ -112,8 +112,8 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busDriverPhone: "", // Placeholder
     pickUpLocation:
       "Meadowbrook Playfield parking lot (10750 30th Ave NE, Seattle, WA 98125)",
-    pickUpTime: "3:45 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    pickUpTime: "4:00 PM",
+    dropOffTime: "Approximately 11:30 PM",
   },
   Ballard: {
     busCompany: "", // Placeholder
@@ -121,8 +121,8 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busDriverPhone: "", // Placeholder
     pickUpLocation:
       "Ballard Pool Parking Lot (1471 NW 67th St, Seattle, WA 98117)",
-    pickUpTime: "4:00 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    pickUpTime: "3:30 PM",
+    dropOffTime: "Approximately 11:30 PM",
   },
   NorthEastSeattle: {
     busCompany: "", // Placeholder
@@ -130,8 +130,8 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busDriverPhone: "", // Placeholder
     pickUpLocation:
       "South lot along 30th, furthest from the flag pole (30th Ave NE south of 75th)",
-    pickUpTime: "3:50 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    pickUpTime: "3:40 PM",
+    dropOffTime: "Approximately 11:30PM",
   },
   Roosevelt: {
     busCompany: "", // Placeholder
@@ -139,15 +139,15 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     busDriverPhone: "", // Placeholder
     pickUpLocation: "Southbound on 15th Ave. NE between NE 65th and NE 68th",
     pickUpTime: "3:45 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    dropOffTime: "Approximately 11:30 PM",
   },
   Soundview: {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation: "Parking lot on 15th Ave. NW between 92nd & 95th",
+    pickUpLocation: "Bus Zone in front of School (9201 15th Ave NW Seattle, WA 98117)",
     pickUpTime: "4:00 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    dropOffTime: "Approximately 11:30 PM",
   },
   ThortonCreek: {
     busCompany: "", // Placeholder
@@ -156,15 +156,15 @@ const busLocations: Record<ProgramKey, BusLocation> = {
     pickUpLocation:
       "NE side of school bus zone (11051 34th Ave NE, Seattle, WA 98125)",
     pickUpTime: "4:00 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    dropOffTime: "Approximately 11:30PM",
   },
   Wallingford: {
     busCompany: "", // Placeholder
     busDriver: "", // Placeholder
     busDriverPhone: "", // Placeholder
-    pickUpLocation: "NE side of school",
+    pickUpLocation: "NE side of school going onto N 42nd St to South on Densmore Ave N (1610 N 41st St Seattle 98103)",
     pickUpTime: "4:00 PM",
-    dropOffTime: "Approximately 10:30 PM",
+    dropOffTime: "Approximately 11:30PM",
   },
 };
 
