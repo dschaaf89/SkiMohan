@@ -125,6 +125,7 @@ const formSchema = z.object({
   StartTime: z.string().optional(),
   EndTime: z.string().optional(),
   classID: z.number().optional(),
+  meetingPoint: z.number().optional(),
   status: z.string().optional(),
   //updateAt:z.date().optional(),
 });
@@ -179,6 +180,7 @@ const createDefaultValues = (
     EndTime: "",
     classID: 0,
     status: "",
+    meetingPoint:0,
     //updateAt:new Date(),
   };
 
@@ -292,6 +294,9 @@ const createDefaultValues = (
             case "classID":
               defaultValues.classID = (initialData[key] as number) || 0;
               break;
+              case "meetingPoint":
+                defaultValues.meetingPoint = (initialData[key] as number) || 0;
+                break;
             case "AcceptedTerms":
               defaultValues[key] =
                 initialData[key] != null ? Boolean(initialData[key]) : false;
@@ -366,7 +371,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
       // Ensure that classID is a string. If it's undefined, use a default value or handle accordingly.
       const classIdValue = data.classID?.toString() ?? "0";
       const classIdNumber = parseInt(classIdValue, 10);
-
+      const meetingPointValue = data.meetingPoint?.toString() ?? "0";
+      const meetingPointNumber = parseInt(meetingPointValue, 10);
       if (isNaN(classIdNumber)) {
         console.error("Invalid classID");
         return;
@@ -378,6 +384,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
         ProgCode: selectedProgram?.code || "",
         StartTime: selectedProgram?.startTime || "",
         EndTime: selectedProgram?.endTime || "",
+        meetingPoint: meetingPointNumber,
       };
 
       // Log submission data
@@ -1151,6 +1158,25 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData }) => {
                 </FormItem>
               )}
             />
+          <FormField
+  control={form.control}
+  name="meetingPoint"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Meeting Point</FormLabel>
+      <FormControl>
+        <Input
+          type="number"
+          placeholder="Meeting Point"
+          {...field}
+          value={field.value || initialData?.meetingPoint || 0}
+          onChange={(e) => field.onChange(Number(e.target.value))}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
             {/* <FormField
               control={form.control}
               name="updateAt"

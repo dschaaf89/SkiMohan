@@ -285,6 +285,7 @@ export async function PATCH(req: Request, { params }: { params: { studentId: num
         StartTime: body.StartTime,
         EndTime: body.EndTime,
         status: body.status,
+        meetingPoint:body.meetingPoint,
         season: {
           connect: { id: params.seasonId },  // Correctly associate the season
         },

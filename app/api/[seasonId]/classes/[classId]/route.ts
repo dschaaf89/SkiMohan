@@ -71,6 +71,7 @@ export async function PATCH(
 
     const body = await req.json();
     const {
+      meetingPoint,
       instructorID,
       assistantId,
       instructorName,
@@ -79,11 +80,13 @@ export async function PATCH(
       ...updateData
     } = body;
 
+    // Parse the classId
     const parsedClassId = parseInt(params.classId, 10);
     if (isNaN(parsedClassId)) {
       return new NextResponse("Invalid classId provided", { status: 400 });
     }
 
+    // Build the data to update, excluding the classId
     const dataToUpdate = {
       ...updateData,
       instructorId: instructorID || null,
@@ -91,11 +94,13 @@ export async function PATCH(
       instructorName: instructorName || null,
       instructorPhone: instructorPhone || null,
       assistantName: assistantName || null,
+      meetingPoint: meetingPoint || null, // Ensure lowercase 'm' for meetingPoint
     };
 
+    // Perform the update
     const updatedClass = await prismadb.classes.update({
-      where: { classId: parsedClassId },
-      data: dataToUpdate,
+      where: { classId: parsedClassId }, // Use classId in the where clause
+      data: dataToUpdate, // Exclude classId from the data object
     });
 
     return NextResponse.json(updatedClass);

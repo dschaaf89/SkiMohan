@@ -123,7 +123,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData, instructors, 
   const onSubmit = async (data: ClassFormValues) => {
     try {
       setLoading(true);
-
+      const meetingPointValue = data.meetingPoint?.toString() ?? "0";
+      const meetingPointNumber = parseInt(meetingPointValue, 10);
       const instructor = instructors.find((inst) => inst.UniqueID === data.instructorID);
       const assistant = assistants.find((ast) => ast.UniqueID === data.assistantId);
 
@@ -132,6 +133,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData, instructors, 
         instructorName: instructor ? `${instructor.NAME_FIRST} ${instructor.NAME_LAST}` : null,
         instructorPhone: instructor ? instructor.C_TEL : null,
         assistantName: assistant ? `${assistant.NAME_FIRST} ${assistant.NAME_LAST}` : null,
+        meetingPoint:meetingPointNumber,
       };
 
       if (initialData) {
@@ -294,19 +296,25 @@ export const ClassForm: React.FC<ClassFormProps> = ({ initialData, instructors, 
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="meetingPoint"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meeting Point</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="Point" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+  control={form.control}
+  name="meetingPoint"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Meeting Point</FormLabel>
+      <FormControl>
+        <Input
+          type="number"
+          placeholder="Meeting Point"
+          {...field}
+          value={field.value || initialData?.meetingPoint || 0}
+          onChange={(e) => field.onChange(Number(e.target.value))}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
 
                 {/* Instructor Name */}
                 <FormField
