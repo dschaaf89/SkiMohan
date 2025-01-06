@@ -35,7 +35,6 @@ export async function POST(req: Request) {
         seasonId: seasonId, // Apply season filter here in the Instructor table
       },
       include: {
-        classes: true,
         classTimes: {
           include: {
             classTime: true,
