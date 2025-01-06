@@ -20,12 +20,7 @@ export async function POST(req: Request) {
           class: {
             select: {
               classId: true,
-              instructor: {
-                select: {
-                  NAME_FIRST: true,
-                  NAME_LAST: true,
-                },
-              },
+              
               meetingPoint: true,
             },
           },
@@ -35,7 +30,7 @@ export async function POST(req: Request) {
       const formattedStudents = students.map((student) => ({
         name: `${student.NAME_FIRST} ${student.NAME_LAST}`,
         classNumber: student.class?.classId,
-        instructorName: `${student.class?.instructor?.NAME_FIRST} ${student.class?.instructor?.NAME_LAST}`,
+        //instructorName: `${student.class?.instructor?.NAME_FIRST} ${student.class?.instructor?.NAME_LAST}`,
         meetingPoint: student.class?.meetingPoint,
       }));
   
