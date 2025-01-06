@@ -97,11 +97,34 @@ export async function PATCH(
       meetingPoint: meetingPoint || null, // Ensure lowercase 'm' for meetingPoint
     };
 
-    // Perform the update
+    // Perform the class update
     const updatedClass = await prismadb.classes.update({
-      where: { classId: parsedClassId }, // Use classId in the where clause
-      data: dataToUpdate, // Exclude classId from the data object
+      where: { classId: parsedClassId },
+      data: dataToUpdate,
     });
+
+    // Find students in the class
+    const studentsInClass = await prismadb.student.findMany({
+      where: { classId: parsedClassId },
+    });
+
+    if (!studentsInClass || studentsInClass.length === 0) {
+      console.warn(`No students found in class with ID ${parsedClassId}`);
+    } else {
+      // Update each student's meetingPoint and meetColor
+      const updatePromises = studentsInClass.map((student) =>
+        prismadb.student.update({
+          where: { UniqueID: student.UniqueID },
+          data: {
+            meetingPoint: meetingPoint || student.meetingPoint, // Use the new meetingPoint if provided
+            meetColor: updatedClass.meetColor || student.meetColor, // Use the new meetColor if provided
+          },
+        })
+      );
+
+      // Wait for all updates to complete
+      await Promise.all(updatePromises);
+    }
 
     return NextResponse.json(updatedClass);
   } catch (error) {
