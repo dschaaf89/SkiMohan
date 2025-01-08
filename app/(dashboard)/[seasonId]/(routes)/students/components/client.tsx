@@ -232,7 +232,9 @@ const handleResortClasses = async () => {
       .filter(
         (student) =>
           student.APPLYING_FOR !== "Transportation" &&
+          student.APPLYING_FOR !== "TRANSPORTATION ON" &&
           student.status !== "Unregistered" &&
+          student.status !== "Waitlist" &&
           seasonId === seasonId // Ensure it matches the current seasonId
       )
       .sort((a, b) =>
