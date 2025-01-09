@@ -63,15 +63,20 @@ padding: 5px 10px;
 border: none; 
 }
 
+.student-list-container {
+  display: block;
+}
+
 .student-list {
-list-style-type: none;
-padding: 0;
-margin: 0;
+  column-count: 2;
+  column-gap: 20px; /* Adjust the gap between columns if needed */
+  padding: 0;
+  margin: 0;
+  list-style: none; /* Optional: Remove default bullet points */
 }
 
 .student-list li {
-border-top: 1px solid black;
-padding: 5px;
+  margin-bottom: 10px; /* Optional: Add spacing between list items */
 }
 
 .copy {

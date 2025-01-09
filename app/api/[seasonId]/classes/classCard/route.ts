@@ -231,6 +231,8 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min";
+import fs from "fs";
+import path from "path";
 
 const prismadb = new PrismaClient();
 
@@ -275,29 +277,14 @@ export async function POST(req: Request) {
     });
     const page = await browser.newPage();
 
-    // Inline CSS for styling
-    const inlineStyles = `
-      .student-list-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        max-height: 600px;
-      }
-      .student-list {
-        flex: 1 1 50%;
-        margin: 0;
-        padding: 0 10px;
-        list-style-type: none;
-      }
-      .student-list li {
-        margin: 5px 0;
-        font-size: 14px;
-      }
-      .page {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-      }
-    `;
+    // Load CSS for styling
+    const cssFilePath = path.join(
+      process.cwd(),
+      "app",
+      "resources",
+      "payStyles.css"
+    );
+    const cssContent = fs.readFileSync(cssFilePath, "utf8");
 
     const combinedHtmlContent = classesWithStudents
       .map((classItem) => {
@@ -396,7 +383,7 @@ export async function POST(req: Request) {
       `<!DOCTYPE html>
       <html lang="en">
       <head>
-        <style>${inlineStyles}</style>
+        <style>${cssContent}</style>
       </head>
       <body>${combinedHtmlContent}</body>
       </html>`
