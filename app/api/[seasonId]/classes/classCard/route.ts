@@ -291,7 +291,7 @@ export async function POST(req: Request) {
         const studentListHtml = classItem.students
           .map(
             (student) =>
-              `<li>${student.NAME_FIRST} ${student.NAME_LAST} (ID: ${student.UniqueID}, Level: ${student.LEVEL ?? "N/A"}, Age: ${student.AGE ?? "N/A"})</li>`
+              `<li>${student.NAME_FIRST} ${student.NAME_LAST} </li>`
           )
           .join("");
 
