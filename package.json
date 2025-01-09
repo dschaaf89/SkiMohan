@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "playwright install --with-deps && puppeteer browsers install chrome",
+    "postinstall": "puppeteer browsers install chrome",
     "prisma:seed": "ts-node --loader ts-node/esm prisma/seed.ts"
   },
   "dependencies": {
