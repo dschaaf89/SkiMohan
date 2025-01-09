@@ -101,6 +101,39 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
     doc.save("Classes_Report.pdf");
   };
 
+  const handleGenerateClassCards = async () => {
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const response = await axios.post(`/api/${seasonId}/classes/classCard`, filteredData, {
+        responseType: "blob", // Ensure the response is treated as a binary file
+      });
+
+      if (response.status === 200) {
+        // Create a URL for the blob and download the PDF
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `ClassCards_${selectedDay || "All"}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setMessage("Class cards generated successfully!");
+      } else {
+        setMessage("Failed to generate class cards.");
+      }
+    } catch (error) {
+      console.error("Error generating class cards:", error);
+      setMessage("An error occurred while generating class cards.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -124,6 +157,11 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
         <Button className="mr-4" onClick={handleExportToPDF}>
           <Plus className="mr-4 b-4 w-4" />
           Export Classes
+        </Button>
+
+        <Button className="mr-4" onClick={handleGenerateClassCards}>
+          <Plus className="mr-4 b-4 w-4" />
+          Generate Class Cards
         </Button>
         <select
           value={selectedDay ?? ""}

@@ -52,6 +52,7 @@
     "next-cloudinary": "^6.10.0",
     "next-connect": "^1.0.0",
     "papaparse": "^5.4.1",
+    "playwright": "^1.49.1",
     "playwright-core": "^1.42.0",
     "puppeteer": "^22.3.0",
     "puppeteer-core": "^9.1.1",
