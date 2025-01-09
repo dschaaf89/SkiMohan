@@ -25,8 +25,13 @@ export async function POST(req: Request) {
   try {
     let topMargin: string = "0.0in";
     const body = await req.json();
-    const students: Student[] = body; // Cast directly as Student[]
-
+    let students: Student[] = body; // Cast directly as Student[]
+    students = students.sort((a, b) => {
+      if (a.meetColor === b.meetColor) {
+        return a.meetingPoint - b.meetingPoint;
+      }
+      return a.meetColor.localeCompare(b.meetColor);
+    });
     if (!Array.isArray(students)) {
       return new NextResponse("Payload is not an array");
     }
