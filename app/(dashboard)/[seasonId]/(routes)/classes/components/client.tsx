@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Phone, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
@@ -12,11 +12,19 @@ import { useState } from "react";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
-interface ClassClientProps {
-  data: ClassColumn[];
+interface Instructor {
+  UniqueID: number;
+  NAME_FIRST: string;
+  NAME_LAST: string;
+  HOME_TEL: string;
 }
 
-export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
+interface ClassClientProps {
+  data: ClassColumn[];
+  instructors: Instructor[];
+}
+
+export const ClassClient: React.FC<ClassClientProps> = ({ data, instructors }) => {
   const params = useParams();
   const router = useRouter();
   const seasonId = params.seasonId;
@@ -24,6 +32,12 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
   const [message, setMessage] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [filteredData, setFilteredData] = useState<ClassColumn[]>(data);
+
+  // Map instructors for quick lookup
+  const instructorMap = instructors.reduce((map, instructor) => {
+    map[instructor.UniqueID] = instructor;
+    return map;
+  }, {} as Record<number, Instructor>);
 
   const assignMeetingPoints = async () => {
     setLoading(true);
@@ -72,7 +86,14 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
   };
 
   const handleExportToPDF = async () => {
-    const exportData = [...filteredData];
+    const exportData = [...filteredData].map((classes) => {
+      const instructor = instructorMap[classes.instructorID];
+      return {
+        ...classes,
+        instructorPhone: instructor?.HOME_TEL || "N/A", // Enrich with phone dynamically
+      };
+    });
+
     const doc = new jsPDF({ orientation: "landscape" });
     doc.setFontSize(18);
     doc.text("Classes Report", 15, 10);
@@ -85,6 +106,8 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
       { title: "Level", dataKey: "Level" },
       { title: "Age", dataKey: "Age" },
       { title: "ClassId", dataKey: "classId" },
+      { title: "Instructor Name", dataKey: "instructorName" },
+      { title: "Phone", dataKey: "instructorPhone" },
     ];
 
     const rows = exportData.map((classes) => ({
@@ -95,6 +118,8 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
       Level: classes.Level,
       Age: classes.Age,
       classId: classes.classId,
+      instructorName: classes.instructorName,
+      instructorPhone: classes.instructorPhone,
     }));
 
     doc.autoTable({ columns, body: rows });
@@ -132,7 +157,6 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data }) => {
       setLoading(false);
     }
   };
-
 
   return (
     <>

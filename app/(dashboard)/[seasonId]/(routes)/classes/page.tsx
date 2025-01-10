@@ -55,21 +55,30 @@ const fetchStudentDetails = async (studentIds: (number | string)[]): Promise<Stu
   }
 };
 const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
+  // Fetch all instructors
+  const instructors = await prismadb.instructor.findMany({
+    select: {
+      UniqueID: true, // or instructorID based on your schema
+      NAME_FIRST: true,
+      NAME_LAST: true,
+      HOME_TEL: true,
+    },
+  });
+
   const classes = await prismadb.classes.findMany({
     where: {
       seasonId: params.seasonId,
     },
   });
 
+  // Format classes without fetching instructor details on the server
   const formattedClassesPromises = classes.map(async (item) => {
-    let studentsFormatted: StudentDetails[] = [];
-
     // Handle 'oldStudents' if 'students' is not directly available
     const studentIds = Array.isArray(item.oldStudents)
-      ? (item.oldStudents as string[]).filter(id => typeof id === 'string' || typeof id === 'number')
+      ? (item.oldStudents as string[]).filter((id) => typeof id === "string" || typeof id === "number")
       : [];
 
-    studentsFormatted = await fetchStudentDetails(studentIds as (string | number)[]);
+    const studentsFormatted = await fetchStudentDetails(studentIds as (string | number)[]);
 
     return {
       DAY: item.day || "",
@@ -84,10 +93,9 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
       progCode: item.progCode || "",
       assistantId: Number(item.assistantId),
       instructorName: item.instructorName || "",
-      instructorPhone: item.instructorPhone || "",
       startTime: item.startTime || "",
       endTime: item.endTime || "",
-      students: studentsFormatted,  // Use studentsFormatted here
+      students: studentsFormatted,
     };
   });
 
@@ -97,7 +105,8 @@ const ClassesPage = async ({ params }: { params: { seasonId: string } }) => {
     <div className="flex-col">
       <div className="flex-1 space-y-4 p-8 pt-6">
         <h1 className="text-center">Classes</h1>
-        <ClassClient data={formattedClasses} />
+        {/* Pass both formattedClasses and instructors to the client */}
+        <ClassClient data={formattedClasses} instructors={instructors} />
       </div>
     </div>
   );
