@@ -167,17 +167,17 @@ export const ClassClient: React.FC<ClassClientProps> = ({ data, instructors }) =
         />
       </div>
       <div className="flex items-center">
-        <Button className="mr-4" onClick={assignMeetingPoints}>
+        {/* <Button className="mr-4" onClick={assignMeetingPoints}>
           <Plus className="m-2 b-4 w-4" />
           Assign Meeting Points
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           className="mr-4"
           onClick={() => router.push(`/${params.seasonId}/classes/new`)}
         >
           <Plus className="m-2 b-4 w-4" />
           Add New
-        </Button>
+        </Button> */}
         <Button className="mr-4" onClick={handleExportToPDF}>
           <Plus className="mr-4 b-4 w-4" />
           Export Classes
