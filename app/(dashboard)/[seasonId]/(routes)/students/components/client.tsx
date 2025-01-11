@@ -300,7 +300,7 @@ const handleResortClasses = async () => {
             <Plus className="mr-4 b-4 w-4" />
             Export Students
           </Button>
-          <Button onClick={() => document.getElementById("fileInput")!.click()} className="mr-4">
+          {/* <Button onClick={() => document.getElementById("fileInput")!.click()} className="mr-4">
             <input
               type="file"
               id="fileInput"
@@ -310,15 +310,15 @@ const handleResortClasses = async () => {
             />
             <Plus className=" mr-2 b-4 w-4" />
             Import Students
-          </Button>
+          </Button> */}
           <Button onClick={() => router.push(`/${params.seasonId}/students/new`)}>
             <Plus className=" m-2 b-4 w-4" />
             Add New
           </Button>
-          <Button onClick={handleResortClasses} className="ml-4">
+          {/* <Button onClick={handleResortClasses} className="ml-4">
             <Plus className=" mr-2 b-4 w-4" />
             Resort Classes
-          </Button>
+          </Button> */}
         </div>
       </div>
 
